@@ -26,7 +26,7 @@ This data supports the development of digital personality clones, virtual assist
 | `schema/ontologies/` | Use `trait-vocabulary.md` to interpret meaning of traits. This helps explain or label personality test results. |
 | `schema/utils/` | Reuse `trait_helpers.py` to convert raw percentile or score values to normalized trait scores for consistent use. |
 | `schema/tests/` | Extend with new test cases for any new traits, schema versions, or example content. |
-| `docs/` | Contains research papers and their Markdown conversions. Update `docs/index.md` whenever files here change. |
+| `docs/` | Contains research papers and their Markdown conversions. Update `docs/index.md` whenever files here change, and adjust `.github/workflows/pages.yml` if schema filenames referenced there change. |
 | `.github/workflows/` | CI checks will automatically validate schemas and example use cases. Ensure new examples conform. |
 
 ---
@@ -64,7 +64,7 @@ Add new schema entries or narrative types in a consistent style.
 When tackling design or architecture questions, consult the research papers stored in the `docs/` directory for guidance:
 - "Representing Personal Data and Personality Traits: Existing JSON/Semantic Standards"
 - "Scientifically Grounded Personality Tests and Their Evolution into Digital Personas"
-Use insights from these documents to inform design decisions. Whenever you add or remove files in the `docs/` directory, update `docs/index.md` so the GitHub Pages listing remains accurate.
+Use insights from these documents to inform design decisions. Whenever you add or remove files in the `docs/` directory, update `docs/index.md` so the GitHub Pages listing remains accurate and modify `.github/workflows/pages.yml` to copy any new or renamed schema files.
 
 ### 📄 License
 This project is licensed under the MIT License. See `LICENSE` for details.
