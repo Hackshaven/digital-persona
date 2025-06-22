@@ -20,4 +20,4 @@ MIT - see the [LICENSE](LICENSE) file for details.
 
 ## GitHub Pages
 
-This repository is configured to publish the contents of the `docs/` folder via GitHub Pages. Once enabled in the repository settings, the schema definitions will be accessible at a URL like `https://<username>.github.io/digital-persona/`.
+This repository publishes the contents of the `docs/` folder via GitHub Pages. You can view the hosted files at [https://hackshaven.github.io/digital-persona/](https://hackshaven.github.io/digital-persona/).
