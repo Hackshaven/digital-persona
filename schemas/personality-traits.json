@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Big Five / HEXACO Trait Scores",
+  "type": "object",
+  "properties": {
+    "openness":           { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "conscientiousness":  { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "extraversion":       { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "agreeableness":      { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "neuroticism":        { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "honestyHumility":    { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "emotionality":       { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+  },
+  "required": ["openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism"]
+}

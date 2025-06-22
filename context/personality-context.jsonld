@@ -1,0 +1,28 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/activitystreams",
+    {
+      "@version": 1.1,
+      "@protected": true,
+      "xsd": "http://www.w3.org/2001/XMLSchema#",
+      "traits": "https://example.org/trait-schema#",
+      "narr":   "https://example.org/narrative-schema#",
+      "goal":   "https://example.org/goal-schema#",
+      "val":    "https://example.org/values-schema#",
+      "openness":           { "@id": "traits:Openness", "@type": "xsd:decimal" },
+      "conscientiousness":  { "@id": "traits:Conscientiousness", "@type": "xsd:decimal" },
+      "extraversion":       { "@id": "traits:Extraversion", "@type": "xsd:decimal" },
+      "agreeableness":      { "@id": "traits:Agreeableness", "@type": "xsd:decimal" },
+      "neuroticism":        { "@id": "traits:Neuroticism", "@type": "xsd:decimal" },
+      "honestyHumility":    { "@id": "traits:HonestyHumility", "@type": "xsd:decimal" },
+      "emotionality":       { "@id": "traits:Emotionality", "@type": "xsd:decimal" },
+      "facet":              { "@id": "traits:facet", "@container": "@set" },
+      "narrativeTheme":     { "@id": "narr:theme", "@type": "@id" },
+      "significance":       { "@id": "narr:significance", "@type": "@vocab" },
+      "copingStyle":        { "@id": "narr:copingStyle", "@type": "xsd:string" },
+      "eventRef":           { "@id": "narr:event", "@type": "@id" },
+      "goals":              { "@id": "goal:linkedGoals", "@container": "@set", "@type": "@id" },
+      "coreValues":         { "@id": "val:core", "@container": "@set", "@type": "@id" }
+    }
+  ]
+}
