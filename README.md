@@ -9,10 +9,11 @@ This project provides a schema and context system for representing personality t
 - Sample entries and narrative fragments
 
 ## Directory Structure
-- `context/` – JSON-LD context extensions
-- `schemas/` – JSON Schema files for trait validation
-- `ontologies/` – Markdown definitions for traits and goals
-- `examples/` – Example entries and memory records
+- `schema/context/` – JSON-LD context extensions
+- `schema/schemas/` – JSON Schema files for trait validation
+- `schema/ontologies/` – Markdown definitions for traits and goals
+- `schema/utils/` – Helper utilities for trait conversions
+- `schema/tests/` – Unit tests for schema validation
 
 ## License
-MIT
+MIT - see the [LICENSE](LICENSE) file for details.
