@@ -1,3 +1,7 @@
+---
+title: Digital Persona Schema
+---
+
 # Digital Persona Schema
 
 This project standardizes how personality traits, goals, and memories can be stored in JSON. It is built on top of the ActivityStreams format so different systems can share personality data without needing deep knowledge of AI models.
