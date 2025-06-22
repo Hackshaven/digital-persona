@@ -24,8 +24,10 @@ jobs:
       - uses: actions/configure-pages@v5
       - name: Copy schema files
         run: |
-          mkdir -p docs
-          cp -r schema docs/
+          mkdir -p docs/schema/context docs/schema/schemas docs/schema/ontologies
+          cp schema/context/personality-context.jsonld docs/schema/context/
+          cp schema/schemas/personality-traits.json docs/schema/schemas/
+          cp schema/ontologies/trait-vocabulary.md docs/schema/ontologies/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./docs
