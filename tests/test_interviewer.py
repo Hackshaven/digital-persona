@@ -1,27 +1,45 @@
 import json
 import sys
-from pathlib import Path
 import types
+from pathlib import Path
+
 import pytest
 
-# Provide lightweight stubs so tests don't require the real LangChain package
+# -------------------------------------------------------------------------
+# Stubs for LangChain modules (no dependency on actual installation)
+# -------------------------------------------------------------------------
 if 'langchain' not in sys.modules:
     class FakeMessage:
         def __init__(self, content):
             self.content = content
 
-    chat_models = types.SimpleNamespace(ChatOpenAI=object, ChatOllama=object)
+    # Shared fake message namespace
     schema_mod = types.SimpleNamespace(HumanMessage=FakeMessage, SystemMessage=FakeMessage)
-    langchain_mod = types.SimpleNamespace(chat_models=chat_models, schema=schema_mod)
-    sys.modules['langchain'] = langchain_mod
+
+    # Stub langchain_core.messages
+    sys.modules['langchain_core'] = types.SimpleNamespace(messages=schema_mod)
+    sys.modules['langchain_core.messages'] = schema_mod
+
+    # Stub langchain_community.chat_models and langchain
+    chat_models = types.SimpleNamespace(ChatOpenAI=object)
+    sys.modules['langchain'] = types.SimpleNamespace(chat_models=chat_models, schema=schema_mod)
     sys.modules['langchain.chat_models'] = chat_models
     sys.modules['langchain.schema'] = schema_mod
     sys.modules['langchain_community.chat_models'] = chat_models
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
+    # Stub langchain_ollama
+    sys.modules['langchain_ollama'] = types.SimpleNamespace(ChatOllama=object)
 
+# -------------------------------------------------------------------------
+# Project import (source assumed in ../src)
+# -------------------------------------------------------------------------
+sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
 from digital_persona.interview import PersonalityInterviewer
 
+
+# -------------------------------------------------------------------------
+# Stub LLMs
+# -------------------------------------------------------------------------
 class StubLLM:
     def __init__(self, responses):
         self.responses = list(responses)
@@ -29,7 +47,12 @@ class StubLLM:
     def __call__(self, messages):
         return type("Resp", (), {"content": self.responses.pop(0)})()
 
+    invoke = __call__  # Allow .invoke(...) as well
 
+
+# -------------------------------------------------------------------------
+# Tests
+# -------------------------------------------------------------------------
 def test_generate_questions_parses_lines():
     llm = StubLLM(["Q1\nQ2\nQ3"])
     interviewer = PersonalityInterviewer(llm=llm, num_questions=3)
@@ -75,7 +98,6 @@ def test_profile_from_answers_builds_result():
 
 
 def test_qa_list_handles_multiline_answers():
-    """Ensure multiline answers are collapsed into a single string."""
     interviewer = PersonalityInterviewer(llm=StubLLM([]))
     qa_pairs = ["Q: Why?\nA: Line one\nLine two"]
     result = interviewer._qa_list(qa_pairs)
@@ -83,11 +105,8 @@ def test_qa_list_handles_multiline_answers():
 
 
 def test_profile_summary_references_context():
-    """The psychological summary should include the user's context."""
-
     class CheckingLLM:
         def __call__(self, messages):
-            # ensure the prompt contains the unstructured data
             assert "likes apples" in messages[1].content
             result = {
                 "traits": {
@@ -103,6 +122,8 @@ def test_profile_summary_references_context():
             }
             return type("Resp", (), {"content": json.dumps(result)})()
 
+        invoke = __call__
+
     interviewer = PersonalityInterviewer(llm=CheckingLLM())
     data = "The user likes apples"
     profile = interviewer.profile_from_answers(data, ["Q: Hi?\nA: Hello"])
@@ -110,8 +131,6 @@ def test_profile_summary_references_context():
 
 
 def test_profile_from_answers_invalid_json_error():
-    """Invalid JSON responses should raise a ValueError with the raw text."""
-
     llm = StubLLM(["not valid json"])
     interviewer = PersonalityInterviewer(llm=llm)
     with pytest.raises(ValueError) as exc:

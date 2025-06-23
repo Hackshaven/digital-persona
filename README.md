@@ -2,6 +2,8 @@
 
 This project provides a schema and context system for representing personality traits, memories, and identity features in ActivityStreams-compatible formats for use in AI and digital clone systems.
 
+![CI Status](https://github.com/Hackshaven/digital-persona/actions/workflows/test.yml/badge.svg?branch=main)
+
 ## Key Features
 - Big Five, HEXACO, MBTI, Dark Triad, and MMPI trait support
 - JSON-LD context for semantic personality tagging
