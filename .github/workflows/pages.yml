@@ -31,6 +31,9 @@ jobs:
           cp schema/schemas/mbti-type.json docs/schema/schemas/
           cp schema/schemas/dark-triad.json docs/schema/schemas/
           cp schema/schemas/mmpi-scales.json docs/schema/schemas/
+          cp schema/schemas/narrative-schema.json docs/schema/schemas/
+          cp schema/schemas/goal-schema.json docs/schema/schemas/
+          cp schema/schemas/values-schema.json docs/schema/schemas/
           cp schema/ontologies/trait-vocabulary.md docs/schema/ontologies/
       - name: Convert index.md to HTML
         run: |

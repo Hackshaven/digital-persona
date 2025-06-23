@@ -14,6 +14,9 @@ This project standardizes how personality traits, goals, and memories can be sto
 - [schemas/mbti-type.json](schema/schemas/mbti-type.json) – Schema for MBTI four-letter types.
 - [schemas/dark-triad.json](schema/schemas/dark-triad.json) – Schema for Dark Triad trait scores.
 - [schemas/mmpi-scales.json](schema/schemas/mmpi-scales.json) – Schema for MMPI-2 clinical scale scores.
+- [schemas/narrative-schema.json](schema/schemas/narrative-schema.json) – Schema describing memory or event metadata.
+- [schemas/goal-schema.json](schema/schemas/goal-schema.json) – Schema for personal goals.
+- [schemas/values-schema.json](schema/schemas/values-schema.json) – Schema describing core values and their importance.
 - [ontologies/trait-vocabulary.md](schema/ontologies/trait-vocabulary.md) – A plain-language glossary describing what each trait represents.
 
 ## Reference Documents

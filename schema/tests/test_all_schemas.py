@@ -33,6 +33,21 @@ SCHEMA_EXAMPLES = {
         "hypomania": 0.45,
         "socialIntroversion": 0.35,
     },
+    "narrative-schema.json": {
+        "eventRef": "urn:uuid:1234",
+        "narrativeTheme": "http://example.org/theme/resilience",
+        "significance": "high",
+        "copingStyle": "problem-focused",
+    },
+    "goal-schema.json": {
+        "description": "Finish project",
+        "status": "in-progress",
+        "targetDate": "2025-12-31",
+    },
+    "values-schema.json": {
+        "valueName": "Curiosity",
+        "importance": 0.9,
+    },
     "personality-traits.json": {
         "openness": 0.88,
         "conscientiousness": 0.75,
@@ -79,7 +94,12 @@ def test_schema_allows_valid_example(schema_file, example):
 
 @pytest.mark.parametrize("schema_file,example", SCHEMA_EXAMPLES.items())
 def test_schema_allows_null_fields(schema_file, example):
-    if schema_file in {"personality-interview.json"}:
+    if schema_file in {
+        "personality-interview.json",
+        "narrative-schema.json",
+        "goal-schema.json",
+        "values-schema.json",
+    }:
         pytest.skip(f"{schema_file} doesn't allow null values in all fields")
 
     schema_path = Path(__file__).parent.parent / "schemas" / schema_file
