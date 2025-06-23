@@ -24,11 +24,13 @@ class PersonalityInterviewer:
         num_questions: int | None = None,
         provider: str = "openai",
         model: str | None = None,
+        max_question_len: int = 300
     ) -> None:
         self.llm = llm or self._create_llm(provider, model)
         self.research_text = self._load_research_docs()
         self.trait_names = self._load_trait_names()
         self.num_questions = num_questions or max(3, len(self.trait_names))
+        self.MAX_QUESTION_LEN = max_question_len
 
     def _create_llm(self, provider: str, model: str | None) -> object:
         if provider.lower() == "ollama":
