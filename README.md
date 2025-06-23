@@ -71,24 +71,6 @@ Which outputs JSON similar to:
     "honestyHumility": 0.59,
     "emotionality": null
   },
-  "mbti": "ENFP",
-  "darkTriad": {
-    "narcissism": 0.31,
-    "machiavellianism": 0.22,
-    "psychopathy": 0.18
-  },
-  "mmpi": {
-    "hypochondriasis": 0.20,
-    "depression": 0.35,
-    "hysteria": 0.25,
-    "psychopathicDeviate": 0.40,
-    "masculinityFemininity": 0.60,
-    "paranoia": 0.15,
-    "psychasthenia": 0.30,
-    "schizophrenia": 0.10,
-    "hypomania": 0.45,
-  "socialIntroversion": 0.55
-  },
   "psychologicalSummary": "Based on your email about the upcoming retreat and notes about deadline worries, you seem optimistic and cooperative though somewhat anxious about performance",
   "timestamp": "2024-05-04T15:32:10Z"
  }
