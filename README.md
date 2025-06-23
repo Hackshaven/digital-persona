@@ -115,4 +115,4 @@ MIT - see the [LICENSE](LICENSE) file for details.
 
 ## GitHub Pages
 
-This repository publishes the contents of the `docs/` folder via GitHub Pages. The site is deployed from the artifact produced by the `Deploy GitHub Pages` workflow, so Pages should be configured to **build and deploy from GitHub Actions**. You can view the hosted files at [https://hackshaven.github.io/digital-persona/](https://hackshaven.github.io/digital-persona/).
+This repository publishes the research and schema via GitHub Pages. You can view the hosted files at [https://hackshaven.github.io/digital-persona/](https://hackshaven.github.io/digital-persona/).
