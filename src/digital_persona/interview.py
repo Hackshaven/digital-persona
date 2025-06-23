@@ -206,32 +206,32 @@ class PersonalityInterviewer:
                 traits[name] = value
 
         dark_triad = {k: None for k in self.dark_triad_fields}
-        for name, value in result.get("darkTriad", {}).items():
+        for name, value in (result.get("darkTriad") or {}).items():
             if name in dark_triad:
                 dark_triad[name] = value
 
         mbti = {k: None for k in self.mbti_fields}
-        for name, value in result.get("mbti", {}).items():
+        for name, value in (result.get("mbti") or {}).items():
             if name in mbti:
                 mbti[name] = value
 
         mmpi = {k: None for k in self.mmpi_fields}
-        for name, value in result.get("mmpi", {}).items():
+        for name, value in (result.get("mmpi") or {}).items():
             if name in mmpi:
                 mmpi[name] = value
 
         goal = {k: None for k in self.goal_fields}
-        for name, value in result.get("goal", {}).items():
+        for name, value in (result.get("goal") or {}).items():
             if name in goal:
                 goal[name] = value
 
         value_obj = {k: None for k in self.value_fields}
-        for name, val in result.get("value", {}).items():
+        for name, val in (result.get("value") or {}).items():
             if name in value_obj:
                 value_obj[name] = val
 
         narrative = {k: None for k in self.narrative_fields}
-        for name, val in result.get("narrative", {}).items():
+        for name, val in (result.get("narrative") or {}).items():
             if name in narrative:
                 narrative[name] = val
 

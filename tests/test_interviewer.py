@@ -163,3 +163,26 @@ def test_profile_from_answers_invalid_json_error():
     with pytest.raises(ValueError) as exc:
         interviewer.profile_from_answers("ctx", ["Q: ?\nA: ."])
     assert "not valid json" in str(exc.value)
+
+
+def test_run_allows_early_finish(monkeypatch):
+    responses = [
+        "Summary",  # summarize_data
+        "Q1?\nQ2?",  # generate_questions
+        "Expl",  # explain_question for Q1
+        json.dumps({
+            "traits": {"openness": 0.1, "conscientiousness": 0.2,
+                        "extraversion": 0.3, "agreeableness": 0.4,
+                        "neuroticism": 0.5, "honestyHumility": 0.6},
+            "psychologicalSummary": "Done"
+        })
+    ]
+    llm = StubLLM(responses)
+    interviewer = PersonalityInterviewer(llm=llm, num_questions=2)
+
+    inputs = iter(["/end"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(inputs))
+
+    profile = interviewer.run("notes")
+    assert profile["interview"] == []
+    assert profile["traits"]["openness"] == 0.1
