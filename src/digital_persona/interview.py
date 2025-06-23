@@ -118,7 +118,7 @@ class PersonalityInterviewer:
         try:
             result = json.loads(response)
         except json.JSONDecodeError:
-            raise ValueError("LLM did not return valid JSON")
+            raise ValueError(f"LLM did not return valid JSON: {response!r}")
 
         traits = {name: None for name in self.trait_names}
         for name, value in result.get("traits", {}).items():

@@ -2,6 +2,7 @@ import json
 import sys
 from pathlib import Path
 import types
+import pytest
 
 # Provide lightweight stubs so tests don't require the real LangChain package
 if 'langchain' not in sys.modules:
@@ -98,3 +99,13 @@ def test_profile_summary_references_context():
     data = "The user likes apples"
     profile = interviewer.profile_from_answers(data, ["Q: Hi?\nA: Hello"])
     assert "likes apples" in profile["psychologicalSummary"]
+
+
+def test_profile_from_answers_invalid_json_error():
+    """Invalid JSON responses should raise a ValueError with the raw text."""
+
+    llm = StubLLM(["not valid json"])
+    interviewer = PersonalityInterviewer(llm=llm)
+    with pytest.raises(ValueError) as exc:
+        interviewer.profile_from_answers("ctx", ["Q: ?\nA: ."])
+    assert "not valid json" in str(exc.value)
