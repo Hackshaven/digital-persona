@@ -94,7 +94,13 @@ class PersonalityInterviewer:
             lines = pair.splitlines()
             if len(lines) >= 2:
                 q = lines[0].removeprefix("Q: ").strip()
-                a = lines[1].removeprefix("A: ").strip()
+                # join all answer lines in case the user responded using
+                # multiple lines. Only the first line is expected to contain
+                # the "A:" prefix.
+                answer_parts = [lines[1].removeprefix("A: ").strip()]
+                if len(lines) > 2:
+                    answer_parts.extend(line.strip() for line in lines[2:])
+                a = " ".join(answer_parts)
                 result.append({"question": q, "answer": a})
         return result
 
@@ -132,18 +138,28 @@ class PersonalityInterviewer:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
+    def _collect_multiline_answer(self, prompt: str) -> str:
+        """Collect a potentially multi-line answer from the user."""
+        print(prompt)
+        lines = []
+        line = input("> ")
+        while line:
+            lines.append(line)
+            line = input("> ")
+        return "\n".join(lines)
+
     def run(self, unstructured_data: str) -> dict:
         """Interactively interview the user and return a trait profile."""
         questions = self.generate_questions(unstructured_data)
         qa_pairs = []
         for q in questions:
-            answer = input(f"{q}\n> ")
+            answer = self._collect_multiline_answer(q)
             qa_pairs.append(f"Q: {q}\nA: {answer}")
             follow = self.generate_followup(q, answer)
             while follow:
-                follow_answer = input(f"{follow}\n> ")
+                follow_answer = self._collect_multiline_answer(follow)
                 qa_pairs.append(f"Q: {follow}\nA: {follow_answer}")
-                answer += " " + follow_answer
+                answer += "\n" + follow_answer
                 follow = self.generate_followup(q, answer)
         return self.profile_from_answers(unstructured_data, qa_pairs)
 

@@ -74,6 +74,14 @@ def test_profile_from_answers_builds_result():
     assert "timestamp" in profile
 
 
+def test_qa_list_handles_multiline_answers():
+    """Ensure multiline answers are collapsed into a single string."""
+    interviewer = PersonalityInterviewer(llm=StubLLM([]))
+    qa_pairs = ["Q: Why?\nA: Line one\nLine two"]
+    result = interviewer._qa_list(qa_pairs)
+    assert result == [{"question": "Why?", "answer": "Line one Line two"}]
+
+
 def test_profile_summary_references_context():
     """The psychological summary should include the user's context."""
 

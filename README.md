@@ -93,9 +93,10 @@ $ digital-persona-interview my_notes.txt -p openai
 ```
 
 This launches an interactive session where you answer the generated questions
-and any clarifying follow-ups, then receive a JSON profile at the end. If you do
-not specify `--questions`, the interviewer asks roughly one question per trait
-to gather adequate information.
+and any clarifying follow-ups, then receive a JSON profile at the end. When
+answering, you can enter multiple lines; press Enter on an empty line when you
+are finished. If you do not specify `--questions`, the interviewer asks roughly
+one question per trait to gather adequate information.
 
 The interviewer defaults to OpenAI's API and reads your `OPENAI_API_KEY` from the
 environment. You can instead talk to a local Ollama server by passing
