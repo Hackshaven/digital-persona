@@ -71,3 +71,30 @@ def test_profile_from_answers_builds_result():
     assert profile["psychologicalSummary"] == "Summary text"
     assert profile["traits"]["emotionality"] is None
     assert "timestamp" in profile
+
+
+def test_profile_summary_references_context():
+    """The psychological summary should include the user's context."""
+
+    class CheckingLLM:
+        def __call__(self, messages):
+            # ensure the prompt contains the unstructured data
+            assert "likes apples" in messages[1].content
+            result = {
+                "traits": {
+                    "openness": 0.1,
+                    "conscientiousness": 0.2,
+                    "extraversion": 0.3,
+                    "agreeableness": 0.4,
+                    "neuroticism": 0.5,
+                    "honestyHumility": 0.6,
+                    "emotionality": 0.7,
+                },
+                "psychologicalSummary": "Context shows user likes apples",
+            }
+            return type("Resp", (), {"content": json.dumps(result)})()
+
+    interviewer = PersonalityInterviewer(llm=CheckingLLM())
+    data = "The user likes apples"
+    profile = interviewer.profile_from_answers(data, ["Q: Hi?\nA: Hello"])
+    assert "likes apples" in profile["psychologicalSummary"]
