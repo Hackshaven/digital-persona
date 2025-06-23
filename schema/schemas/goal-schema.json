@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Personal Goal",
+  "type": "object",
+  "properties": {
+    "description": {"type": "string"},
+    "status": {
+      "type": ["string", "null"],
+      "enum": ["planned", "in-progress", "on-hold", "completed", "cancelled"]
+    },
+    "targetDate": {"type": ["string", "null"], "format": "date"}
+  },
+  "required": ["description"]
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Narrative Memory Metadata",
+  "type": "object",
+  "properties": {
+    "eventRef": {"type": "string", "format": "uri"},
+    "narrativeTheme": {"type": ["string", "null"], "format": "uri"},
+    "significance": {"type": ["string", "null"], "enum": ["low", "medium", "high"]},
+    "copingStyle": {"type": ["string", "null"]}
+  },
+  "required": ["eventRef"]
+}
