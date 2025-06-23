@@ -27,6 +27,10 @@ jobs:
           mkdir -p docs/schema/context docs/schema/schemas docs/schema/ontologies
           cp schema/context/personality-context.jsonld docs/schema/context/
           cp schema/schemas/personality-traits.json docs/schema/schemas/
+          cp schema/schemas/personality-interview.json docs/schema/schemas/
+          cp schema/schemas/mbti-type.json docs/schema/schemas/
+          cp schema/schemas/dark-triad.json docs/schema/schemas/
+          cp schema/schemas/mmpi-scales.json docs/schema/schemas/
           cp schema/ontologies/trait-vocabulary.md docs/schema/ontologies/
       - uses: actions/upload-pages-artifact@v3
         with:

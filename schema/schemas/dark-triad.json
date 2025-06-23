@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dark Triad Traits",
+  "type": "object",
+  "properties": {
+    "narcissism":        { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "machiavellianism":  { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "psychopathy":       { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 }
+  },
+  "required": ["narcissism", "machiavellianism", "psychopathy"]
+}

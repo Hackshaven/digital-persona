@@ -19,3 +19,6 @@ def test_valid_trait_profile():
     }
 
     jsonschema.validate(instance=profile, schema=schema)
+
+    null_profile = {k: None for k in profile}
+    jsonschema.validate(instance=null_profile, schema=schema)

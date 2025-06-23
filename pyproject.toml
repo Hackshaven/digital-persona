@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project]
+name = "digital-persona"
+version = "0.1.0"
+description = "Schemas and utilities for building digital personality profiles"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [
+    { name = "Eric Hackathorn", email = "erichackathorn@gmail.com" }
+]
+dependencies = [
+    "langchain",
+    "openai",
+    "langchain_community",
+    "jsonschema",
+]
+
+[project.scripts]
+digital-persona-interview = "digital_persona.interview:_cli"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[project.urls]
+Homepage = "https://github.com/hackshaven/digital-persona"
+Repository = "https://github.com/hackshaven/digital-persona"
+Issues = "https://github.com/hackshaven/digital-persona/issues"
+
