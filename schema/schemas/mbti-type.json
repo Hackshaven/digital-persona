@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MBTI Type",
+  "type": "object",
+  "properties": {
+    "mbti": {
+      "type": ["string", "null"],
+      "pattern": "^[IE][NS][FT][PJ]$",
+      "description": "Four-letter MBTI type code"
+    }
+  },
+  "required": ["mbti"]
+}

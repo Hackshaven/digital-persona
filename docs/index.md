@@ -10,6 +10,10 @@ This project standardizes how personality traits, goals, and memories can be sto
 
 - [context/personality-context.jsonld](schema/context/personality-context.jsonld) – JSON-LD mappings that give short trait names clear identifiers.
 - [schemas/personality-traits.json](schema/schemas/personality-traits.json) – A JSON Schema that checks trait scores are valid numbers between 0 and 1.
+- [schemas/personality-interview.json](schema/schemas/personality-interview.json) – JSON Schema describing complete interview results.
+- [schemas/mbti-type.json](schema/schemas/mbti-type.json) – Schema for MBTI four-letter types.
+- [schemas/dark-triad.json](schema/schemas/dark-triad.json) – Schema for Dark Triad trait scores.
+- [schemas/mmpi-scales.json](schema/schemas/mmpi-scales.json) – Schema for MMPI-2 clinical scale scores.
 - [ontologies/trait-vocabulary.md](schema/ontologies/trait-vocabulary.md) – A plain-language glossary describing what each trait represents.
 
 ## Reference Documents
