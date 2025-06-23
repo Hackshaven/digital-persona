@@ -87,7 +87,6 @@ content item, or a more complex object linking to a trait ontology reference.
 
 - Narrative Identity and Life Story Metadata: This area is more specialized, but you might consider
 ontologies that capture life events or narrative themes. While not a formal standard, concepts from
-
 psychology (e.g. “redemption narrative”, “attachment style”, “coping style”) could be included as
 metadata on content. There isn’t, to our knowledge, an out-of-the-box JSON schema for “narrative
 identity.” However, you could extend an existing schema with custom fields or tags for these. For
