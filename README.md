@@ -133,6 +133,11 @@ interviewer picks about half as many questions as there are traits and tries to
 cover multiple traits per question. At the start you'll see the full list of
 questions along with your progress as you answer them.
 
+To quickly test without providing real answers, run the command with
+`--dry-run`. In this mode the language model simulates interview answers based
+on your notes. You'll see the entire exchange printed before the resulting JSON
+profile.
+
 The interviewer defaults to OpenAI's API and reads your `OPENAI_API_KEY` from the
 environment. You can instead talk to a local Ollama server by passing
 `-p ollama` and setting `OLLAMA_BASE_URL` (default `http://localhost:11434`) and

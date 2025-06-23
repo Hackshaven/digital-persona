@@ -186,3 +186,30 @@ def test_run_allows_early_finish(monkeypatch):
     profile = interviewer.run("notes")
     assert profile["interview"] == []
     assert profile["traits"]["openness"] == 0.1
+
+
+def test_run_simulated_generates_profile(capsys):
+    responses = [
+        "Summary",  # summarize_data
+        "Q1?",  # generate_questions
+        "Expl",  # explain_question
+        "Auto",  # simulate_answer
+        "NO FOLLOWUP",  # generate_followup
+        json.dumps({
+            "traits": {
+                "openness": 0.1,
+                "conscientiousness": 0.2,
+                "extraversion": 0.3,
+                "agreeableness": 0.4,
+                "neuroticism": 0.5,
+                "honestyHumility": 0.6,
+            },
+            "psychologicalSummary": "Done",
+        })
+    ]
+    llm = StubLLM(responses)
+    interviewer = PersonalityInterviewer(llm=llm, num_questions=1)
+    profile = interviewer.run_simulated("notes")
+    out = capsys.readouterr().out
+    assert "Auto" in out
+    assert profile["traits"]["openness"] == 0.1

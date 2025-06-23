@@ -157,6 +157,57 @@ class PersonalityInterviewer:
         response = self.llm.invoke(msg).content.strip()
         return None if response.upper().startswith("NO FOLLOWUP") else response
 
+    def simulate_answer(self, question: str, unstructured_data: str) -> str:
+        """Have the language model play the user and answer a question."""
+        prompt = (
+            "Answer the interview question in one or two sentences using the notes if relevant.\n"
+            "Notes:\n{data}\nQuestion: {q}"
+        ).format(data=unstructured_data, q=question)
+        msg = [SystemMessage(content="Short answer."), HumanMessage(content=prompt)]
+        return self.llm.invoke(msg).content.strip()
+
+    def run_simulated(self, unstructured_data: str) -> dict:
+        """Run the interview automatically with LLM-generated answers."""
+        summary = self.summarize_data(unstructured_data)
+        print("\n📝 Here's a quick summary of what you shared:\n" + summary)
+
+        questions = self.generate_questions(unstructured_data)
+        print(f"\n📋 I'll ask {len(questions)} questions:")
+        for i, q in enumerate(questions, 1):
+            print(f"{i}. {q}")
+        qa_pairs = []
+
+        total = len(questions)
+        for idx, q in enumerate(questions, 1):
+            explanation = self.explain_question(q, unstructured_data)
+            print(f"\n[{idx}/{total}] 💡 {explanation}")
+            answer = self.simulate_answer(q, unstructured_data)
+            print(f"Q: {q}\nA: {answer}")
+            qa_pairs.append(f"Q: {q}\nA: {answer}")
+
+            follow_ups = 0
+            prev_follow = None
+            follow = self.generate_followup(q, answer)
+
+            while follow and follow_ups < 2:
+                if prev_follow:
+                    similarity = difflib.SequenceMatcher(None, follow, prev_follow).ratio()
+                    if similarity > 0.9:
+                        break
+                expl = self.explain_followup(follow, q, unstructured_data)
+                print(f"   ↳ {expl}")
+                follow_answer = self.simulate_answer(follow, unstructured_data)
+                print(f"Q: {follow}\nA: {follow_answer}")
+                qa_pairs.append(f"Q: {follow}\nA: {follow_answer}")
+                answer += "\n" + follow_answer
+                prev_follow = follow
+                follow_ups += 1
+                follow = self.generate_followup(q, answer)
+
+        profile = self.profile_from_answers(unstructured_data, qa_pairs)
+        print(json.dumps(profile, indent=2))
+        return profile
+
     def _qa_list(self, qa_pairs: List[str]) -> List[dict]:
         result = []
         for pair in qa_pairs:
@@ -335,7 +386,7 @@ def _cli() -> None:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Print questions and exit without interviewing",
+        help="Simulate the interview with LLM-generated answers",
     )
     args = parser.parse_args()
 
@@ -352,10 +403,7 @@ def _cli() -> None:
     )
 
     if args.dry_run:
-        questions = interviewer.generate_questions(data)
-        print("\n📋 Generated questions:")
-        for i, q in enumerate(questions, 1):
-            print(f"{i}. {q}")
+        interviewer.run_simulated(data)
         sys.exit(0)
 
     profile = interviewer.run(data)
