@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Core Value",
+  "type": "object",
+  "properties": {
+    "valueName": {"type": "string"},
+    "importance": {"type": ["number", "null"], "minimum": 0.0, "maximum": 1.0}
+  },
+  "required": ["valueName"]
+}
