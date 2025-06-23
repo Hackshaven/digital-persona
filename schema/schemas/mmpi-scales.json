@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MMPI-2 Clinical Scales",
+  "type": "object",
+  "properties": {
+    "hypochondriasis":       { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "depression":            { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "hysteria":              { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "psychopathicDeviate":   { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "masculinityFemininity": { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "paranoia":              { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "psychasthenia":         { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "schizophrenia":         { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "hypomania":             { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+    "socialIntroversion":    { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 }
+  },
+  "required": [
+    "hypochondriasis",
+    "depression",
+    "hysteria",
+    "psychopathicDeviate",
+    "masculinityFemininity",
+    "paranoia",
+    "psychasthenia",
+    "schizophrenia",
+    "hypomania",
+    "socialIntroversion"
+  ]
+}

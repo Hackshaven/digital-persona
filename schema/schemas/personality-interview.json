@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Personality Interview Result",
+  "type": "object",
+  "properties": {
+    "unstructuredData": {"type": "string"},
+    "interview": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {"type": "string"},
+          "answer": {"type": "string"}
+        },
+        "required": ["question", "answer"]
+      }
+    },
+    "traits": {"$ref": "./personality-traits.json"},
+    "psychologicalSummary": {"type": "string"},
+    "timestamp": {"type": "string", "format": "date-time"}
+  },
+  "required": [
+    "unstructuredData",
+    "interview",
+    "traits",
+    "psychologicalSummary",
+    "timestamp"
+  ]
+}
