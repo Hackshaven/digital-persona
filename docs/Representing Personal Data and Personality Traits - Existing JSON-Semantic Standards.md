@@ -40,7 +40,6 @@ human-readable. This approach is very flexible – virtually any personal data c
 detailed structure or ontology. For a personality pipeline, OpenHumans would allow collecting all the raw
 data, but you’d need to impose your own schema on top of it to consistently extract traits. Essentially,
 OpenHumans gives you a container (with basic metadata like creation time, source, tags 8 ) and you
-
 could embed JSON inside files. It doesn’t natively support semantic tagging of Big Five traits or narrative
 features; you would have to use tags or an external mapping. The advantage is compatibility with many
 personal data types out of the box, but the trade-off is minimal semantic detail in the default schema. This
