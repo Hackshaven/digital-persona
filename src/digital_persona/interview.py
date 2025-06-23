@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import json
 import os
+import difflib
+
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List
 
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import HumanMessage, SystemMessage
-from langchain_community.chat_models import ChatOllama
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_ollama import ChatOllama
+from langchain_community.chat_models import ChatOpenAI
 
 
 class PersonalityInterviewer:
@@ -26,12 +28,12 @@ class PersonalityInterviewer:
         self.llm = llm or self._create_llm(provider, model)
         self.research_text = self._load_research_docs()
         self.trait_names = self._load_trait_names()
-        self.num_questions = num_questions or max(5, len(self.trait_names))
+        self.num_questions = num_questions or max(3, len(self.trait_names))
 
     def _create_llm(self, provider: str, model: str | None) -> object:
         if provider.lower() == "ollama":
             base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-            model_name = model or os.getenv("OLLAMA_MODEL", "llama3")
+            model_name = model or os.getenv("OLLAMA_MODEL", "gemma3:12b")
             return ChatOllama(base_url=base_url, model=model_name)
         else:
             model_name = model or os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
@@ -42,12 +44,15 @@ class PersonalityInterviewer:
         texts = []
         for p in docs_dir.glob("*.md"):
             if p.name != "index.md":
-                texts.append(p.read_text())
+                try:
+                    texts.append(p.read_text(encoding="utf-8"))
+                except UnicodeDecodeError:
+                    texts.append(p.read_text(encoding="utf-8", errors="replace"))
         return "\n\n".join(texts)
 
     def _load_trait_names(self) -> List[str]:
         schema_path = Path(__file__).resolve().parents[2] / "schema" / "schemas" / "personality-traits.json"
-        with open(schema_path) as f:
+        with open(schema_path, encoding="utf-8") as f:
             schema = json.load(f)
         return list(schema["properties"].keys())
 
@@ -57,7 +62,8 @@ class PersonalityInterviewer:
             "You are an expert psychologist using personality research to profile a user. "
             "Based on the following unstructured data:\n{data}\n\n"
             "Using insights from personality research:\n{research}\n\n"
-            "Ask {n} interview questions that will help assess these traits: {traits}."
+            "Ask {n} concise interview questions that help assess these traits: {traits}.\n"
+            "Return only the questions, one per line, without numbering or explanations."
         )
         filled = prompt.format(
             data=unstructured_data,
@@ -65,9 +71,9 @@ class PersonalityInterviewer:
             n=self.num_questions,
             traits=", ".join(self.trait_names),
         )
-        msg = [SystemMessage(content="You generate concise interview questions."), HumanMessage(content=filled)]
-        response = self.llm(msg).content
-        return [q.strip() for q in response.split("\n") if q.strip()]
+        msg = [SystemMessage(content="You generate only the list of questions."), HumanMessage(content=filled)]
+        response = self.llm.invoke(msg).content
+        return [q.strip("-•*1234567890. ").strip() for q in response.splitlines() if "?" in q and len(q.strip()) < 200]
 
     def generate_followup(self, question: str, answer: str) -> str | None:
         """Ask the LLM for a clarification follow-up question if needed."""
@@ -82,36 +88,26 @@ class PersonalityInterviewer:
             SystemMessage(content="Reply with either a follow-up question or NO FOLLOWUP."),
             HumanMessage(content=filled),
         ]
-        response = self.llm(msg).content.strip()
-        if response.upper().startswith("NO FOLLOWUP"):
-            return None
-        return response
+        response = self.llm.invoke(msg).content.strip()
+        return None if response.upper().startswith("NO FOLLOWUP") else response
 
     def _qa_list(self, qa_pairs: List[str]) -> List[dict]:
-        """Convert Q&A strings into structured dicts."""
         result = []
         for pair in qa_pairs:
             lines = pair.splitlines()
             if len(lines) >= 2:
                 q = lines[0].removeprefix("Q: ").strip()
-                # join all answer lines in case the user responded using
-                # multiple lines. Only the first line is expected to contain
-                # the "A:" prefix.
-                answer_parts = [lines[1].removeprefix("A: ").strip()]
-                if len(lines) > 2:
-                    answer_parts.extend(line.strip() for line in lines[2:])
-                a = " ".join(answer_parts)
+                a_lines = [lines[1].removeprefix("A: ").strip()] + [l.strip() for l in lines[2:]]
+                a = " ".join(a_lines)
                 result.append({"question": q, "answer": a})
         return result
 
     def profile_from_answers(self, unstructured_data: str, qa_pairs: List[str]) -> dict:
-        """Generate a personality trait profile in JSON."""
         prompt = (
             "You are a psychologist creating a personality profile. "
             "Given the unstructured data and interview Q&A below, output a JSON object "
-            "with a 'psychologicalSummary' string that briefly references the user's context "
-            "from the unstructured data, and a 'traits' object containing scores between 0.0 "
-            "and 1.0 for the traits {traits}. Only output JSON.\n\n"
+            "with a 'psychologicalSummary' string and a 'traits' object containing scores between 0.0 and 1.0 "
+            "for the traits: {traits}. Only output valid JSON.\n\n"
             "Unstructured data:\n{data}\n\nQ&A:\n{qa}"
         )
         filled = prompt.format(
@@ -119,10 +115,22 @@ class PersonalityInterviewer:
             data=unstructured_data,
             qa="\n".join(qa_pairs),
         )
-        msg = [SystemMessage(content="You output JSON only."), HumanMessage(content=filled)]
-        response = self.llm(msg).content
+        msg = [SystemMessage(content="Output JSON only."), HumanMessage(content=filled)]
+        response = self.llm.invoke(msg).content
         try:
-            result = json.loads(response)
+            clean = response.strip()
+            if clean.startswith("```json"):
+                clean = clean.removeprefix("```json").strip()
+            if clean.startswith("```"):
+                clean = clean.removeprefix("```").strip()
+            if clean.endswith("```"):
+                clean = clean.removesuffix("```").strip()
+
+            try:
+                result = json.loads(clean)
+            except json.JSONDecodeError:
+                raise ValueError(f"LLM did not return valid JSON: {response!r}")
+
         except json.JSONDecodeError:
             raise ValueError(f"LLM did not return valid JSON: {response!r}")
 
@@ -139,30 +147,43 @@ class PersonalityInterviewer:
         }
 
     def _collect_multiline_answer(self, prompt: str) -> str:
-        """Collect a potentially multi-line answer from the user."""
-        print(prompt)
+        print(f"\n{prompt}")
         lines = []
-        line = input("> ")
-        while line:
-            lines.append(line)
+        while True:
             line = input("> ")
+            if not line.strip():
+                break
+            lines.append(line)
         return "\n".join(lines)
 
     def run(self, unstructured_data: str) -> dict:
         """Interactively interview the user and return a trait profile."""
         questions = self.generate_questions(unstructured_data)
+        print("\n📋 I’m going to ask you a few questions. Press Enter twice to finish each answer.\n")
         qa_pairs = []
+
         for q in questions:
             answer = self._collect_multiline_answer(q)
             qa_pairs.append(f"Q: {q}\nA: {answer}")
+
+            follow_ups = 0
+            prev_follow = None
             follow = self.generate_followup(q, answer)
-            while follow:
+
+            while follow and follow_ups < 2:
+                # Fuzzy suppression: check if this follow-up is too similar to the previous
+                if prev_follow:
+                    similarity = difflib.SequenceMatcher(None, follow, prev_follow).ratio()
+                    if similarity > 0.9:
+                        break  # Too similar to the last one
                 follow_answer = self._collect_multiline_answer(follow)
                 qa_pairs.append(f"Q: {follow}\nA: {follow_answer}")
                 answer += "\n" + follow_answer
+                prev_follow = follow
+                follow_ups += 1
                 follow = self.generate_followup(q, answer)
-        return self.profile_from_answers(unstructured_data, qa_pairs)
 
+        return self.profile_from_answers(unstructured_data, qa_pairs)
 
 __all__ = ["PersonalityInterviewer"]
 
@@ -175,41 +196,28 @@ def _cli() -> None:
     parser = argparse.ArgumentParser(
         description="Interview a user based on unstructured text and output a personality profile"
     )
-    parser.add_argument(
-        "file",
-        help="Path to a text file with unstructured data or '-' to read from stdin",
-    )
-    parser.add_argument(
-        "-n",
-        "--questions",
-        type=int,
-        help="Number of interview questions to ask (default: based on trait count)",
-    )
-    parser.add_argument(
-        "-p",
-        "--provider",
-        choices=["openai", "ollama"],
-        default="openai",
-        help="LLM provider to use (default: openai)",
-    )
-    parser.add_argument(
-        "-m",
-        "--model",
-        help="Model name for the chosen provider",
-    )
+    parser.add_argument("file", help="Path to a text file or '-' to read from stdin")
+    parser.add_argument("-n", "--questions", type=int, help="Number of questions to ask")
+    parser.add_argument("-p", "--provider", choices=["openai", "ollama"], default="openai")
+    parser.add_argument("-m", "--model", help="Model name for the chosen provider")
+    parser.add_argument("--dry-run", action="store_true", help="Print questions and exit without interviewing")
     args = parser.parse_args()
 
-    if args.file == "-":
-        data = sys.stdin.read()
-    else:
-        with open(args.file) as f:
-            data = f.read()
+    data = sys.stdin.read() if args.file == "-" else Path(args.file).read_text(encoding="utf-8")
 
     interviewer = PersonalityInterviewer(
         num_questions=args.questions,
         provider=args.provider,
         model=args.model,
     )
+
+    if args.dry_run:
+        questions = interviewer.generate_questions(data)
+        print("\n📋 Generated questions:")
+        for i, q in enumerate(questions, 1):
+            print(f"{i}. {q}")
+        sys.exit(0)
+
     profile = interviewer.run(data)
     print(json.dumps(profile, indent=2))
 
