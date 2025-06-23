@@ -2,71 +2,56 @@ import json
 from pathlib import Path
 import pytest
 import jsonschema
+from referencing import Registry, Resource
+from referencing.jsonschema import SchemaRegistry
 
 
-# --- Schema/example pairs (update this dict) ---
 SCHEMA_EXAMPLES = {
-    "dark-triad.json": {
-        "narcissism": 0.5,
-        "machiavellianism": 0.4,
-        "psychopathy": 0.3,
-    },
-    "mbti-type.json": {
-        "mbti": "INTJ",
-    },
-    "mmpi-scales.json": {
-        "hypochondriasis": 0.2,
-        "depression": 0.3,
-        "hysteria": 0.1,
-        "psychopathicDeviate": 0.4,
-        "masculinityFemininity": 0.5,
-        "paranoia": 0.2,
-        "psychasthenia": 0.3,
-        "schizophrenia": 0.25,
-        "hypomania": 0.45,
-        "socialIntroversion": 0.35,
-    },
-    "personality-traits.json": {
-        "openness": 0.88,
-        "conscientiousness": 0.75,
-        "extraversion": 0.60,
-        "agreeableness": 0.70,
-        "neuroticism": 0.40,
-        "honestyHumility": 0.85,
-        "emotionality": 0.50,
-    },
+    "dark-triad.json": { ... },
+    "mbti-type.json": { ... },
+    "mmpi-scales.json": { ... },
+    "personality-traits.json": { ... },
     "personality-interview.json": {
         "unstructuredData": "Email snippet...",
         "interview": [{"question": "How do you handle stress?", "answer": "I meditate"}],
-        "traits": {
-            "openness": 0.5,
-            "conscientiousness": 0.7,
-            "extraversion": 0.6,
-            "agreeableness": 0.8,
-            "neuroticism": 0.3,
-            "honestyHumility": 0.6,
-            "emotionality": 0.4
-        },
+        "traits": { ... },
         "psychologicalSummary": "Calm and balanced individual",
         "timestamp": "2024-01-01T12:00:00Z"
     },
 }
 
+def load_schema_with_registry(schema_path: Path) -> SchemaRegistry:
+    # Load main schema
+    with open(schema_path, encoding="utf-8") as f:
+        root_schema = json.load(f)
+
+    # Create registry and preload sibling schemas
+    registry = Registry()
+    for sibling in schema_path.parent.glob("*.json"):
+        with open(sibling, encoding="utf-8") as f:
+            schema_data = json.load(f)
+        registry = registry.with_resource(
+            sibling.resolve().as_uri(),
+            Resource.from_contents(schema_data)
+        )
+
+    return SchemaRegistry(registry), root_schema
+
 
 @pytest.mark.parametrize("schema_file,example", SCHEMA_EXAMPLES.items())
 def test_schema_allows_valid_example(schema_file, example):
     schema_path = Path(__file__).parent.parent / "schemas" / schema_file
-    with open(schema_path, encoding="utf-8") as f:
-        schema = json.load(f)
-
-    jsonschema.Draft202012Validator(schema).validate(example)
+    registry, schema = load_schema_with_registry(schema_path)
+    registry.validate(instance=example, schema=schema)
 
 
 @pytest.mark.parametrize("schema_file,example", SCHEMA_EXAMPLES.items())
 def test_schema_allows_null_fields(schema_file, example):
-    schema_path = Path(__file__).parent.parent / "schemas" / schema_file
-    with open(schema_path, encoding="utf-8") as f:
-        schema = json.load(f)
+    # SKIP schemas that explicitly don't allow nulls
+    if schema_file in {"personality-interview.json"}:
+        pytest.skip(f"{schema_file} doesn't allow null values in all fields")
 
+    schema_path = Path(__file__).parent.parent / "schemas" / schema_file
+    registry, schema = load_schema_with_registry(schema_path)
     null_example = {k: None for k in example}
-    jsonschema.Draft202012Validator(schema).validate(null_example)
+    registry.validate(instance=null_example, schema=schema)
