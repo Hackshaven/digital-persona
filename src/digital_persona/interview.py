@@ -98,6 +98,20 @@ class PersonalityInterviewer:
         ]
         return self.llm.invoke(msg).content.strip()
 
+    def explain_followup(
+        self, followup: str, original_question: str, unstructured_data: str
+    ) -> str:
+        """Explain why a follow-up question is being asked."""
+        prompt = (
+            "Explain in one short sentence how this follow-up builds on the original question and the user's notes."
+            "\nNotes:\n{data}\nOriginal question: {orig}\nFollow-up: {fup}"
+        ).format(data=unstructured_data, orig=original_question, fup=followup)
+        msg = [
+            SystemMessage(content="Friendly explanation."),
+            HumanMessage(content=prompt),
+        ]
+        return self.llm.invoke(msg).content.strip()
+
     def generate_questions(self, unstructured_data: str) -> List[str]:
         """Generate interview questions to clarify the user's personality."""
         prompt = (
@@ -284,6 +298,8 @@ class PersonalityInterviewer:
                     if similarity > 0.9:
                         break  # Too similar to the last one
                 try:
+                    expl = self.explain_followup(follow, q, unstructured_data)
+                    print(f"   ↳ {expl}")
                     follow_answer = self._collect_multiline_answer(follow)
                 except EarlyFinish:
                     print("\nInterview finished early. Generating profile...\n")

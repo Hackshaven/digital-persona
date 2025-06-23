@@ -126,7 +126,8 @@ and any clarifying follow-ups, then receive a JSON profile at the end. When
 answering, you can enter multiple lines; press Enter on an empty line when you
 are finished. A short summary of your input text will be shown at the start and
 before each question you'll see a brief note explaining why that question
-relates to what you shared. You may end the interview early at any time by
+relates to what you shared. Follow-up questions include a similar sentence
+explaining how they connect to your previous answer and notes. You may end the interview early at any time by
 typing `/end` on a line by itself. If you do not specify `--questions`, the
 interviewer picks about half as many questions as there are traits and tries to
 cover multiple traits per question. At the start you'll see the full list of
