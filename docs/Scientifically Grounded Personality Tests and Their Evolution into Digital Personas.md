@@ -620,7 +620,6 @@ affect group dynamics, or simulate public responses to scenarios (for policy tes
 world harm. This could revolutionize fields like marketing, economics, or urban planning (e.g. simulate
 evacuation behavior with agents of varying personality to inform safety protocols). Each agent’s behavior
 would be informed by its “psychology,” making simulations more realistic than ones based on rational-actor
-
 models.
 - Multi-Framework Synergy: As hinted in the user request, combining frameworks is a ripe opportunity. By
 integrating trait models with narrative identity and cognitive-behavioral markers, we could create AI
