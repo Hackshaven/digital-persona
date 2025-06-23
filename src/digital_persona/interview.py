@@ -126,10 +126,7 @@ class PersonalityInterviewer:
             if clean.endswith("```"):
                 clean = clean.removesuffix("```").strip()
 
-            try:
-                result = json.loads(clean)
-            except json.JSONDecodeError:
-                raise ValueError(f"LLM did not return valid JSON: {response!r}")
+            result = json.loads(clean)
 
         except json.JSONDecodeError:
             raise ValueError(f"LLM did not return valid JSON: {response!r}")
