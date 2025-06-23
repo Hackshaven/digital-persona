@@ -20,12 +20,10 @@ SCHEMA_EXAMPLES = {
     },
 }
 
-def load_schema_with_registry(schema_path: Path) -> SchemaRegistry:
-    # Load main schema
+def load_schema_with_registry(schema_path: Path) -> tuple[SchemaRegistry, dict]:
     with open(schema_path, encoding="utf-8") as f:
         root_schema = json.load(f)
 
-    # Create registry and preload sibling schemas
     registry = Registry()
     for sibling in schema_path.parent.glob("*.json"):
         with open(sibling, encoding="utf-8") as f:
