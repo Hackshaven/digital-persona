@@ -257,34 +257,46 @@ class PersonalityInterviewer:
                 traits[name] = value
 
         dark_triad = {k: None for k in self.dark_triad_fields}
-        for name, value in (result.get("darkTriad") or {}).items():
-            if name in dark_triad:
-                dark_triad[name] = value
+        dark_data = result.get("darkTriad")
+        if isinstance(dark_data, dict):
+            for name, value in dark_data.items():
+                if name in dark_triad:
+                    dark_triad[name] = value
 
         mbti = {k: None for k in self.mbti_fields}
-        for name, value in (result.get("mbti") or {}).items():
-            if name in mbti:
-                mbti[name] = value
+        mbti_data = result.get("mbti")
+        if isinstance(mbti_data, dict):
+            for name, value in mbti_data.items():
+                if name in mbti:
+                    mbti[name] = value
 
         mmpi = {k: None for k in self.mmpi_fields}
-        for name, value in (result.get("mmpi") or {}).items():
-            if name in mmpi:
-                mmpi[name] = value
+        mmpi_data = result.get("mmpi")
+        if isinstance(mmpi_data, dict):
+            for name, value in mmpi_data.items():
+                if name in mmpi:
+                    mmpi[name] = value
 
         goal = {k: None for k in self.goal_fields}
-        for name, value in (result.get("goal") or {}).items():
-            if name in goal:
-                goal[name] = value
+        goal_data = result.get("goal")
+        if isinstance(goal_data, dict):
+            for name, value in goal_data.items():
+                if name in goal:
+                    goal[name] = value
 
         value_obj = {k: None for k in self.value_fields}
-        for name, val in (result.get("value") or {}).items():
-            if name in value_obj:
-                value_obj[name] = val
+        val_data = result.get("value")
+        if isinstance(val_data, dict):
+            for name, val in val_data.items():
+                if name in value_obj:
+                    value_obj[name] = val
 
         narrative = {k: None for k in self.narrative_fields}
-        for name, val in (result.get("narrative") or {}).items():
-            if name in narrative:
-                narrative[name] = val
+        narr_data = result.get("narrative")
+        if isinstance(narr_data, dict):
+            for name, val in narr_data.items():
+                if name in narrative:
+                    narrative[name] = val
 
         return {
             "unstructuredData": unstructured_data,

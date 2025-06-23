@@ -213,3 +213,29 @@ def test_run_simulated_generates_profile(capsys):
     out = capsys.readouterr().out
     assert "Auto" in out
     assert profile["traits"]["openness"] == 0.1
+
+
+def test_profile_handles_string_sections():
+    response_json = json.dumps(
+        {
+            "traits": {
+                "openness": 0.1,
+                "conscientiousness": 0.2,
+                "extraversion": 0.3,
+                "agreeableness": 0.4,
+                "neuroticism": 0.5,
+                "honestyHumility": 0.6,
+                "emotionality": 0.7,
+            },
+            "goal": "not an object",
+            "value": "also bad",
+            "narrative": "string",
+            "psychologicalSummary": "summary",
+        }
+    )
+    llm = StubLLM([response_json])
+    interviewer = PersonalityInterviewer(llm=llm)
+    profile = interviewer.profile_from_answers("notes", ["Q: ?\nA: !"])
+    assert profile["goal"] == {k: None for k in interviewer.goal_fields}
+    assert profile["value"] == {k: None for k in interviewer.value_fields}
+    assert profile["narrative"] == {k: None for k in interviewer.narrative_fields}
