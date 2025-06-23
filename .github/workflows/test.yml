@@ -4,14 +4,14 @@ on:
   push:
     branches: [ "**" ]  # Run on all branches
   pull_request:
-    branches: [ "**" ]  # Run on all PRs regardless of target
+    branches: [ "**" ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python 3.11
@@ -24,8 +24,8 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install dependencies
+      - name: Install dependencies with Poetry
         run: poetry install
 
-      - name: Run tests
-        run: poetry run pytest
+      - name: Run tests with coverage
+        run: poetry run pytest --cov=src --cov-report=term-missing
