@@ -32,6 +32,15 @@ jobs:
           cp schema/schemas/dark-triad.json docs/schema/schemas/
           cp schema/schemas/mmpi-scales.json docs/schema/schemas/
           cp schema/ontologies/trait-vocabulary.md docs/schema/ontologies/
+      - name: Convert index.md to HTML
+        run: |
+          pip install markdown --quiet
+          python - <<'EOF'
+          import markdown, pathlib
+          md = pathlib.Path('docs/index.md').read_text()
+          html = markdown.markdown(md)
+          pathlib.Path('docs/index.html').write_text(f"<html><body>{html}</body></html>")
+          EOF
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./docs
