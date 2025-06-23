@@ -73,7 +73,7 @@ class PersonalityInterviewer:
         )
         msg = [SystemMessage(content="You generate only the list of questions."), HumanMessage(content=filled)]
         response = self.llm.invoke(msg).content
-        return [q.strip("-•*1234567890. ").strip() for q in response.splitlines() if "?" in q and len(q.strip()) < 200]
+        return [q.strip("-•*1234567890. ").strip() for q in response.splitlines() if "?" in q and len(q.strip()) < self.MAX_QUESTION_LEN]
 
     def generate_followup(self, question: str, answer: str) -> str | None:
         """Ask the LLM for a clarification follow-up question if needed."""
