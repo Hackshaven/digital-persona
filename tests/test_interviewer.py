@@ -54,10 +54,10 @@ class StubLLM:
 # Tests
 # -------------------------------------------------------------------------
 def test_generate_questions_parses_lines():
-    llm = StubLLM(["Q1\nQ2\nQ3"])
+    llm = StubLLM(["Q1?\nQ2?\nQ3?"])
     interviewer = PersonalityInterviewer(llm=llm, num_questions=3)
     qs = interviewer.generate_questions("notes")
-    assert qs == ["Q1", "Q2", "Q3"]
+    assert qs == ["Q1?", "Q2?", "Q3?"]
 
 
 def test_generate_followup_handles_no_followup():
