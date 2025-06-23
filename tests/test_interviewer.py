@@ -8,27 +8,32 @@ import pytest
 # -------------------------------------------------------------------------
 # Stubs for LangChain modules (no dependency on actual installation)
 # -------------------------------------------------------------------------
-if 'langchain' not in sys.modules:
+if "langchain" not in sys.modules:
+
     class FakeMessage:
         def __init__(self, content):
             self.content = content
 
     # Shared fake message namespace
-    schema_mod = types.SimpleNamespace(HumanMessage=FakeMessage, SystemMessage=FakeMessage)
+    schema_mod = types.SimpleNamespace(
+        HumanMessage=FakeMessage, SystemMessage=FakeMessage
+    )
 
     # Stub langchain_core.messages
-    sys.modules['langchain_core'] = types.SimpleNamespace(messages=schema_mod)
-    sys.modules['langchain_core.messages'] = schema_mod
+    sys.modules["langchain_core"] = types.SimpleNamespace(messages=schema_mod)
+    sys.modules["langchain_core.messages"] = schema_mod
 
     # Stub langchain_community.chat_models and langchain
     chat_models = types.SimpleNamespace(ChatOpenAI=object)
-    sys.modules['langchain'] = types.SimpleNamespace(chat_models=chat_models, schema=schema_mod)
-    sys.modules['langchain.chat_models'] = chat_models
-    sys.modules['langchain.schema'] = schema_mod
-    sys.modules['langchain_community.chat_models'] = chat_models
+    sys.modules["langchain"] = types.SimpleNamespace(
+        chat_models=chat_models, schema=schema_mod
+    )
+    sys.modules["langchain.chat_models"] = chat_models
+    sys.modules["langchain.schema"] = schema_mod
+    sys.modules["langchain_community.chat_models"] = chat_models
 
     # Stub langchain_ollama
-    sys.modules['langchain_ollama'] = types.SimpleNamespace(ChatOllama=object)
+    sys.modules["langchain_ollama"] = types.SimpleNamespace(ChatOllama=object)
 
 # -------------------------------------------------------------------------
 # Project import (source assumed in ../src)
@@ -60,6 +65,12 @@ def test_generate_questions_parses_lines():
     assert qs == ["Q1?", "Q2?", "Q3?"]
 
 
+def test_default_question_count_half_traits():
+    interviewer = PersonalityInterviewer(llm=StubLLM([]))
+    expected = max(3, (len(interviewer.trait_names) + 1) // 2)
+    assert interviewer.num_questions == expected
+
+
 def test_generate_followup_handles_no_followup():
     llm = StubLLM(["NO FOLLOWUP"])
     interviewer = PersonalityInterviewer(llm=llm)
@@ -73,17 +84,29 @@ def test_generate_followup_returns_question():
 
 
 def test_profile_from_answers_builds_result():
-    response_json = json.dumps({
-        "traits": {
-            "openness": 0.5,
-            "conscientiousness": 0.5,
-            "extraversion": 0.5,
-            "agreeableness": 0.5,
-            "neuroticism": 0.5,
-            "honestyHumility": 0.5
-        },
-        "psychologicalSummary": "Summary text"
-    })
+    response_json = json.dumps(
+        {
+            "traits": {
+                "openness": 0.5,
+                "conscientiousness": 0.5,
+                "extraversion": 0.5,
+                "agreeableness": 0.5,
+                "neuroticism": 0.5,
+                "honestyHumility": 0.5,
+            },
+            "darkTriad": {
+                "narcissism": 0.1,
+                "machiavellianism": 0.2,
+                "psychopathy": 0.3,
+            },
+            "mbti": {"mbti": "INTJ"},
+            "mmpi": {"hypochondriasis": 0.2},
+            "goal": {"description": "Finish"},
+            "value": {"valueName": "Curiosity"},
+            "narrative": {"eventRef": "urn:uuid:1"},
+            "psychologicalSummary": "Summary text",
+        }
+    )
     llm = StubLLM([response_json])
     interviewer = PersonalityInterviewer(llm=llm)
     data = "example notes"
@@ -94,6 +117,10 @@ def test_profile_from_answers_builds_result():
     assert profile["traits"]["openness"] == 0.5
     assert profile["psychologicalSummary"] == "Summary text"
     assert profile["traits"]["emotionality"] is None
+    assert profile["darkTriad"]["machiavellianism"] == 0.2
+    assert profile["mbti"]["mbti"] == "INTJ"
+    assert profile["mmpi"]["hypochondriasis"] == 0.2
+    assert profile["goal"]["status"] is None
     assert "timestamp" in profile
 
 

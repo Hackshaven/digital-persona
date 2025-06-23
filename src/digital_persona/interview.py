@@ -15,6 +15,13 @@ from langchain_ollama import ChatOllama
 from langchain_community.chat_models import ChatOpenAI
 
 
+class EarlyFinish(Exception):
+    """Raised when the user chooses to end the interview early."""
+
+
+END_COMMAND = "/end"
+
+
 class PersonalityInterviewer:
     """Chat-based interviewer that asks questions and clarification follow-ups."""
 
@@ -24,12 +31,19 @@ class PersonalityInterviewer:
         num_questions: int | None = None,
         provider: str = "openai",
         model: str | None = None,
-        max_question_len: int = 300
+        max_question_len: int = 300,
     ) -> None:
         self.llm = llm or self._create_llm(provider, model)
         self.research_text = self._load_research_docs()
-        self.trait_names = self._load_trait_names()
-        self.num_questions = num_questions or max(3, len(self.trait_names))
+        self.trait_names = self._load_schema_fields("personality-traits.json")
+        self.dark_triad_fields = self._load_schema_fields("dark-triad.json")
+        self.mbti_fields = self._load_schema_fields("mbti-type.json")
+        self.mmpi_fields = self._load_schema_fields("mmpi-scales.json")
+        self.goal_fields = self._load_schema_fields("goal-schema.json")
+        self.value_fields = self._load_schema_fields("values-schema.json")
+        self.narrative_fields = self._load_schema_fields("narrative-schema.json")
+        default_qs = (len(self.trait_names) + 1) // 2
+        self.num_questions = num_questions or max(3, default_qs)
         self.MAX_QUESTION_LEN = max_question_len
 
     def _create_llm(self, provider: str, model: str | None) -> object:
@@ -52,11 +66,37 @@ class PersonalityInterviewer:
                     texts.append(p.read_text(encoding="utf-8", errors="replace"))
         return "\n\n".join(texts)
 
-    def _load_trait_names(self) -> List[str]:
-        schema_path = Path(__file__).resolve().parents[2] / "schema" / "schemas" / "personality-traits.json"
+    def _load_schema_fields(self, filename: str) -> List[str]:
+        schema_path = (
+            Path(__file__).resolve().parents[2] / "schema" / "schemas" / filename
+        )
         with open(schema_path, encoding="utf-8") as f:
             schema = json.load(f)
         return list(schema["properties"].keys())
+
+    def summarize_data(self, unstructured_data: str) -> str:
+        """Return a short summary of the user's notes."""
+        prompt = (
+            "Briefly summarize the following notes in two sentences:\n"
+            + unstructured_data
+        )
+        msg = [
+            SystemMessage(content="You provide a short friendly summary."),
+            HumanMessage(content=prompt),
+        ]
+        return self.llm.invoke(msg).content.strip()
+
+    def explain_question(self, question: str, unstructured_data: str) -> str:
+        """Explain how the question relates to the user's notes."""
+        prompt = (
+            "Explain in one personable sentence why the question below relates to these notes."
+            "\nNotes:\n{data}\nQuestion: {q}"
+        ).format(data=unstructured_data, q=question)
+        msg = [
+            SystemMessage(content="Friendly explanation."),
+            HumanMessage(content=prompt),
+        ]
+        return self.llm.invoke(msg).content.strip()
 
     def generate_questions(self, unstructured_data: str) -> List[str]:
         """Generate interview questions to clarify the user's personality."""
@@ -65,6 +105,7 @@ class PersonalityInterviewer:
             "Based on the following unstructured data:\n{data}\n\n"
             "Using insights from personality research:\n{research}\n\n"
             "Ask {n} concise interview questions that help assess these traits: {traits}.\n"
+            "Combine related traits so each question may address more than one trait when possible.\n"
             "Return only the questions, one per line, without numbering or explanations."
         )
         filled = prompt.format(
@@ -73,9 +114,16 @@ class PersonalityInterviewer:
             n=self.num_questions,
             traits=", ".join(self.trait_names),
         )
-        msg = [SystemMessage(content="You generate only the list of questions."), HumanMessage(content=filled)]
+        msg = [
+            SystemMessage(content="You generate only the list of questions."),
+            HumanMessage(content=filled),
+        ]
         response = self.llm.invoke(msg).content
-        return [q.strip("-•*1234567890. ").strip() for q in response.splitlines() if "?" in q and len(q.strip()) < self.MAX_QUESTION_LEN]
+        return [
+            q.strip("-•*1234567890. ").strip()
+            for q in response.splitlines()
+            if "?" in q and len(q.strip()) < self.MAX_QUESTION_LEN
+        ]
 
     def generate_followup(self, question: str, answer: str) -> str | None:
         """Ask the LLM for a clarification follow-up question if needed."""
@@ -87,7 +135,9 @@ class PersonalityInterviewer:
         )
         filled = prompt.format(q=question, a=answer)
         msg = [
-            SystemMessage(content="Reply with either a follow-up question or NO FOLLOWUP."),
+            SystemMessage(
+                content="Reply with either a follow-up question or NO FOLLOWUP."
+            ),
             HumanMessage(content=filled),
         ]
         response = self.llm.invoke(msg).content.strip()
@@ -99,7 +149,9 @@ class PersonalityInterviewer:
             lines = pair.splitlines()
             if len(lines) >= 2:
                 q = lines[0].removeprefix("Q: ").strip()
-                a_lines = [lines[1].removeprefix("A: ").strip()] + [l.strip() for l in lines[2:]]
+                a_lines = [lines[1].removeprefix("A: ").strip()] + [
+                    l.strip() for l in lines[2:]
+                ]
                 a = " ".join(a_lines)
                 result.append({"question": q, "answer": a})
         return result
@@ -108,8 +160,9 @@ class PersonalityInterviewer:
         prompt = (
             "You are a psychologist creating a personality profile. "
             "Given the unstructured data and interview Q&A below, output a JSON object "
-            "with a 'psychologicalSummary' string and a 'traits' object containing scores between 0.0 and 1.0 "
-            "for the traits: {traits}. Only output valid JSON.\n\n"
+            "with a 'psychologicalSummary' string and objects for 'traits', 'darkTriad', 'mbti', "
+            "'mmpi', 'goal', 'value', and 'narrative'. Scores should be between 0.0 and 1.0 where applicable. "
+            "Return null for any attribute you cannot infer. Only output valid JSON.\n\n"
             "Unstructured data:\n{data}\n\nQ&A:\n{qa}"
         )
         filled = prompt.format(
@@ -135,12 +188,49 @@ class PersonalityInterviewer:
 
         traits = {name: None for name in self.trait_names}
         for name, value in result.get("traits", {}).items():
-            traits[name] = value
+            if name in traits:
+                traits[name] = value
+
+        dark_triad = {k: None for k in self.dark_triad_fields}
+        for name, value in result.get("darkTriad", {}).items():
+            if name in dark_triad:
+                dark_triad[name] = value
+
+        mbti = {k: None for k in self.mbti_fields}
+        for name, value in result.get("mbti", {}).items():
+            if name in mbti:
+                mbti[name] = value
+
+        mmpi = {k: None for k in self.mmpi_fields}
+        for name, value in result.get("mmpi", {}).items():
+            if name in mmpi:
+                mmpi[name] = value
+
+        goal = {k: None for k in self.goal_fields}
+        for name, value in result.get("goal", {}).items():
+            if name in goal:
+                goal[name] = value
+
+        value_obj = {k: None for k in self.value_fields}
+        for name, val in result.get("value", {}).items():
+            if name in value_obj:
+                value_obj[name] = val
+
+        narrative = {k: None for k in self.narrative_fields}
+        for name, val in result.get("narrative", {}).items():
+            if name in narrative:
+                narrative[name] = val
 
         return {
             "unstructuredData": unstructured_data,
             "interview": self._qa_list(qa_pairs),
             "traits": traits,
+            "darkTriad": dark_triad,
+            "mbti": mbti,
+            "mmpi": mmpi,
+            "goal": goal,
+            "value": value_obj,
+            "narrative": narrative,
             "psychologicalSummary": result.get("psychologicalSummary", ""),
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
@@ -150,6 +240,8 @@ class PersonalityInterviewer:
         lines = []
         while True:
             line = input("> ")
+            if line.strip() == END_COMMAND:
+                raise EarlyFinish
             if not line.strip():
                 break
             lines.append(line)
@@ -157,12 +249,26 @@ class PersonalityInterviewer:
 
     def run(self, unstructured_data: str) -> dict:
         """Interactively interview the user and return a trait profile."""
+        summary = self.summarize_data(unstructured_data)
+        print("\n📝 Here's a quick summary of what you shared:\n" + summary)
+        print(f"Type '{END_COMMAND}' on a line by itself at any time to finish early.")
+
         questions = self.generate_questions(unstructured_data)
-        print("\n📋 I’m going to ask you a few questions. Press Enter twice to finish each answer.\n")
+        print(f"\n📋 I'll ask {len(questions)} questions:")
+        for i, q in enumerate(questions, 1):
+            print(f"{i}. {q}")
+        print("\nPress Enter twice to finish each answer.\n")
         qa_pairs = []
 
-        for q in questions:
-            answer = self._collect_multiline_answer(q)
+        total = len(questions)
+        for idx, q in enumerate(questions, 1):
+            try:
+                explanation = self.explain_question(q, unstructured_data)
+                print(f"\n[{idx}/{total}] 💡 {explanation}")
+                answer = self._collect_multiline_answer(q)
+            except EarlyFinish:
+                print("\nInterview finished early. Generating profile...\n")
+                break
             qa_pairs.append(f"Q: {q}\nA: {answer}")
 
             follow_ups = 0
@@ -172,10 +278,16 @@ class PersonalityInterviewer:
             while follow and follow_ups < 2:
                 # Fuzzy suppression: check if this follow-up is too similar to the previous
                 if prev_follow:
-                    similarity = difflib.SequenceMatcher(None, follow, prev_follow).ratio()
+                    similarity = difflib.SequenceMatcher(
+                        None, follow, prev_follow
+                    ).ratio()
                     if similarity > 0.9:
                         break  # Too similar to the last one
-                follow_answer = self._collect_multiline_answer(follow)
+                try:
+                    follow_answer = self._collect_multiline_answer(follow)
+                except EarlyFinish:
+                    print("\nInterview finished early. Generating profile...\n")
+                    return self.profile_from_answers(unstructured_data, qa_pairs)
                 qa_pairs.append(f"Q: {follow}\nA: {follow_answer}")
                 answer += "\n" + follow_answer
                 prev_follow = follow
@@ -183,6 +295,7 @@ class PersonalityInterviewer:
                 follow = self.generate_followup(q, answer)
 
         return self.profile_from_answers(unstructured_data, qa_pairs)
+
 
 __all__ = ["PersonalityInterviewer"]
 
@@ -196,13 +309,25 @@ def _cli() -> None:
         description="Interview a user based on unstructured text and output a personality profile"
     )
     parser.add_argument("file", help="Path to a text file or '-' to read from stdin")
-    parser.add_argument("-n", "--questions", type=int, help="Number of questions to ask")
-    parser.add_argument("-p", "--provider", choices=["openai", "ollama"], default="openai")
+    parser.add_argument(
+        "-n", "--questions", type=int, help="Number of questions to ask"
+    )
+    parser.add_argument(
+        "-p", "--provider", choices=["openai", "ollama"], default="openai"
+    )
     parser.add_argument("-m", "--model", help="Model name for the chosen provider")
-    parser.add_argument("--dry-run", action="store_true", help="Print questions and exit without interviewing")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print questions and exit without interviewing",
+    )
     args = parser.parse_args()
 
-    data = sys.stdin.read() if args.file == "-" else Path(args.file).read_text(encoding="utf-8")
+    data = (
+        sys.stdin.read()
+        if args.file == "-"
+        else Path(args.file).read_text(encoding="utf-8")
+    )
 
     interviewer = PersonalityInterviewer(
         num_questions=args.questions,
