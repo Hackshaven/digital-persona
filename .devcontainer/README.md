@@ -7,9 +7,8 @@ Welcome to the dev container for the **Digital Persona** project. This environme
 ## 🔧 Features
 
 - Poetry-based Python setup on top of the official Python dev container image
-- Optional Docker-in-Docker support for services
 - VS Code extensions for Python, Jupyter, YAML, Markdown, and Docker
-- Pre-installed libraries for OpenAI, LangChain, HuggingFace, Pandas, and Scikit-learn
+- Libraries for OpenAI, LangChain, HuggingFace, Pandas, and Scikit-learn
 - RDF and JSON-LD utilities for semantic formats used by the schemas
 
 ---

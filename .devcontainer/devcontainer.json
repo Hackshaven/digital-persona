@@ -1,11 +1,7 @@
 {
   "name": "digital-persona-dev",
   "image": "mcr.microsoft.com/devcontainers/python:3.11",
-  "features": {
-    "ghcr.io/devcontainers/features/poetry:1": {},
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-  },
-  "postCreateCommand": "poetry install && poetry add pandas numpy scikit-learn openai langchain fastapi uvicorn rdflib pydantic orjson pyld",
+  "postCreateCommand": "pipx install --include-deps poetry && poetry install",
   "customizations": {
     "vscode": {
       "extensions": [
