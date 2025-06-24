@@ -116,7 +116,7 @@ We try to be — privacy is baked into the system. **You control everything**:
 * You choose what data it can see
 * You can delete or change memories
 * Nothing gets shared without your permission
-* It’s designed to run privately (like on your own device) \
+* It’s designed to run privately (like on your own device)
 
 ### **🌍 Why Does This Matter?**
 
@@ -202,7 +202,7 @@ The project draws from and synthesizes:
 * Digital memorials or "mindfiles" for future self-preservation
 * Reflective journaling agents for mental health support
 * Interactive simulations of decision-making under different personality configurations
-* Conversational companions tuned to user preferences and emotional needs \
+* Conversational companions tuned to user preferences and emotional needs
 
 
 ### **🚀 Long-Term Vision**
