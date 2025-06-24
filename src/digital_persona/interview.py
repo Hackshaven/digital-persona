@@ -261,7 +261,7 @@ class PersonalityInterviewer:
             result = json.loads(clean)
 
         except json.JSONDecodeError:
-            raise ValueError(f"LLM did not return valid JSON: {response!r}")
+            raise ValueError(f"LLM response is not valid JSON: {response!r}")
 
         traits = self._extract_section(result, "traits", self.trait_names)
         dark_triad = self._extract_section(result, "darkTriad", self.dark_triad_fields)

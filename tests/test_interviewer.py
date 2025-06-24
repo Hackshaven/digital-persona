@@ -164,7 +164,7 @@ def test_profile_from_answers_invalid_json_error():
     interviewer = PersonalityInterviewer(llm=llm)
     with pytest.raises(ValueError) as exc:
         interviewer.profile_from_answers("ctx", ["Q: ?\nA: ."])
-    assert "not valid json" in str(exc.value)
+    assert "not valid JSON" in str(exc.value)
 
 
 def test_run_allows_early_finish(monkeypatch):
