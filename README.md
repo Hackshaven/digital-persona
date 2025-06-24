@@ -128,7 +128,7 @@ file or `-` to read from standard input, and optionally choose the language mode
 provider:
 
 ```bash
-$ digital-persona-interview my_notes.txt -p openai
+$ digital-persona-interview my_notes.txt -p openai   # or -p ollama
 ```
 
 This launches an interactive session where you answer the generated questions
@@ -160,6 +160,13 @@ Environment variables:
 - `OPENAI_MODEL` – optional model name (e.g., `gpt-4o`).
 - `OLLAMA_BASE_URL` – base URL of your Ollama server (default `http://localhost:11434`).
 - `OLLAMA_MODEL` – model name served by Ollama (e.g., `llama3`).
+
+In GitHub Codespaces, you can select **Run Task → Interview** to start the
+`digital-persona-interview` CLI. The task prompts for your notes file and
+which provider to use (``openai`` or ``ollama``) and runs ``poetry run`` for you
+so the command works without manually activating the virtual environment.
+There is also an **Interview (Dry Run)** task that launches the command with
+``--dry-run`` so the language model generates sample answers for testing.
 
 ## License
 MIT - see the [LICENSE](LICENSE) file for details.
