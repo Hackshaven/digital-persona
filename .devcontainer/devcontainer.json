@@ -20,8 +20,8 @@
     "HF_API_KEY": "${{ secrets.HF_API_KEY }}"
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/digital-persona,type=bind",
-  "workspaceFolder": "/workspace/digital-persona",
+  "workspaceFolder": "/workspaces/digital-persona",
   "mounts": [
-    "source=${localWorkspaceFolder}/data,destination=/workspace/data,type=bind"
+    "source=${localWorkspaceFolder}/data,destination=/workspaces/data,type=bind"
   ]
 }
