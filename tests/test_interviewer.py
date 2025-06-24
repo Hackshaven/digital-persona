@@ -23,7 +23,7 @@ if "langchain" not in sys.modules:
     sys.modules["langchain_core"] = types.SimpleNamespace(messages=schema_mod)
     sys.modules["langchain_core.messages"] = schema_mod
 
-    # Stub langchain_community.chat_models and langchain
+    # Stub langchain_openai.ChatOpenAI and langchain
     chat_models = types.SimpleNamespace(ChatOpenAI=object)
     sys.modules["langchain"] = types.SimpleNamespace(
         chat_models=chat_models, schema=schema_mod
@@ -31,6 +31,7 @@ if "langchain" not in sys.modules:
     sys.modules["langchain.chat_models"] = chat_models
     sys.modules["langchain.schema"] = schema_mod
     sys.modules["langchain_community.chat_models"] = chat_models
+    sys.modules["langchain_openai"] = types.SimpleNamespace(ChatOpenAI=object)
 
     # Stub langchain_ollama
     sys.modules["langchain_ollama"] = types.SimpleNamespace(ChatOllama=object)

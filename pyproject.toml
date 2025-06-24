@@ -23,6 +23,7 @@ authors = [
 dependencies = [
     "langchain",
     "openai",
+    "langchain-openai",
     "langchain-community",
     "jsonschema",
     "langchain-ollama (>=0.3.3,<0.4.0)",
