@@ -331,14 +331,15 @@ class PersonalityInterviewer:
             follow = self.generate_followup(q, answer)
 
             while follow and follow_ups < 2:
-                # Fuzzy suppression: check if this follow-up is too similar to the previous
-                if prev_follow:
-                    similarity = difflib.SequenceMatcher(
-                        None, follow, prev_follow
-                    ).ratio()
-                    if similarity > 0.9:
-                        break  # Too similar to the last one
                 try:
+                    # Fuzzy suppression: check if this follow-up is too similar to the previous
+                    if prev_follow:
+                        similarity = difflib.SequenceMatcher(
+                            None, follow, prev_follow
+                        ).ratio()
+                        if similarity > 0.9:
+                            break  # Too similar to the last one
+
                     expl = self.explain_followup(follow, q, unstructured_data)
                     print(f"   ↳ {expl}")
                     follow_answer = self._collect_multiline_answer(follow)
