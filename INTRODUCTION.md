@@ -64,21 +64,21 @@ It’s like having **your own talking memory bank** mixed with a super helper!
 
 ## High School Version
 
-### **🤖 What Is This Repo About?**
+### **What Is This Repo About?**
 
 This project is building something called a **Digital Persona** — a kind of intelligent, AI-powered version of *you*. Not just your looks, but the **way you think, speak, remember things, and make decisions**. Think of it as a personal AI that behaves like you, talks like you, and understands your life.
 
-### **🧠 How Does It Work?**
+### **How Does It Work?**
 
 The system learns from your **personal data** — things like:
 
-* Emails, texts, or chat logs 📨
-* Journal entries or blog posts 📝
-* Transcripts from conversations or voice recordings 🎙️
+* Emails, texts, or chat logs
+* Journal entries or blog posts
+* Transcripts from conversations or voice recordings
 
 It stores and organizes that data into a structured **memory system**, kind of like a digital brain that grows over time.
 
-### **🧩 What Are the Main Components?**
+### **What Are the Main Components?**
 
 The project is built like a modular system — each part handles a different skill:
 
@@ -89,7 +89,7 @@ The project is built like a modular system — each part handles a different ski
 
 All these parts work together so the digital persona acts like a believable version of *you*.
 
-### **💡 How Does It Know What Kind of Person You Are?**
+### **How Does It Know What Kind of Person You Are?**
 
 It uses legit psychology models — like the **Big Five** (Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism) — to figure out your personality traits. It can score you based on how you write or respond to certain questions, and use that info to adjust how the AI behaves.
 
@@ -99,7 +99,7 @@ For example:
 * Low Neuroticism? It might stay chill under pressure
 * High Agreeableness? It’ll sound friendly and supportive
 
-### **🧬 What Makes It Different?**
+### **What Makes It Different?**
 
 This isn't just another chatbot. It tries to **model your whole personality**, including:
 
@@ -109,7 +109,7 @@ This isn't just another chatbot. It tries to **model your whole personality**, i
 
 Think of it like a mix between ChatGPT, your best friend, and a clone that *actually knows you*.
 
-### **🔒 Is It Safe?**
+### **Is It Safe?**
 
 We try to be — privacy is baked into the system. **You control everything**:
 
@@ -118,7 +118,7 @@ We try to be — privacy is baked into the system. **You control everything**:
 * Nothing gets shared without your permission
 * It’s designed to run privately (like on your own device)
 
-### **🌍 Why Does This Matter?**
+### **Why Does This Matter?**
 
 Because it opens up awesome possibilities:
 
@@ -133,13 +133,13 @@ It’s not about replacing you — it’s about **amplifying your voice**, your 
 This repo is about building a **thinking, feeling, remembering version of you** — one that lives in software, helps you out, and reflects your personality in a meaningful way. It’s grounded in psychology, built with ethical AI, and designed to be deeply personal.
 ## College Version
 
-### **🧠 What Is This Project?**
+### **What Is This Project?**
 
 This repository supports the **Digital Persona Project**, an initiative to create a **modular, ethically grounded, AI-powered digital twin** — an agent that simulates an individual's personality, memory, and reasoning using their real-life data.
 
 It’s not just a chatbot. It’s a **cognitive architecture** that mirrors your decision-making processes, language patterns, emotional tendencies, and self-narrative — all within a privacy-first, user-controlled framework.
 
-### **🧬 Core Concept**
+### **Core Concept**
 
 At its core, the system combines:
 
@@ -174,7 +174,7 @@ The architecture is designed to support plug-in modules for:
 Beyond trait scores, the system includes a **personal narrative schema**: structured representations of key life events, self-defining memories, values, and goals. This enables the AI to situate its decisions within the user’s personal history (e.g., “I suggest this path because you value independence and overcame a similar challenge in the past.”)
 
 
-### **🔒 Ethics & Privacy by Design**
+### **Ethics & Privacy by Design**
 
 The system is built around strict ethical principles:
 
@@ -185,7 +185,7 @@ The system is built around strict ethical principles:
 * **Transparency**: All data structures and models are open-source, auditable, and grounded in validated psychological theory
 
 
-### **📚 Theoretical Grounding**
+### **Theoretical Grounding**
 
 The project draws from and synthesizes:
 
@@ -196,7 +196,7 @@ The project draws from and synthesizes:
 * **Semantic web and knowledge representation** (JSON-LD, ontologies, defined trait URIs)
 
 
-### **🎯 Use Cases**
+### **Use Cases**
 
 * Personal AI assistants that adapt over time
 * Digital memorials or "mindfiles" for future self-preservation
@@ -205,7 +205,7 @@ The project draws from and synthesizes:
 * Conversational companions tuned to user preferences and emotional needs
 
 
-### **🚀 Long-Term Vision**
+### **Long-Term Vision**
 
 This is **not** about static avatars or rule-based bots. It’s about creating a **evolving model of you**, grounded in empirical personality data, flexible narrative scaffolding, and machine learning. The goal is to bridge cognitive psychology and generative AI in a way that serves the individual — enhancing agency, self-awareness, memory, and human-machine alignment.
 
