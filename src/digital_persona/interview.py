@@ -81,8 +81,8 @@ class PersonalityInterviewer:
     def summarize_data(self, unstructured_data: str) -> str:
         """Return a short summary of the user's notes."""
         prompt = (
-            "Briefly summarize the following notes in two sentences:\n"
-            + unstructured_data
+            f"Briefly summarize the following notes in two sentences:\n"
+            f"{unstructured_data}"
         )
         msg = [
             SystemMessage(content="You provide a short friendly summary."),
