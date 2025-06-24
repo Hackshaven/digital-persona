@@ -37,6 +37,23 @@ class PersonalityInterviewer:
         model: str | None = None,
         max_question_len: int = 300,
     ) -> None:
+        """Initialize the interviewer and load schema metadata.
+
+        Parameters
+        ----------
+        llm : object | None, optional
+            Preconfigured language model instance. If ``None`` a model is
+            created based on ``provider`` and ``model``.
+        num_questions : int | None, optional
+            Number of interview questions to generate. Defaults to roughly half
+            of the available trait fields.
+        provider : str, optional
+            Name of the LLM provider (``"openai"`` or ``"ollama"``).
+        model : str | None, optional
+            Specific model name for the provider.
+        max_question_len : int, optional
+            Hard limit on the length of generated questions in characters.
+        """
         self.llm = llm or self._create_llm(provider, model)
         self.research_text = self._load_research_docs()
         self.trait_names = self._load_schema_fields("personality-traits.json")
@@ -51,6 +68,7 @@ class PersonalityInterviewer:
         self.MAX_QUESTION_LEN = max_question_len
 
     def _create_llm(self, provider: str, model: str | None) -> object:
+        """Return a language model instance for the chosen provider."""
         if provider.lower() == "ollama":
             base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
             model_name = model or os.getenv("OLLAMA_MODEL", "gemma3:12b")
@@ -60,6 +78,7 @@ class PersonalityInterviewer:
             return ChatOpenAI(model=model_name, temperature=0)
 
     def _load_research_docs(self) -> str:
+        """Load supporting research papers from the ``docs`` directory."""
         docs_dir = Path(__file__).resolve().parents[2] / "docs"
         texts = []
         for p in docs_dir.glob("*.md"):
@@ -71,6 +90,7 @@ class PersonalityInterviewer:
         return "\n\n".join(texts)
 
     def _load_schema_fields(self, filename: str) -> List[str]:
+        """Return property names from a JSON schema file."""
         schema_path = (
             Path(__file__).resolve().parents[2] / "schema" / "schemas" / filename
         )
@@ -218,6 +238,7 @@ class PersonalityInterviewer:
                 try:
                     if prev_follow:
                         similarity = difflib.SequenceMatcher(None, follow, prev_follow).ratio()
+                        # Avoid asking virtually identical follow-up questions
                         if similarity > 0.9:
                             break
                     expl = self.explain_followup(follow, q, unstructured_data)
@@ -251,6 +272,7 @@ class PersonalityInterviewer:
         return profile
 
     def _qa_list(self, qa_pairs: List[str]) -> List[dict]:
+        """Convert raw Q&A strings into a list of dictionaries."""
         result = []
         for pair in qa_pairs:
             lines = pair.splitlines()

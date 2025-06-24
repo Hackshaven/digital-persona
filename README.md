@@ -4,6 +4,12 @@ This project provides a schema and context system for representing personality t
 
 ![CI Status](https://github.com/Hackshaven/digital-persona/actions/workflows/test.yml/badge.svg?branch=main)
 
+## Mission Statement
+
+See [MISSION.md](MISSION.md) for the project's guiding principles. New features
+and pull requests should be checked against this statement to ensure they uphold
+ethical use, user control, and secure handling of personality data.
+
 ## Key Features
 - Big Five, HEXACO, MBTI, Dark Triad, and MMPI trait support
 - JSON-LD context for semantic personality tagging
