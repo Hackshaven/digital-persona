@@ -40,7 +40,6 @@ human-readable. This approach is very flexible – virtually any personal data c
 detailed structure or ontology. For a personality pipeline, OpenHumans would allow collecting all the raw
 data, but you’d need to impose your own schema on top of it to consistently extract traits. Essentially,
 OpenHumans gives you a container (with basic metadata like creation time, source, tags 8 ) and you
-
 could embed JSON inside files. It doesn’t natively support semantic tagging of Big Five traits or narrative
 features; you would have to use tags or an external mapping. The advantage is compatibility with many
 personal data types out of the box, but the trade-off is minimal semantic detail in the default schema. This
@@ -88,7 +87,6 @@ content item, or a more complex object linking to a trait ontology reference.
 
 - Narrative Identity and Life Story Metadata: This area is more specialized, but you might consider
 ontologies that capture life events or narrative themes. While not a formal standard, concepts from
-
 psychology (e.g. “redemption narrative”, “attachment style”, “coping style”) could be included as
 metadata on content. There isn’t, to our knowledge, an out-of-the-box JSON schema for “narrative
 identity.” However, you could extend an existing schema with custom fields or tags for these. For
