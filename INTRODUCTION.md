@@ -2,10 +2,10 @@
 
 This document presents four versions of an introduction to the Digital Persona Project, each written at a different level of complexity to match the reader’s background and familiarity with AI or psychology. From a kid-friendly explanation to a formal white paper summary, these progressive descriptions are designed to make the project accessible to diverse audiences — whether you're just curious, a high school student, a college learner, or a professional exploring the technical and scientific foundations.
 
-- [Kid Version](#kid-version)
-- [High School Version](#high-school-version)
-- [College Version](#college-version)
-- [White Paper Version](#white-paper-version)
+* [Kid Version](#kid-version)
+* [High School Version](#high-school-version)
+* [College Version](#college-version)
+* [White Paper Version](#white-paper-version)
 
 ## Kid Version
 
