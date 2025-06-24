@@ -62,7 +62,7 @@ Because someday, your robot twin could:
 
 It’s like having **your own talking memory bank** mixed with a super helper!
 
-## HIgh School Version
+## High School Version
 
 ### **🤖 What Is This Repo About?**
 
