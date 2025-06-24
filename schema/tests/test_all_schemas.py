@@ -9,7 +9,7 @@ warnings.filterwarnings(
     "ignore",
     category=DeprecationWarning,
     module="jsonschema",
-    message="jsonschema.RefResolver is deprecated"
+    message="jsonschema.RefResolver is deprecated",
 )
 
 SCHEMA_EXAMPLES = {
@@ -59,7 +59,10 @@ SCHEMA_EXAMPLES = {
     },
     "personality-interview.json": {
         "unstructuredData": "Email snippet...",
-        "interview": [{"question": "How do you handle stress?", "answer": "I meditate"}],
+        "interview": [
+            {"question": "How do you handle stress?", "answer": "I meditate"}
+        ],
+        "userID": "anon-sample",
         "traits": {
             "openness": 0.5,
             "conscientiousness": 0.7,
@@ -69,8 +72,41 @@ SCHEMA_EXAMPLES = {
             "honestyHumility": 0.6,
             "emotionality": 0.4,
         },
+        "darkTriad": {
+            "narcissism": 0.5,
+            "machiavellianism": 0.4,
+            "psychopathy": 0.3,
+        },
+        "mbti": {"mbti": "INTJ"},
+        "mmpi": {
+            "hypochondriasis": 0.2,
+            "depression": 0.3,
+            "hysteria": 0.1,
+            "psychopathicDeviate": 0.4,
+            "masculinityFemininity": 0.5,
+            "paranoia": 0.2,
+            "psychasthenia": 0.3,
+            "schizophrenia": 0.25,
+            "hypomania": 0.45,
+            "socialIntroversion": 0.35,
+        },
+        "goal": {
+            "description": "Finish project",
+            "status": "in-progress",
+            "targetDate": "2025-12-31",
+        },
+        "value": {
+            "valueName": "Curiosity",
+            "importance": 0.9,
+        },
+        "narrative": {
+            "eventRef": "urn:uuid:1234",
+            "narrativeTheme": "http://example.org/theme/resilience",
+            "significance": "high",
+            "copingStyle": "problem-focused",
+        },
         "psychologicalSummary": "Calm and balanced individual",
-        "timestamp": "2024-01-01T12:00:00Z"
+        "timestamp": "2024-01-01T12:00:00Z",
     },
 }
 
@@ -79,7 +115,9 @@ def load_schema_with_resolver(schema_path: Path):
     with open(schema_path, encoding="utf-8") as f:
         schema = json.load(f)
 
-    resolver = jsonschema.RefResolver(base_uri=schema_path.resolve().as_uri(), referrer=schema)
+    resolver = jsonschema.RefResolver(
+        base_uri=schema_path.resolve().as_uri(), referrer=schema
+    )
     validator_class = jsonschema.validators.validator_for(schema)
     validator = validator_class(schema, resolver=resolver)
     return validator

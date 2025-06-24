@@ -1,29 +1,37 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Personality Interview Result",
-  "type": "object",
-  "properties": {
-    "unstructuredData": {"type": "string"},
-    "interview": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "question": {"type": "string"},
-          "answer": {"type": "string"}
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Personality Interview Result",
+    "type": "object",
+    "properties": {
+        "unstructuredData": {"type": "string"},
+        "interview": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "question": {"type": "string"},
+                    "answer": {"type": "string"}
+                },
+                "required": ["question", "answer"]
+            }
         },
-        "required": ["question", "answer"]
-      }
+        "userID": {"type": "string", "description": "Anonymous user identifier"},
+        "traits": {"$ref": "./personality-traits.json"},
+        "darkTriad": {"$ref": "./dark-triad.json"},
+        "mbti": {"$ref": "./mbti-type.json"},
+        "mmpi": {"$ref": "./mmpi-scales.json"},
+        "goal": {"$ref": "./goal-schema.json"},
+        "value": {"$ref": "./values-schema.json"},
+        "narrative": {"$ref": "./narrative-schema.json"},
+        "psychologicalSummary": {"type": "string"},
+        "timestamp": {"type": "string", "format": "date-time"}
     },
-    "traits": {"$ref": "./personality-traits.json"},
-    "psychologicalSummary": {"type": "string"},
-    "timestamp": {"type": "string", "format": "date-time"}
-  },
-  "required": [
-    "unstructuredData",
-    "interview",
-    "traits",
-    "psychologicalSummary",
-    "timestamp"
-  ]
+    "required": [
+        "unstructuredData",
+        "interview",
+        "userID",
+        "traits",
+        "psychologicalSummary",
+        "timestamp"
+    ]
 }
