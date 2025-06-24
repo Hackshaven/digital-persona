@@ -19,6 +19,8 @@ This project provides a schema and context system for representing personality t
 - `src/digital_persona/` – Python package containing utilities
 - `src/digital_persona/interview.py` – Interview assistant that derives
   personality traits from unstructured user data
+- `docs/` – Research papers used as additional prompt context and published via
+  GitHub Pages
 
 ## Example: Interview Script
 
@@ -156,3 +158,4 @@ MIT - see the [LICENSE](LICENSE) file for details.
 ## GitHub Pages
 
 This repository publishes the research and schema via GitHub Pages. You can view the hosted files at [https://hackshaven.github.io/digital-persona/](https://hackshaven.github.io/digital-persona/).
+The Markdown papers inside `docs/` are loaded as extra context for interview prompts and are also published on this site so they are easy to access online.
