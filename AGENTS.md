@@ -15,6 +15,8 @@ This repository defines structured formats (JSON-LD contexts, JSON Schemas, exam
 
 This data supports the development of digital personality clones, virtual assistants, and behavioral simulation agents.
 
+See `MISSION.md` for the guiding principles. When proposing or reviewing new features, ensure they align with that mission.
+
 ---
 
 ### 📁 Directory Overview
