@@ -1,0 +1,27 @@
+{
+  "name": "digital-persona-dev",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "postCreateCommand": "pipx install --include-deps poetry && poetry install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode",
+        "bierner.markdown-preview-github-styles",
+        "mechatroner.rainbow-csv"
+      ]
+    }
+  },
+  "remoteEnv": {
+    "OPENAI_API_KEY": "${{ secrets.OPENAI_API_KEY }}",
+    "HF_API_KEY": "${{ secrets.HF_API_KEY }}"
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/digital-persona,type=bind",
+  "workspaceFolder": "/workspace/digital-persona",
+  "mounts": [
+    "source=${localWorkspaceFolder}/data,destination=/workspace/data,type=bind"
+  ]
+}

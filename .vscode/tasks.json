@@ -1,0 +1,52 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Interview",
+      "type": "shell",
+      "command": "poetry",
+      "args": [
+        "run",
+        "digital-persona-interview",
+        "${input:notesFile}",
+        "-p",
+        "${input:provider}"
+      ],
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Interview (Dry Run)",
+      "type": "shell",
+      "command": "poetry",
+      "args": [
+        "run",
+        "digital-persona-interview",
+        "${input:notesFile}",
+        "-p",
+        "${input:provider}",
+        "--dry-run"
+      ],
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "notesFile",
+      "type": "promptString",
+      "description": "Path to your notes text file"
+    },
+    {
+      "id": "provider",
+      "type": "pickString",
+      "description": "LLM provider",
+      "options": ["openai", "ollama"],
+      "default": "openai"
+    }
+  ]
+}
