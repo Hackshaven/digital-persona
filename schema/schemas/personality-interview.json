@@ -15,6 +15,7 @@
                 "required": ["question", "answer"]
             }
         },
+        "userID": {"type": "string", "description": "Anonymous user identifier"},
         "traits": {"$ref": "./personality-traits.json"},
         "darkTriad": {"$ref": "./dark-triad.json"},
         "mbti": {"$ref": "./mbti-type.json"},
@@ -28,6 +29,7 @@
     "required": [
         "unstructuredData",
         "interview",
+        "userID",
         "traits",
         "psychologicalSummary",
         "timestamp"

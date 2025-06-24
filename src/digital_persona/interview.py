@@ -7,6 +7,7 @@ import os
 import difflib
 
 from datetime import datetime, timezone
+import uuid
 from pathlib import Path
 from typing import List
 
@@ -225,8 +226,9 @@ class PersonalityInterviewer:
         prompt = (
             "You are a psychologist creating a personality profile. "
             "Given the unstructured data and interview Q&A below, output a JSON object "
-            "with a 'psychologicalSummary' string and objects for 'traits', 'darkTriad', 'mbti', "
-            "'mmpi', 'goal', 'value', and 'narrative'. Scores should be between 0.0 and 1.0 where applicable. "
+            "with a 'psychologicalSummary' that lists each assigned attribute, its value, "
+            "and a short explanation for why it was inferred. Include objects for 'traits', "
+            "'darkTriad', 'mbti', 'mmpi', 'goal', 'value', and 'narrative'. Scores should be between 0.0 and 1.0 where applicable. "
             "Return null for any attribute you cannot infer. Only output valid JSON.\n\n"
             "Unstructured data:\n{data}\n\nQ&A:\n{qa}"
         )
@@ -298,9 +300,14 @@ class PersonalityInterviewer:
                 if name in narrative:
                     narrative[name] = val
 
+        user_id = result.get("userID")
+        if not isinstance(user_id, str) or not user_id.strip():
+            user_id = f"user-{uuid.uuid4().hex[:8]}"
+
         return {
             "unstructuredData": unstructured_data,
             "interview": self._qa_list(qa_pairs),
+            "userID": user_id,
             "traits": traits,
             "darkTriad": dark_triad,
             "mbti": mbti,

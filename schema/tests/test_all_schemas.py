@@ -62,6 +62,7 @@ SCHEMA_EXAMPLES = {
         "interview": [
             {"question": "How do you handle stress?", "answer": "I meditate"}
         ],
+        "userID": "anon-sample",
         "traits": {
             "openness": 0.5,
             "conscientiousness": 0.7,

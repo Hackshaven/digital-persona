@@ -60,6 +60,7 @@ Which outputs JSON similar to:
 ```json
 {
   "unstructuredData": "Email: I'm looking forward to the team retreat next month.\nJournal: I've been worried about meeting deadlines but remain optimistic.",
+  "userID": "anon-1234",
   "interview": [
     {"question": "How do you manage approaching deadlines?", "answer": "I set priorities and talk with the team."},
     {"question": "What steps do you take to resolve conflicts at work?", "answer": "I try to consider everyone's viewpoint."},
@@ -100,16 +101,15 @@ Which outputs JSON similar to:
     "significance": null,
     "copingStyle": null
   },
-  "psychologicalSummary": "Based on your email about the upcoming retreat and notes about deadline worries, you seem optimistic and cooperative though somewhat anxious about performance",
+  "psychologicalSummary": "Assigned openness=0.63 for your interest in new ideas, conscientiousness=0.72 because you plan tasks carefully, extraversion=0.55 since you enjoy team activities, agreeableness=0.68 due to collaborative comments, and neuroticism=0.40 reflecting only mild worry",
   "timestamp": "2024-05-04T15:32:10Z"
 }
 ```
 
 The exact questions and scores will vary depending on the language model and
-your responses.
-If the interview doesn't provide enough detail for a particular trait or other
-attribute, the corresponding value will appear as `null` in the JSON output. The profile also includes
-an ISO 8601 `timestamp` marking when the interview was completed.
+your responses. Missing details appear as `null`. Each profile also includes an
+anonymous `userID` and a psychological summary describing why each attribute was
+inferred, along with an ISO 8601 `timestamp` marking when the interview was completed.
 
 ### Command Line Usage
 

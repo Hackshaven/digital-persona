@@ -104,6 +104,7 @@ def test_profile_from_answers_builds_result():
             "goal": {"description": "Finish"},
             "value": {"valueName": "Curiosity"},
             "narrative": {"eventRef": "urn:uuid:1"},
+            "userID": "anon01",
             "psychologicalSummary": "Summary text",
         }
     )
@@ -114,6 +115,7 @@ def test_profile_from_answers_builds_result():
     profile = interviewer.profile_from_answers(data, qa_pairs)
     assert profile["unstructuredData"] == data
     assert profile["interview"] == [{"question": "How?", "answer": "Well"}]
+    assert profile["userID"] == "anon01"
     assert profile["traits"]["openness"] == 0.5
     assert profile["psychologicalSummary"] == "Summary text"
     assert profile["traits"]["emotionality"] is None
@@ -174,6 +176,7 @@ def test_run_allows_early_finish(monkeypatch):
             "traits": {"openness": 0.1, "conscientiousness": 0.2,
                         "extraversion": 0.3, "agreeableness": 0.4,
                         "neuroticism": 0.5, "honestyHumility": 0.6},
+            "userID": "anon02",
             "psychologicalSummary": "Done"
         })
     ]
@@ -186,6 +189,7 @@ def test_run_allows_early_finish(monkeypatch):
     profile = interviewer.run("notes")
     assert profile["interview"] == []
     assert profile["traits"]["openness"] == 0.1
+    assert profile["userID"] == "anon02"
 
 
 def test_run_simulated_generates_profile(capsys):
@@ -204,6 +208,7 @@ def test_run_simulated_generates_profile(capsys):
                 "neuroticism": 0.5,
                 "honestyHumility": 0.6,
             },
+            "userID": "anon03",
             "psychologicalSummary": "Done",
         })
     ]
@@ -213,6 +218,7 @@ def test_run_simulated_generates_profile(capsys):
     out = capsys.readouterr().out
     assert "Auto" in out
     assert profile["traits"]["openness"] == 0.1
+    assert profile["userID"] == "anon03"
 
 
 def test_profile_handles_string_sections():
@@ -239,3 +245,4 @@ def test_profile_handles_string_sections():
     assert profile["goal"] == {k: None for k in interviewer.goal_fields}
     assert profile["value"] == {k: None for k in interviewer.value_fields}
     assert profile["narrative"] == {k: None for k in interviewer.narrative_fields}
+    assert profile["userID"].startswith("user-")
