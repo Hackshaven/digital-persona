@@ -4,8 +4,10 @@
     {
       "label": "Interview",
       "type": "shell",
-      "command": "poetry run digital-persona-interview",
+      "command": "poetry",
       "args": [
+        "run",
+        "digital-persona-interview",
         "${input:notesFile}",
         "-p",
         "${input:provider}"
@@ -18,8 +20,10 @@
     {
       "label": "Interview (Dry Run)",
       "type": "shell",
-      "command": "poetry run digital-persona-interview",
+      "command": "poetry",
       "args": [
+        "run",
+        "digital-persona-interview",
         "${input:notesFile}",
         "-p",
         "${input:provider}",

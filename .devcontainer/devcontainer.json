@@ -19,9 +19,9 @@
     "OPENAI_API_KEY": "${{ secrets.OPENAI_API_KEY }}",
     "HF_API_KEY": "${{ secrets.HF_API_KEY }}"
   },
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/digital-persona,type=bind",
-  "workspaceFolder": "/workspaces/digital-persona",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/digital-persona,type=bind",
+  "workspaceFolder": "/workspace/digital-persona",
   "mounts": [
-    "source=${localWorkspaceFolder}/data,destination=/workspaces/data,type=bind"
+    "source=${localWorkspaceFolder}/data,destination=/workspace/data,type=bind"
   ]
 }
