@@ -22,6 +22,9 @@ class EarlyFinish(Exception):
 
 END_COMMAND = "/end"
 
+# At most this many clarification follow-ups will be asked for each question.
+MAX_FOLLOWUPS = 2
+
 
 class PersonalityInterviewer:
     """Chat-based interviewer that asks questions and clarification follow-ups."""
@@ -211,7 +214,7 @@ class PersonalityInterviewer:
             prev_follow = None
             follow = self.generate_followup(q, answer)
 
-            while follow and follow_ups < 2:
+            while follow and follow_ups < MAX_FOLLOWUPS:
                 try:
                     if prev_follow:
                         similarity = difflib.SequenceMatcher(None, follow, prev_follow).ratio()

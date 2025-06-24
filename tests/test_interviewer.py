@@ -39,7 +39,7 @@ if "langchain" not in sys.modules:
 # Project import (source assumed in ../src)
 # -------------------------------------------------------------------------
 sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
-from digital_persona.interview import PersonalityInterviewer
+from digital_persona.interview import PersonalityInterviewer, MAX_FOLLOWUPS
 
 
 # -------------------------------------------------------------------------
@@ -69,6 +69,10 @@ def test_default_question_count_half_traits():
     interviewer = PersonalityInterviewer(llm=StubLLM([]))
     expected = max(3, (len(interviewer.trait_names) + 1) // 2)
     assert interviewer.num_questions == expected
+
+
+def test_max_followups_constant():
+    assert MAX_FOLLOWUPS == 2
 
 
 def test_generate_followup_handles_no_followup():
