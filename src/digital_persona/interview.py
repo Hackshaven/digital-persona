@@ -222,6 +222,16 @@ class PersonalityInterviewer:
                 result.append({"question": q, "answer": a})
         return result
 
+    def _extract_section(self, result: dict, key: str, fields: List[str]) -> dict:
+        """Return a section from the LLM result, filling missing fields with None."""
+        data = result.get(key)
+        section = {name: None for name in fields}
+        if isinstance(data, dict):
+            for name, value in data.items():
+                if name in section:
+                    section[name] = value
+        return section
+
     def profile_from_answers(self, unstructured_data: str, qa_pairs: List[str]) -> dict:
         prompt = (
             "You are a psychologist creating a personality profile. "
@@ -253,52 +263,13 @@ class PersonalityInterviewer:
         except json.JSONDecodeError:
             raise ValueError(f"LLM did not return valid JSON: {response!r}")
 
-        traits = {name: None for name in self.trait_names}
-        for name, value in result.get("traits", {}).items():
-            if name in traits:
-                traits[name] = value
-
-        dark_triad = {k: None for k in self.dark_triad_fields}
-        dark_data = result.get("darkTriad")
-        if isinstance(dark_data, dict):
-            for name, value in dark_data.items():
-                if name in dark_triad:
-                    dark_triad[name] = value
-
-        mbti = {k: None for k in self.mbti_fields}
-        mbti_data = result.get("mbti")
-        if isinstance(mbti_data, dict):
-            for name, value in mbti_data.items():
-                if name in mbti:
-                    mbti[name] = value
-
-        mmpi = {k: None for k in self.mmpi_fields}
-        mmpi_data = result.get("mmpi")
-        if isinstance(mmpi_data, dict):
-            for name, value in mmpi_data.items():
-                if name in mmpi:
-                    mmpi[name] = value
-
-        goal = {k: None for k in self.goal_fields}
-        goal_data = result.get("goal")
-        if isinstance(goal_data, dict):
-            for name, value in goal_data.items():
-                if name in goal:
-                    goal[name] = value
-
-        value_obj = {k: None for k in self.value_fields}
-        val_data = result.get("value")
-        if isinstance(val_data, dict):
-            for name, val in val_data.items():
-                if name in value_obj:
-                    value_obj[name] = val
-
-        narrative = {k: None for k in self.narrative_fields}
-        narr_data = result.get("narrative")
-        if isinstance(narr_data, dict):
-            for name, val in narr_data.items():
-                if name in narrative:
-                    narrative[name] = val
+        traits = self._extract_section(result, "traits", self.trait_names)
+        dark_triad = self._extract_section(result, "darkTriad", self.dark_triad_fields)
+        mbti = self._extract_section(result, "mbti", self.mbti_fields)
+        mmpi = self._extract_section(result, "mmpi", self.mmpi_fields)
+        goal = self._extract_section(result, "goal", self.goal_fields)
+        value_obj = self._extract_section(result, "value", self.value_fields)
+        narrative = self._extract_section(result, "narrative", self.narrative_fields)
 
         user_id = result.get("userID")
         if not isinstance(user_id, str) or not user_id.strip():
