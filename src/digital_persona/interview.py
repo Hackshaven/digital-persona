@@ -9,7 +9,7 @@ import difflib
 from datetime import datetime, timezone
 import uuid
 from pathlib import Path
-from typing import List
+from typing import Callable, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_ollama import ChatOllama
@@ -167,44 +167,82 @@ class PersonalityInterviewer:
         msg = [SystemMessage(content="Short answer."), HumanMessage(content=prompt)]
         return self.llm.invoke(msg).content.strip()
 
-    def run_simulated(self, unstructured_data: str) -> dict:
-        """Run the interview automatically with LLM-generated answers."""
+    def _prepare_interview(self, unstructured_data: str, interactive: bool) -> List[str]:
+        """Print the intro summary and question list."""
         summary = self.summarize_data(unstructured_data)
         print("\n📝 Here's a quick summary of what you shared:\n" + summary)
+        if interactive:
+            print(f"Type '{END_COMMAND}' on a line by itself at any time to finish early.")
 
         questions = self.generate_questions(unstructured_data)
         print(f"\n📋 I'll ask {len(questions)} questions:")
         for i, q in enumerate(questions, 1):
             print(f"{i}. {q}")
-        qa_pairs = []
 
+        if interactive:
+            print("\nPress Enter twice to finish each answer.\n")
+        return questions
+
+    def _conduct_interview(
+        self,
+        unstructured_data: str,
+        questions: List[str],
+        answer_fn: Callable[[str], str],
+        print_q_and_a: bool,
+    ) -> List[str]:
+        """Iterate through questions and collect Q&A pairs."""
+        qa_pairs: List[str] = []
         total = len(questions)
         for idx, q in enumerate(questions, 1):
-            explanation = self.explain_question(q, unstructured_data)
-            print(f"\n[{idx}/{total}] 💡 {explanation}")
-            answer = self.simulate_answer(q, unstructured_data)
-            print(f"Q: {q}\nA: {answer}")
-            qa_pairs.append(f"Q: {q}\nA: {answer}")
+            try:
+                explanation = self.explain_question(q, unstructured_data)
+                print(f"\n[{idx}/{total}] 💡 {explanation}")
+                if print_q_and_a:
+                    print(f"Q: {q}")
+                answer = answer_fn(q)
+                if print_q_and_a:
+                    print(f"A: {answer}")
+            except EarlyFinish:
+                print("\nInterview finished early. Generating profile...\n")
+                return qa_pairs
 
+            qa_pairs.append(f"Q: {q}\nA: {answer}")
             follow_ups = 0
             prev_follow = None
             follow = self.generate_followup(q, answer)
 
             while follow and follow_ups < 2:
-                if prev_follow:
-                    similarity = difflib.SequenceMatcher(None, follow, prev_follow).ratio()
-                    if similarity > 0.9:
-                        break
-                expl = self.explain_followup(follow, q, unstructured_data)
-                print(f"   ↳ {expl}")
-                follow_answer = self.simulate_answer(follow, unstructured_data)
-                print(f"Q: {follow}\nA: {follow_answer}")
+                try:
+                    if prev_follow:
+                        similarity = difflib.SequenceMatcher(None, follow, prev_follow).ratio()
+                        if similarity > 0.9:
+                            break
+                    expl = self.explain_followup(follow, q, unstructured_data)
+                    print(f"   ↳ {expl}")
+                    if print_q_and_a:
+                        print(f"Q: {follow}")
+                    follow_answer = answer_fn(follow)
+                    if print_q_and_a:
+                        print(f"A: {follow_answer}")
+                except EarlyFinish:
+                    print("\nInterview finished early. Generating profile...\n")
+                    return qa_pairs
                 qa_pairs.append(f"Q: {follow}\nA: {follow_answer}")
                 answer += "\n" + follow_answer
                 prev_follow = follow
                 follow_ups += 1
                 follow = self.generate_followup(q, answer)
+        return qa_pairs
 
+    def run_simulated(self, unstructured_data: str) -> dict:
+        """Run the interview automatically with LLM-generated answers."""
+        questions = self._prepare_interview(unstructured_data, interactive=False)
+        qa_pairs = self._conduct_interview(
+            unstructured_data,
+            questions,
+            lambda q: self.simulate_answer(q, unstructured_data),
+            print_q_and_a=True,
+        )
         profile = self.profile_from_answers(unstructured_data, qa_pairs)
         print(json.dumps(profile, indent=2))
         return profile
@@ -304,54 +342,10 @@ class PersonalityInterviewer:
 
     def run(self, unstructured_data: str) -> dict:
         """Interactively interview the user and return a trait profile."""
-        summary = self.summarize_data(unstructured_data)
-        print("\n📝 Here's a quick summary of what you shared:\n" + summary)
-        print(f"Type '{END_COMMAND}' on a line by itself at any time to finish early.")
-
-        questions = self.generate_questions(unstructured_data)
-        print(f"\n📋 I'll ask {len(questions)} questions:")
-        for i, q in enumerate(questions, 1):
-            print(f"{i}. {q}")
-        print("\nPress Enter twice to finish each answer.\n")
-        qa_pairs = []
-
-        total = len(questions)
-        for idx, q in enumerate(questions, 1):
-            try:
-                explanation = self.explain_question(q, unstructured_data)
-                print(f"\n[{idx}/{total}] 💡 {explanation}")
-                answer = self._collect_multiline_answer(q)
-            except EarlyFinish:
-                print("\nInterview finished early. Generating profile...\n")
-                break
-            qa_pairs.append(f"Q: {q}\nA: {answer}")
-
-            follow_ups = 0
-            prev_follow = None
-            follow = self.generate_followup(q, answer)
-
-            while follow and follow_ups < 2:
-                try:
-                    # Fuzzy suppression: check if this follow-up is too similar to the previous
-                    if prev_follow:
-                        similarity = difflib.SequenceMatcher(
-                            None, follow, prev_follow
-                        ).ratio()
-                        if similarity > 0.9:
-                            break  # Too similar to the last one
-
-                    expl = self.explain_followup(follow, q, unstructured_data)
-                    print(f"   ↳ {expl}")
-                    follow_answer = self._collect_multiline_answer(follow)
-                except EarlyFinish:
-                    print("\nInterview finished early. Generating profile...\n")
-                    return self.profile_from_answers(unstructured_data, qa_pairs)
-                qa_pairs.append(f"Q: {follow}\nA: {follow_answer}")
-                answer += "\n" + follow_answer
-                prev_follow = follow
-                follow_ups += 1
-                follow = self.generate_followup(q, answer)
-
+        questions = self._prepare_interview(unstructured_data, interactive=True)
+        qa_pairs = self._conduct_interview(
+            unstructured_data, questions, self._collect_multiline_answer, False
+        )
         return self.profile_from_answers(unstructured_data, qa_pairs)
 
 
