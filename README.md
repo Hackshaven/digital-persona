@@ -1,6 +1,7 @@
 # digital-persona
 
 This project provides a schema and context system for representing personality traits, memories, and identity features in ActivityStreams-compatible formats for use in AI and digital clone systems.
+Visit [INTRODUCTION.md](INTRODUCTION.md) for a quick overview of this project.
 
 ![CI Status](https://github.com/Hackshaven/digital-persona/actions/workflows/test.yml/badge.svg?branch=main)
 
