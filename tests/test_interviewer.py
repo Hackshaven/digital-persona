@@ -250,3 +250,51 @@ def test_profile_handles_string_sections():
     assert profile["value"] == {k: None for k in interviewer.value_fields}
     assert profile["narrative"] == {k: None for k in interviewer.narrative_fields}
     assert profile["userID"].startswith("user-")
+
+
+def test_create_llm_selects_provider(monkeypatch):
+    """_create_llm should instantiate the class for the requested provider."""
+
+    class FakeOpenAI:
+        def __init__(self, model, temperature):
+            self.model = model
+            self.temperature = temperature
+
+    class FakeOllama:
+        def __init__(self, base_url, model):
+            self.base_url = base_url
+            self.model = model
+
+    monkeypatch.setattr("digital_persona.interview.ChatOpenAI", FakeOpenAI)
+    monkeypatch.setattr("digital_persona.interview.ChatOllama", FakeOllama)
+
+    interviewer = PersonalityInterviewer(llm=None, provider="openai", model="oa")
+    assert isinstance(interviewer.llm, FakeOpenAI)
+    assert interviewer.llm.model == "oa"
+
+    interviewer = PersonalityInterviewer(llm=None, provider="ollama", model="ol")
+    assert isinstance(interviewer.llm, FakeOllama)
+    assert interviewer.llm.model == "ol"
+
+
+def test_conduct_interview_avoids_repeat(monkeypatch):
+    """Repeated follow-up questions should be suppressed."""
+
+    interviewer = PersonalityInterviewer(llm=StubLLM([]), num_questions=1)
+
+    monkeypatch.setattr(interviewer, "explain_question", lambda q, d: "ex")
+    monkeypatch.setattr(interviewer, "explain_followup", lambda f, q, d: "ex f")
+    monkeypatch.setattr(interviewer, "generate_followup", lambda q, a: "Again?")
+
+    qs = ["Q?"]
+    qa = interviewer._conduct_interview("notes", qs, lambda q: "A", False)
+
+    # Only one follow-up recorded despite generate_followup always returning text
+    assert qa == ["Q: Q?\nA: A", "Q: Again?\nA: A"]
+
+
+def test_load_schema_fields_reads_file():
+    interviewer = PersonalityInterviewer(llm=StubLLM([]))
+    fields = interviewer._load_schema_fields("personality-traits.json")
+    assert "openness" in fields
+    assert "neuroticism" in fields
