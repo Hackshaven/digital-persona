@@ -105,7 +105,7 @@ This isn't just another chatbot. It tries to **model your whole personality**, i
 
 * **Long-term memory** (like if you told it something last month, it remembers it)
 * **Personal narrative** (it knows your life story and uses it to give context to decisions)
-* **Goals and values** (so it doesn’t just talk — it makes choices aligned with who you are) \
+* **Goals and values** (so it doesn’t just talk — it makes choices aligned with who you are)
 
 Think of it like a mix between ChatGPT, your best friend, and a clone that *actually knows you*.
 
