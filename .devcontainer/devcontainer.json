@@ -1,7 +1,7 @@
 {
   "name": "digital-persona-dev",
   "image": "mcr.microsoft.com/devcontainers/python:3.11",
-  "postCreateCommand": "pipx install --include-deps poetry && poetry install --with openai",
+  "postCreateCommand": "pipx install --include-deps poetry && poetry install",
   "customizations": {
     "vscode": {
       "extensions": [
