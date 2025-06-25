@@ -39,6 +39,8 @@ Provide the following Codespaces secrets so the interviewer can use language mod
    poetry run digital-persona-interview
    ```
 
-   The devcontainer also starts the FastAPI service automatically on port `8000`. The command runs in the background from `postStartCommand`, so you can stop or restart it with `pkill -f uvicorn` and then rerun the same `uvicorn` command. If the `OPENAI_API_KEY` secret is not provided the server falls back to using an Ollama model, which requires an Ollama service at `http://localhost:11434`. You can visit `http://localhost:8000/docs` to try the API.
+  The devcontainer also starts the FastAPI service automatically on port `8000`. The command runs in the background from `postStartCommand`, so you can stop or restart it with `pkill -f uvicorn` and then rerun the same `uvicorn` command. If the `OPENAI_API_KEY` secret is not provided the server falls back to using an Ollama model, which requires an Ollama service at `http://localhost:11434`. You can visit `http://localhost:8000/docs` to try the API.
+
+   If you launch the devcontainer using the command line instead of VS Code or Codespaces, be sure to map the port explicitly with `-p 8000:8000` so the API is reachable from your host machine.
 
 The `Interview (Dry Run)` task runs the same command with `--dry-run` so you can test without providing real answers.
