@@ -1,6 +1,6 @@
 # Digital Persona Codespace
 
-Welcome to the dev container for the **Digital Persona** project. This environment installs Python 3.11, Poetry, and the common tooling needed to run the personality interview CLI.
+Welcome to the dev container for the **Digital Persona** project. This environment installs Python 3.12, Poetry, and the common tooling needed to run the personality interview CLI.
 
 ---
 
