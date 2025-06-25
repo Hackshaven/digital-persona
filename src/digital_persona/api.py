@@ -38,7 +38,7 @@ MEMORY_DIR.mkdir(exist_ok=True)
 INPUT_DIR.mkdir(exist_ok=True)
 PROCESSED_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
-FRONTEND_DIR.mkdir(exist_ok=True)
+FRONTEND_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class Notes(BaseModel):
