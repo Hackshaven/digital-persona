@@ -26,6 +26,9 @@ ethical use, user control, and secure handling of personality data.
 - `src/digital_persona/` – Python package containing utilities
 - `src/digital_persona/interview.py` – Interview assistant that derives
   personality traits from unstructured user data
+- `src/frontend/` – Static HTML and CSS for the basic web interface
+- `scripts/` – Helper scripts like `start-api.sh` used by the devcontainer
+- Uvicorn output from the devcontainer is written to `/tmp/uvicorn.log` for debugging
 - `docs/` – Research papers used as additional prompt context and published via
   GitHub Pages
 
@@ -150,9 +153,13 @@ on your notes. You'll see the entire exchange printed before the resulting JSON
 profile.
 
 The interviewer defaults to OpenAI's API and reads your `OPENAI_API_KEY` from the
-environment. You can instead talk to a local Ollama server by passing
-`-p ollama` and setting `OLLAMA_BASE_URL` (default `http://localhost:11434`) and
-`OLLAMA_MODEL`.
+environment. If that variable is empty or still contains the placeholder
+`${{ secrets.OPENAI_API_KEY }}` it is ignored and the Ollama provider is used
+instead. You can explicitly run against a local Ollama server with `-p ollama`
+and by setting `OLLAMA_BASE_URL` (default `http://localhost:11434`) and
+`OLLAMA_MODEL`. When using the devcontainer, `OLLAMA_BASE_URL` is preset to
+`http://host.docker.internal:11434` so the container can reach an Ollama service
+running on your host machine.
 
 Environment variables:
 
