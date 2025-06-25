@@ -39,4 +39,6 @@ Provide the following Codespaces secrets so the interviewer can use language mod
    poetry run digital-persona-interview
    ```
 
+   The devcontainer also starts the FastAPI service automatically on port `8000`. You can visit `http://localhost:8000/docs` to try the API.
+
 The `Interview (Dry Run)` task runs the same command with `--dry-run` so you can test without providing real answers.

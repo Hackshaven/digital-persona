@@ -1,0 +1,7 @@
+body { font-family: Arial, sans-serif; margin: 2em; }
+#chat { max-width: 600px; margin: 1em auto; }
+.msg { padding: 0.5em 1em; border-radius: 12px; margin: 0.5em 0; max-width: 75%; }
+.bot { background: #f0f0f0; text-align: left; }
+.user { background: #d0eaff; margin-left: auto; text-align: right; }
+#form { display: flex; margin-top: 1em; }
+#input { flex: 1; padding: 0.5em; }

@@ -26,6 +26,7 @@ ethical use, user control, and secure handling of personality data.
 - `src/digital_persona/` – Python package containing utilities
 - `src/digital_persona/interview.py` – Interview assistant that derives
   personality traits from unstructured user data
+- `src/frontend/` – Static HTML and CSS for the basic web interface
 - `docs/` – Research papers used as additional prompt context and published via
   GitHub Pages
 
