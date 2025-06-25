@@ -6,6 +6,7 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+from importlib import resources
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -30,15 +31,14 @@ MEMORY_DIR = PERSONA_DIR / "memory"
 INPUT_DIR = PERSONA_DIR / "input"
 PROCESSED_DIR = PERSONA_DIR / "processed"
 OUTPUT_DIR = PERSONA_DIR / "output"
-# web UI resources live under src/frontend
-FRONTEND_DIR = Path(__file__).resolve().parents[2] / "src" / "frontend"
+# web UI resources live in the ``frontend`` package
+FRONTEND_DIR = resources.files("frontend")
 
 PERSONA_DIR.mkdir(exist_ok=True)
 MEMORY_DIR.mkdir(exist_ok=True)
 INPUT_DIR.mkdir(exist_ok=True)
 PROCESSED_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
-FRONTEND_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class Notes(BaseModel):
@@ -150,8 +150,8 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     def index() -> str:
-        frontend = FRONTEND_DIR / "index.html"
-        return frontend.read_text(encoding="utf-8")
+        index_html = resources.files("frontend").joinpath("index.html")
+        return index_html.read_text(encoding="utf-8")
 
     return app
 
