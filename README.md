@@ -28,6 +28,7 @@ ethical use, user control, and secure handling of personality data.
   personality traits from unstructured user data
 - `src/frontend/` – Static HTML and CSS for the basic web interface
 - `scripts/` – Helper scripts like `start-api.sh` used by the devcontainer
+- Uvicorn output from the devcontainer is written to `/tmp/uvicorn.log` for debugging
 - `docs/` – Research papers used as additional prompt context and published via
   GitHub Pages
 
@@ -154,7 +155,9 @@ profile.
 The interviewer defaults to OpenAI's API and reads your `OPENAI_API_KEY` from the
 environment. You can instead talk to a local Ollama server by passing
 `-p ollama` and setting `OLLAMA_BASE_URL` (default `http://localhost:11434`) and
-`OLLAMA_MODEL`.
+`OLLAMA_MODEL`. When using the devcontainer, `OLLAMA_BASE_URL` is preset to
+`http://host.docker.internal:11434` so the container can reach an Ollama service
+running on your host machine.
 
 Environment variables:
 
