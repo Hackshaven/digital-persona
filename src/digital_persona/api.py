@@ -17,6 +17,16 @@ from pydantic import BaseModel
 from .interview import PersonalityInterviewer
 
 
+def _valid_openai_key() -> bool:
+    """Return True if OPENAI_API_KEY looks like a real key."""
+    key = os.getenv("OPENAI_API_KEY")
+    if not key:
+        return False
+    if key.strip().startswith("${{"):
+        return False
+    return True
+
+
 def _persona_dir() -> Path:
     """Return the base directory for stored profiles and memories."""
     base = os.getenv("PERSONA_DIR")
@@ -72,7 +82,7 @@ class CompleteRequest(BaseModel):
 
 def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     if interviewer is None:
-        provider = "openai" if os.getenv("OPENAI_API_KEY") else "ollama"
+        provider = "openai" if _valid_openai_key() else "ollama"
         interviewer = PersonalityInterviewer(provider=provider)
     app = FastAPI()
     # StaticFiles requires an actual filesystem path
