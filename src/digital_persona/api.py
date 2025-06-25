@@ -73,7 +73,8 @@ class CompleteRequest(BaseModel):
 def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     interviewer = interviewer or PersonalityInterviewer()
     app = FastAPI()
-    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+    # StaticFiles requires an actual filesystem path
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
     @app.post("/generate_questions")
     def generate_questions(payload: Notes) -> dict:
