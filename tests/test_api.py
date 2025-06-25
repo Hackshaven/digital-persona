@@ -8,9 +8,6 @@ from tempfile import TemporaryDirectory
 import pytest
 from fastapi.testclient import TestClient
 
-_BASE = TemporaryDirectory()
-os.environ["PERSONA_DIR"] = _BASE.name
-
 if "langchain" not in sys.modules:
     class FakeMessage:
         def __init__(self, content):
@@ -27,7 +24,6 @@ if "langchain" not in sys.modules:
     sys.modules["langchain_ollama"] = types.SimpleNamespace(ChatOllama=object)
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
-from digital_persona.api import create_app
 
 
 class StubInterviewer:
@@ -45,9 +41,23 @@ class StubInterviewer:
 
 
 @pytest.fixture()
-def client(tmp_path, monkeypatch):
-    monkeypatch.setenv("PERSONA_DIR", str(tmp_path))
-    app = create_app(StubInterviewer())
+def persona_env(monkeypatch):
+    with TemporaryDirectory() as td:
+        monkeypatch.setenv("PERSONA_DIR", td)
+        yield Path(td)
+
+
+@pytest.fixture()
+def api_module(persona_env):
+    import importlib
+    import digital_persona.api as api
+    api = importlib.reload(api)
+    yield api
+
+
+@pytest.fixture()
+def client(api_module):
+    app = api_module.create_app(StubInterviewer())
     return TestClient(app)
 
 
@@ -57,7 +67,7 @@ def test_generate_questions_endpoint(client):
     assert resp.json()["questions"] == ["Q1?", "Q2?"]
 
 
-def test_profile_saved_and_loaded(client, tmp_path):
+def test_profile_saved_and_loaded(client):
     qa = [{"question": "Q1", "answer": "A1"}]
     resp = client.post("/profile_from_answers", json={"notes": "txt", "qa": qa})
     assert resp.status_code == 200
@@ -69,7 +79,7 @@ def test_profile_saved_and_loaded(client, tmp_path):
     assert resp2.json()["traits"]["openness"] == 0.5
 
 
-def test_memory_save_and_timeline(client, tmp_path):
+def test_memory_save_and_timeline(client):
     resp = client.post("/memory/save", json={"text": "note"})
     assert resp.status_code == 200
     ts = resp.json()["timestamp"]
@@ -78,9 +88,10 @@ def test_memory_save_and_timeline(client, tmp_path):
     assert any(m["timestamp"] == ts for m in timeline)
 
 
-def test_pending_and_complete(client, tmp_path):
-    from digital_persona.api import INPUT_DIR, PROCESSED_DIR, OUTPUT_DIR
-    input_dir = INPUT_DIR
+def test_pending_and_complete(client, api_module):
+    input_dir = api_module.INPUT_DIR
+    processed_dir = api_module.PROCESSED_DIR
+    output_dir = api_module.OUTPUT_DIR
     input_dir.mkdir(exist_ok=True)
     file = input_dir / "data.txt"
     file.write_text("info", encoding="utf-8")
@@ -97,7 +108,7 @@ def test_pending_and_complete(client, tmp_path):
         json={"file": "data.txt", "profile": profile},
     )
     assert resp.status_code == 200
-    assert (PROCESSED_DIR / "data.txt").exists()
-    assert (OUTPUT_DIR / "data.json").exists()
+    assert (processed_dir / "data.txt").exists()
+    assert (output_dir / "data.json").exists()
 
 
