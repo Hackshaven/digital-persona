@@ -39,6 +39,6 @@ Provide the following Codespaces secrets so the interviewer can use language mod
    poetry run digital-persona-interview
    ```
 
-   The devcontainer also starts the FastAPI service automatically on port `8000`. You can visit `http://localhost:8000/docs` to try the API.
+   The devcontainer also starts the FastAPI service automatically on port `8000`. The command runs in the background from `postStartCommand`, so you can stop or restart it with `pkill -f uvicorn` and then rerun the same `uvicorn` command. For more robust setups consider supervising the server with a process manager. You can visit `http://localhost:8000/docs` to try the API.
 
 The `Interview (Dry Run)` task runs the same command with `--dry-run` so you can test without providing real answers.
