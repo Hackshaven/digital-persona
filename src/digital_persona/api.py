@@ -115,7 +115,8 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     @app.post("/memory/save")
     def memory_save(item: MemoryItem) -> dict:
         ts = item.timestamp or datetime.now(timezone.utc).isoformat()
-        path = MEMORY_DIR / f"{ts}.json"
+        safe_ts = ts.replace(":", "-")
+        path = MEMORY_DIR / f"{safe_ts}.json"
         with open(path, "w", encoding="utf-8") as f:
             json.dump({"text": item.text, "timestamp": ts}, f)
         return {"status": "saved", "timestamp": ts}
