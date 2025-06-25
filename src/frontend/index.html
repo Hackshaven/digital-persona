@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Digital Persona Interview</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+
+</head>
+<body>
+  <h1>Digital Persona Interview</h1>
+  <div id="status" aria-live="polite">Waiting for new data...</div>
+  <div id="chat" aria-live="polite"></div>
+  <form id="form">
+    <input id="input" aria-label="Chat input" autocomplete="off" />
+    <button type="submit">Send</button>
+  </form>
+  <script type="module">
+  const POLL_MS = 3000;
+  let currentFile = null;
+  let resolveAnswer = null;
+  const chat = document.getElementById('chat');
+  const form = document.getElementById('form');
+  const input = document.getElementById('input');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!resolveAnswer) return;
+    const text = input.value.trim();
+    if (!text) return;
+    addMsg('user', text);
+    input.value = '';
+    const r = resolveAnswer;
+    resolveAnswer = null;
+    r(text);
+  });
+
+  function addMsg(cls, text) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + cls;
+    div.textContent = text;
+    chat.appendChild(div);
+    div.scrollIntoView();
+  }
+
+  async function ask(question) {
+    addMsg('bot', question);
+    return new Promise(res => {
+      resolveAnswer = res;
+    });
+  }
+
+  async function poll() {
+    try {
+      const resp = await fetch('/pending');
+      if (!resp.ok) throw new Error('Failed request');
+      const data = await resp.json();
+      if (!currentFile && data.files.length > 0) {
+        currentFile = data.files[0];
+        startInterview(currentFile);
+      }
+    } catch (err) {
+      console.error('Polling failed', err);
+    } finally {
+      setTimeout(poll, POLL_MS);
+    }
+  }
+
+  async function startInterview(file) {
+    document.getElementById('status').textContent = 'Processing ' + file;
+    const notes = await fetch('/start_interview?file=' + encodeURIComponent(file));
+    const noteData = await notes.json();
+    let qa = [];
+    const qsRes = await fetch('/generate_questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: noteData.text })
+    });
+    const qs = await qsRes.json();
+    for (const q of qs.questions) {
+      const answer = await ask(q);
+      qa.push({question: q, answer});
+      const fRes = await fetch('/generate_followup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q, answer })
+      });
+      const f = await fRes.json();
+      if (f.followup) {
+        const a2 = await ask(f.followup);
+        qa.push({question: f.followup, answer: a2});
+      }
+    }
+    const profRes = await fetch('/profile_from_answers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: noteData.text, qa })
+    });
+    const profile = await profRes.json();
+    await fetch('/complete_interview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file, profile })
+    });
+    document.getElementById('status').textContent = 'Finished processing ' + file;
+    currentFile = null;
+  }
+
+  poll();
+  </script>
+</body>
+</html>
