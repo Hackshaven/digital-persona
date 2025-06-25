@@ -50,13 +50,19 @@
   }
 
   async function poll() {
-    const resp = await fetch('/pending');
-    const data = await resp.json();
-    if (!currentFile && data.files.length > 0) {
-      currentFile = data.files[0];
-      startInterview(currentFile);
+    try {
+      const resp = await fetch('/pending');
+      if (!resp.ok) throw new Error('Failed request');
+      const data = await resp.json();
+      if (!currentFile && data.files.length > 0) {
+        currentFile = data.files[0];
+        startInterview(currentFile);
+      }
+    } catch (err) {
+      console.error('Polling failed', err);
+    } finally {
+      setTimeout(poll, POLL_MS);
     }
-    setTimeout(poll, POLL_MS);
   }
 
   async function startInterview(file) {

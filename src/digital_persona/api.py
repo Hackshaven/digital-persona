@@ -156,6 +156,11 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
         if not in_path.exists():
             raise HTTPException(status_code=404, detail="File not found")
         processed_path = PROCESSED_DIR / req.file
+        if processed_path.exists():
+            ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+            processed_path = processed_path.with_stem(
+                f"{processed_path.stem}-{ts}"
+            )
         out_path = OUTPUT_DIR / (Path(req.file).stem + ".json")
         in_path.rename(processed_path)
         with open(out_path, "w", encoding="utf-8") as f:
