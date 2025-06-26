@@ -5,6 +5,9 @@
 # instead of this scripts directory.
 cd "$(dirname "$0")/.."
 
+# Ensure the input directory exists so uvicorn can watch it
+mkdir -p persona/input
+
 # Reload on changes to the source tree and to incoming interview notes so
 # developers can drop new files into ``persona/input`` and see them picked up
 # immediately.
