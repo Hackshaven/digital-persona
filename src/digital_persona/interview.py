@@ -81,7 +81,9 @@ class PersonalityInterviewer:
         """Load research papers relevant to the interview process."""
         docs_dir = Path(__file__).resolve().parents[2] / "docs" / "research"
         if not docs_dir.exists():
-            return ""
+            raise FileNotFoundError(
+                f"Research directory not found: {docs_dir}. Ensure documentation files are present."
+            )
         texts = []
         # Load all Markdown files in the docs/research directory.
         # Assumes that all files in this directory are research-related documents.
