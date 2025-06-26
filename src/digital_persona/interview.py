@@ -81,6 +81,8 @@ class PersonalityInterviewer:
         """Load research papers relevant to the interview process."""
         docs_dir = Path(__file__).resolve().parents[2] / "docs" / "research"
         texts = []
+        # Load all Markdown files in the docs/research directory.
+        # Assumes that all files in this directory are research-related documents.
         for p in docs_dir.glob("*.md"):
             try:
                 texts.append(p.read_text(encoding="utf-8"))
