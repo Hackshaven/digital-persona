@@ -5,13 +5,12 @@
 # instead of this scripts directory.
 cd "$(dirname "$0")/.."
 
-# Ensure the input directory exists so uvicorn can watch it
+# Ensure the input directory exists so interview notes can be dropped
 mkdir -p persona/input
 
-# Reload on changes to the source tree and to incoming interview notes so
-# developers can drop new files into ``persona/input`` and see them picked up
-# immediately.
+# Reload on changes to the source tree. Watching the input folder caused the
+# server to restart mid‑interview, so it has been removed from the reload paths.
 nohup poetry run uvicorn digital_persona.api:create_app \
     --factory --host 0.0.0.0 --port 8000 --reload \
-    --reload-dir "$(pwd)" --reload-dir "$(pwd)/persona/input" \
+    --reload-dir "$(pwd)" \
     > /tmp/uvicorn.log 2>&1 &
