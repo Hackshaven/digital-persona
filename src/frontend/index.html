@@ -32,6 +32,8 @@
   let awaitingNotes = false;
   let notesText = '';
   let dryRun = false;
+  let notePromise = null;
+  let noteToken = 0;
   const chat = document.getElementById('chat');
   const form = document.getElementById('form');
   const input = document.getElementById('input');
@@ -88,18 +90,20 @@
       const resp = await fetch('/pending');
       if (!resp.ok) throw new Error('Failed request');
       const data = await resp.json();
-      if (!currentFile) {
-        if (data.files.length > 0) {
-          currentFile = data.files[0];
-          // start an interview using the contents of the uploaded file
-          await startFileInterview(currentFile);
-        } else if (!awaitingNotes) {
-          awaitingNotes = true;
-          notesText = await ask("What's on your mind?");
+      if (data.files.length > 0 && !currentFile) {
+        noteToken++; // cancel any pending notes
+        currentFile = data.files[0];
+        await startFileInterview(currentFile);
+      } else if (!currentFile && !notePromise) {
+        awaitingNotes = true;
+        const token = ++noteToken;
+        notePromise = ask("What's on your mind?").then(async (text) => {
+          if (token !== noteToken) return; // a newer request took priority
           awaitingNotes = false;
-          // start an interview based directly on the typed notes
+          notePromise = null;
+          notesText = text;
           await startNotesInterview(notesText);
-        }
+        });
       }
     } catch (err) {
       console.error('Polling failed', err);
