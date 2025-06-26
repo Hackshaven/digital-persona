@@ -70,6 +70,26 @@ class FollowupRequest(BaseModel):
     answer: str
 
 
+class ExplanationRequest(BaseModel):
+    question: str
+    notes: str
+
+
+class FollowupExplanationRequest(BaseModel):
+    followup: str
+    original: str
+    notes: str
+
+
+class SimulateRequest(BaseModel):
+    question: str
+    notes: str
+
+
+class SaveProfileRequest(BaseModel):
+    profile: dict
+
+
 class MemoryItem(BaseModel):
     text: str
     timestamp: Optional[str] = None
@@ -137,6 +157,42 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
         text = payload.notes.lower()
         tags = [t for t in trait_names if t.lower() in text]
         return {"traits": tags}
+
+    @app.post("/summarize")
+    def summarize(payload: Notes) -> dict:
+        summary = interviewer.summarize_data(payload.notes)
+        return {"summary": summary}
+
+    @app.post("/explain_question")
+    def explain_question(payload: ExplanationRequest) -> dict:
+        expl = interviewer.explain_question(payload.question, payload.notes)
+        return {"explanation": expl}
+
+    @app.post("/explain_followup")
+    def explain_followup(payload: FollowupExplanationRequest) -> dict:
+        expl = interviewer.explain_followup(
+            payload.followup, payload.original, payload.notes
+        )
+        return {"explanation": expl}
+
+    @app.post("/simulate_answer")
+    def simulate_answer(payload: SimulateRequest) -> dict:
+        ans = interviewer.simulate_answer(payload.question, payload.notes)
+        return {"answer": ans}
+
+    @app.post("/save_profile")
+    def save_profile(payload: SaveProfileRequest) -> dict:
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+        out_path = OUTPUT_DIR / f"profile-{ts}.json"
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(payload.profile, f, indent=2)
+        PROFILE_FILE.write_text(json.dumps(payload.profile, indent=2), encoding="utf-8")
+        return {"status": "saved", "file": out_path.name}
+
+    @app.post("/acknowledge")
+    def acknowledge() -> dict:
+        """Placeholder endpoint for acknowledgment messages."""
+        return {"message": "Acknowledged"}
 
     @app.get("/pending")
     def pending() -> dict:

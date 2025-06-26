@@ -21,7 +21,8 @@ This project standardizes how personality traits, goals, and memories can be sto
 
 ## Reference Documents
 
-- [Representing Personal Data and Personality Traits: Existing JSON/Semantic Standards](Representing%20Personal%20Data%20and%20Personality%20Traits%20-%20Existing%20JSON-Semantic%20Standards.md)
-- [Scientifically Grounded Personality Tests and Their Evolution into Digital Personas](Scientifically%20Grounded%20Personality%20Tests%20and%20Their%20Evolution%20into%20Digital%20Personas.md)
+- [research/Representing Personal Data and Personality Traits - Existing JSON-Semantic Standards](research/Representing%20Personal%20Data%20and%20Personality%20Traits%20-%20Existing%20JSON-Semantic%20Standards.md)
+- [research/Scientifically Grounded Personality Tests and Their Evolution into Digital Personas](research/Scientifically%20Grounded%20Personality%20Tests%20and%20Their%20Evolution%20into%20Digital%20Personas.md)
+- [Designing User Interfaces for Digital Clones](Designing%20User%20Interfaces%20for%20Digital%20Clones.md)
 
 These files can be fetched directly via [GitHub Pages](https://hackshaven.github.io/digital-persona/). Ensure the repository's Pages settings use **GitHub Actions** as the build and deploy source so these schema files are included.

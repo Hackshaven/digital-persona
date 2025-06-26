@@ -1,4 +1,6 @@
 <!doctype html>
+<!-- Layout elements follow accessibility and engagement guidance from
+     docs/Designing User Interfaces for Digital Clones.md -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -8,19 +10,36 @@
 </head>
 <body>
   <h1>Digital Persona Interview</h1>
+  <div id="avatar" aria-hidden="true" class="avatar-placeholder" title="Avatar will appear here"></div>
+  <aside id="profile-panel" aria-label="Profile" hidden>
+    <!-- TODO: profile details -->
+    <p>Profile info coming soon.</p>
+  </aside>
   <div id="status" aria-live="polite">Waiting for new data...</div>
+  <div id="progress-container" aria-label="Interview progress" hidden>
+    <progress id="progress" max="100" value="0"></progress>
+  </div>
   <div id="chat" aria-live="polite"></div>
   <form id="form">
     <input id="input" aria-label="Chat input" autocomplete="off" />
     <button type="submit">Send</button>
+    <label><input type="checkbox" id="dry-run" /> Dry run</label>
   </form>
   <script type="module">
   const POLL_MS = 3000;
   let currentFile = null;
   let resolveAnswer = null;
+  let awaitingNotes = false;
+  let notesText = '';
+  let dryRun = false;
   const chat = document.getElementById('chat');
   const form = document.getElementById('form');
   const input = document.getElementById('input');
+  const dryToggle = document.getElementById('dry-run');
+
+  dryToggle.addEventListener('change', () => {
+    dryRun = dryToggle.checked;
+  });
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -42,8 +61,23 @@
     div.scrollIntoView();
   }
 
+  // Placeholder for future acknowledgement behavior
+  async function sendAck() {
+    await fetch('/acknowledge', { method: 'POST' });
+  }
+
   async function ask(question) {
     addMsg('bot', question);
+    if (dryRun) {
+      const resp = await fetch('/simulate_answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, notes: notesText })
+      });
+      const data = await resp.json();
+      addMsg('user', data.answer);
+      return data.answer;
+    }
     return new Promise(res => {
       resolveAnswer = res;
     });
@@ -54,9 +88,16 @@
       const resp = await fetch('/pending');
       if (!resp.ok) throw new Error('Failed request');
       const data = await resp.json();
-      if (!currentFile && data.files.length > 0) {
-        currentFile = data.files[0];
-        startInterview(currentFile);
+      if (!currentFile) {
+        if (data.files.length > 0) {
+          currentFile = data.files[0];
+          startInterviewFromFile(currentFile);
+        } else if (!awaitingNotes) {
+          awaitingNotes = true;
+          notesText = await ask("What's on your mind?");
+          awaitingNotes = false;
+          startInterview(notesText);
+        }
       }
     } catch (err) {
       console.error('Polling failed', err);
@@ -65,20 +106,50 @@
     }
   }
 
-  async function startInterview(file) {
+  async function startInterviewFromFile(file) {
     document.getElementById('status').textContent = 'Processing ' + file;
     const notes = await fetch('/start_interview?file=' + encodeURIComponent(file));
     const noteData = await notes.json();
-    let qa = [];
+    notesText = noteData.text;
+    await runInterview(file);
+  }
+
+  async function startInterview(textNotes) {
+    document.getElementById('status').textContent = 'Processing your notes';
+    notesText = textNotes;
+    await runInterview(null);
+  }
+
+  async function runInterview(file) {
+    const sumRes = await fetch('/summarize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: notesText })
+    });
+    const summary = await sumRes.json();
+    addMsg('bot', "Here's a quick summary of what you shared:\n" + summary.summary);
+
     const qsRes = await fetch('/generate_questions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes: noteData.text })
+      body: JSON.stringify({ notes: notesText })
     });
     const qs = await qsRes.json();
+    addMsg('bot', `I'll ask ${qs.questions.length} questions:`);
+    qs.questions.forEach((q, i) => addMsg('bot', `${i + 1}. ${q}`));
+
+    let qa = [];
     for (const q of qs.questions) {
+      const expRes = await fetch('/explain_question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q, notes: notesText })
+      });
+      const ex = await expRes.json();
+      addMsg('bot', ex.explanation);
       const answer = await ask(q);
       qa.push({question: q, answer});
+      if (!dryRun) addMsg('bot', 'Got it.');
       const fRes = await fetch('/generate_followup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -86,22 +157,39 @@
       });
       const f = await fRes.json();
       if (f.followup) {
+        const exFRes = await fetch('/explain_followup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ followup: f.followup, original: q, notes: notesText })
+        });
+        const exf = await exFRes.json();
+        addMsg('bot', exf.explanation);
         const a2 = await ask(f.followup);
         qa.push({question: f.followup, answer: a2});
+        if (!dryRun) addMsg('bot', 'Thanks for the detail.');
       }
     }
     const profRes = await fetch('/profile_from_answers', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes: noteData.text, qa })
+      body: JSON.stringify({ notes: notesText, qa })
     });
     const profile = await profRes.json();
-    await fetch('/complete_interview', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ file, profile })
-    });
-    document.getElementById('status').textContent = 'Finished processing ' + file;
+    if (file) {
+      await fetch('/complete_interview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file, profile })
+      });
+    } else {
+      await fetch('/save_profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile })
+      });
+    }
+    addMsg('bot', 'Psychological summary: ' + profile.psychologicalSummary);
+    document.getElementById('status').textContent = 'Waiting for new data...';
     currentFile = null;
   }
 

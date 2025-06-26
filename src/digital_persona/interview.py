@@ -78,15 +78,14 @@ class PersonalityInterviewer:
             return ChatOpenAI(model=model_name, temperature=0)
 
     def _load_research_docs(self) -> str:
-        """Load supporting research papers from the ``docs`` directory."""
-        docs_dir = Path(__file__).resolve().parents[2] / "docs"
+        """Load research papers relevant to the interview process."""
+        docs_dir = Path(__file__).resolve().parents[2] / "docs" / "research"
         texts = []
         for p in docs_dir.glob("*.md"):
-            if p.name != "index.md":
-                try:
-                    texts.append(p.read_text(encoding="utf-8"))
-                except UnicodeDecodeError:
-                    texts.append(p.read_text(encoding="utf-8", errors="replace"))
+            try:
+                texts.append(p.read_text(encoding="utf-8"))
+            except UnicodeDecodeError:
+                texts.append(p.read_text(encoding="utf-8", errors="replace"))
         return "\n\n".join(texts)
 
     def _load_schema_fields(self, filename: str) -> List[str]:
