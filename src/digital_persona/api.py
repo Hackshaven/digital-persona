@@ -122,6 +122,10 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     def profile_from_answers(payload: QAPayload) -> dict:
         qa_pairs = [f"Q: {item.question}\nA: {item.answer}" for item in payload.qa]
         profile = interviewer.profile_from_answers(payload.notes, qa_pairs)
+        if not profile.get("psychologicalSummary"):
+            profile["psychologicalSummary"] = interviewer.summarize_data(
+                payload.notes
+            )
         PROFILE_FILE.write_text(json.dumps(profile, indent=2), encoding="utf-8")
         return profile
 

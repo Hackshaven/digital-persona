@@ -92,13 +92,13 @@
         if (data.files.length > 0) {
           currentFile = data.files[0];
           // start an interview using the contents of the uploaded file
-          startFileInterview(currentFile);
+          await startFileInterview(currentFile);
         } else if (!awaitingNotes) {
           awaitingNotes = true;
           notesText = await ask("What's on your mind?");
           awaitingNotes = false;
           // start an interview based directly on the typed notes
-          startNotesInterview(notesText);
+          await startNotesInterview(notesText);
         }
       }
     } catch (err) {
@@ -195,7 +195,14 @@
       });
       document.getElementById('status').textContent = 'Waiting for new data...';
     }
-    addMsg('bot', 'Psychological summary: ' + profile.psychologicalSummary);
+    if (profile.psychologicalSummary) {
+      addMsg('bot', 'Psychological summary: ' + profile.psychologicalSummary);
+    } else if (profile.traits) {
+      const traitList = Object.entries(profile.traits)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(', ');
+      addMsg('bot', 'Traits: ' + traitList);
+    }
     currentFile = null;
   }
 

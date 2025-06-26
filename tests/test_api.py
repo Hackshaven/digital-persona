@@ -49,7 +49,12 @@ class StubInterviewer:
         return "Simulated"
 
     def profile_from_answers(self, notes, qa_pairs):
-        return {"notes": notes, "interview": qa_pairs, "traits": {"openness": 0.5}}
+        return {
+            "notes": notes,
+            "interview": qa_pairs,
+            "traits": {"openness": 0.5},
+            "psychologicalSummary": "Stub summary",
+        }
 
 
 @pytest.fixture()
@@ -85,6 +90,7 @@ def test_profile_saved_and_loaded(client):
     assert resp.status_code == 200
     prof = resp.json()
     assert prof["traits"]["openness"] == 0.5
+    assert "psychologicalSummary" in prof
 
     resp2 = client.get("/profile/current")
     assert resp2.status_code == 200
