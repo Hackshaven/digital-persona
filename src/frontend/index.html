@@ -183,8 +183,9 @@
       body: JSON.stringify({ notes: notesText, qa })
     });
     const profile = await profRes.json();
+    let saveResp;
     if (file) {
-      await fetch('/complete_interview', {
+      saveResp = await fetch('/complete_interview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ file, profile })
@@ -192,19 +193,30 @@
       document.getElementById('status').textContent =
         'Finished processing ' + file;
     } else {
-      await fetch('/save_profile', {
+      saveResp = await fetch('/save_profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profile })
       });
       document.getElementById('status').textContent = 'Waiting for new data...';
     }
-    if (profile.psychologicalSummary) {
-      let summary = profile.psychologicalSummary;
-      if (typeof summary !== 'string') {
-        summary = JSON.stringify(summary, null, 2);
-      }
-      addMsg('bot', 'Psychological summary: ' + summary);
+    let summaryText;
+    if (typeof profile.psychologicalSummary === 'string') {
+      summaryText = profile.psychologicalSummary;
+    } else {
+      const sumResp = await fetch('/summarize_profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile })
+      });
+      const sumData = await sumResp.json();
+      summaryText = sumData.summary;
+    }
+    addMsg('bot', 'Psychological summary: ' + summaryText);
+    const saveData = await saveResp.json();
+    if (saveData.file) {
+      addMsg('bot', 'Profile saved to ' + saveData.file);
+    }
     } else if (profile.traits) {
       const traitList = Object.entries(profile.traits)
         .map(([k, v]) => `${k}: ${v}`)

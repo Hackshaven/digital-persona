@@ -168,6 +168,18 @@ class PersonalityInterviewer:
             if "?" in q and len(q.strip()) < self.MAX_QUESTION_LEN
         ]
 
+    def summarize_profile(self, profile: dict) -> str:
+        """Return a concise, human-readable summary of the profile."""
+        prompt = (
+            "Provide a short friendly summary of the psychological profile below. "
+            "Highlight notable traits, goals and the overall impression."
+        )
+        msg = [
+            SystemMessage(content="You create one paragraph summaries."),
+            HumanMessage(content=prompt + "\n" + json.dumps(profile, indent=2)),
+        ]
+        return self.llm.invoke(msg).content.strip()
+
     def generate_followup(self, question: str, answer: str) -> str | None:
         """Ask the LLM for a clarification follow-up question if needed."""
         prompt = (

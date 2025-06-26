@@ -184,6 +184,11 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
         ans = interviewer.simulate_answer(payload.question, payload.notes)
         return {"answer": ans}
 
+    @app.post("/summarize_profile")
+    def summarize_profile(payload: SaveProfileRequest) -> dict:
+        summary = interviewer.summarize_profile(payload.profile)
+        return {"summary": summary}
+
     @app.post("/save_profile")
     def save_profile(payload: SaveProfileRequest) -> dict:
         ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -231,7 +236,7 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
         in_path.rename(processed_path)
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(req.profile, f, indent=2)
-        return {"status": "saved"}
+        return {"status": "saved", "file": out_path.name}
 
     @app.get("/", response_class=HTMLResponse)
     def index() -> str:

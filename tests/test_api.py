@@ -48,6 +48,9 @@ class StubInterviewer:
     def simulate_answer(self, question, notes):
         return "Simulated"
 
+    def summarize_profile(self, profile):
+        return "Profile summary"
+
     def profile_from_answers(self, notes, qa_pairs):
         return {
             "notes": notes,
@@ -126,6 +129,7 @@ def test_pending_and_complete(client, api_module):
         json={"file": "data.txt", "profile": profile},
     )
     assert resp.status_code == 200
+    assert resp.json()["file"] == "data.json"
     assert (processed_dir / "data.txt").exists()
     assert (output_dir / "data.json").exists()
 
@@ -160,5 +164,9 @@ def test_new_endpoints(client):
     resp = client.post("/acknowledge")
     assert resp.status_code == 200
     assert resp.json()["message"] == "Acknowledged"
+
+    resp = client.post("/summarize_profile", json={"profile": profile})
+    assert resp.status_code == 200
+    assert resp.json()["summary"] == "Profile summary"
 
 
