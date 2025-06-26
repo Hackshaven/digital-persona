@@ -154,8 +154,8 @@
         body: JSON.stringify({ question: q, notes: notesText })
       });
       const ex = await expRes.json();
-      addMsg('bot', ex.explanation);
-      const answer = await ask(q);
+      const combined = `${ex.explanation}\n${q}`;
+      const answer = await ask(combined);
       qa.push({question: q, answer});
       if (!dryRun) addMsg('bot', 'Got it.');
       const fRes = await fetch('/generate_followup', {
@@ -171,8 +171,8 @@
           body: JSON.stringify({ followup: f.followup, original: q, notes: notesText })
         });
         const exf = await exFRes.json();
-        addMsg('bot', exf.explanation);
-        const a2 = await ask(f.followup);
+        const combinedF = `${exf.explanation}\n${f.followup}`;
+        const a2 = await ask(combinedF);
         qa.push({question: f.followup, answer: a2});
         if (!dryRun) addMsg('bot', 'Thanks for the detail.');
       }
