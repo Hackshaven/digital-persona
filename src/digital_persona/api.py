@@ -70,6 +70,26 @@ class FollowupRequest(BaseModel):
     answer: str
 
 
+class ExplanationRequest(BaseModel):
+    question: str
+    notes: str
+
+
+class FollowupExplanationRequest(BaseModel):
+    followup: str
+    original: str
+    notes: str
+
+
+class SimulateRequest(BaseModel):
+    question: str
+    notes: str
+
+
+class SaveProfileRequest(BaseModel):
+    profile: dict
+
+
 class MemoryItem(BaseModel):
     text: str
     timestamp: Optional[str] = None
@@ -102,6 +122,10 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     def profile_from_answers(payload: QAPayload) -> dict:
         qa_pairs = [f"Q: {item.question}\nA: {item.answer}" for item in payload.qa]
         profile = interviewer.profile_from_answers(payload.notes, qa_pairs)
+        if not profile.get("psychologicalSummary"):
+            profile["psychologicalSummary"] = interviewer.summarize_data(
+                payload.notes
+            )
         PROFILE_FILE.write_text(json.dumps(profile, indent=2), encoding="utf-8")
         return profile
 
@@ -138,6 +162,53 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
         tags = [t for t in trait_names if t.lower() in text]
         return {"traits": tags}
 
+    @app.post("/summarize")
+    def summarize(payload: Notes) -> dict:
+        summary = interviewer.summarize_data(payload.notes)
+        return {"summary": summary}
+
+    @app.post("/explain_question")
+    def explain_question(payload: ExplanationRequest) -> dict:
+        expl = interviewer.explain_question(payload.question, payload.notes)
+        return {"explanation": expl}
+
+    @app.post("/explain_followup")
+    def explain_followup(payload: FollowupExplanationRequest) -> dict:
+        expl = interviewer.explain_followup(
+            payload.followup, payload.original, payload.notes
+        )
+        return {"explanation": expl}
+
+    @app.post("/simulate_answer")
+    def simulate_answer(payload: SimulateRequest) -> dict:
+        ans = interviewer.simulate_answer(payload.question, payload.notes)
+        return {"answer": ans}
+
+    @app.post("/summarize_profile")
+    def summarize_profile(payload: SaveProfileRequest) -> dict:
+        summary = interviewer.summarize_profile(payload.profile)
+        return {"summary": summary}
+
+    @app.post("/save_profile")
+    def save_profile(payload: SaveProfileRequest) -> dict:
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+        out_path = OUTPUT_DIR / f"profile-{ts}.json"
+        try:
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(payload.profile, f, indent=2)
+            PROFILE_FILE.write_text(
+                json.dumps(payload.profile, indent=2), encoding="utf-8"
+            )
+        except OSError as exc:
+            return {"status": "error", "detail": str(exc)}
+
+        return {"status": "saved", "file": out_path.name}
+
+    @app.post("/acknowledge")
+    def acknowledge() -> dict:
+        """Placeholder endpoint for acknowledgment messages."""
+        return {"message": "Acknowledged"}
+
     @app.get("/pending")
     def pending() -> dict:
         files = [p.name for p in INPUT_DIR.glob("*") if p.is_file()]
@@ -165,7 +236,7 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
         in_path.rename(processed_path)
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(req.profile, f, indent=2)
-        return {"status": "saved"}
+        return {"status": "saved", "file": out_path.name}
 
     @app.get("/", response_class=HTMLResponse)
     def index() -> str:

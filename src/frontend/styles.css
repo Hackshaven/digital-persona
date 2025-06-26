@@ -5,3 +5,7 @@ body { font-family: Arial, sans-serif; margin: 2em; }
 .user { background: #d0eaff; margin-left: auto; text-align: right; }
 #form { display: flex; margin-top: 1em; }
 #input { flex: 1; padding: 0.5em; }
+/* Placeholder elements for future UI expansion */
+#avatar.avatar-placeholder { width: 80px; height: 80px; border-radius: 50%; background: #ccc; margin: 0 auto; }
+#profile-panel { position: fixed; right: 1em; top: 1em; width: 200px; background: #fff; border: 1px solid #ccc; padding: 1em; }
+#progress-container { margin: 1em 0; text-align: center; }

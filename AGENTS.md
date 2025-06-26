@@ -66,7 +66,8 @@ Add new schema entries or narrative types in a consistent style.
 When tackling design or architecture questions, consult the research papers stored in the `docs/` directory for guidance:
 - "Representing Personal Data and Personality Traits: Existing JSON/Semantic Standards"
 - "Scientifically Grounded Personality Tests and Their Evolution into Digital Personas"
-Use insights from these documents to inform design decisions. Whenever you add or remove files in the `docs/` directory, update `docs/index.md` so the GitHub Pages listing remains accurate and modify `.github/workflows/pages.yml` to copy any new or renamed schema files.
+- "Designing User Interfaces for Digital Clones"
+Use insights from these documents to inform design decisions. In particular, refer to **"Designing User Interfaces for Digital Clones"** for UI and UX guidance. Whenever you add or remove files in the `docs/` directory, update `docs/index.md` so the GitHub Pages listing remains accurate and modify `.github/workflows/pages.yml` to copy any new or renamed schema files.
 
 ### 📄 License
 This project is licensed under the MIT License. See `LICENSE` for details.

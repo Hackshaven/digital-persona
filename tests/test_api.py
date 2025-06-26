@@ -36,8 +36,28 @@ class StubInterviewer:
     def generate_followup(self, q, a):
         return "Clarify?"
 
+    def summarize_data(self, notes):
+        return "Summary"
+
+    def explain_question(self, question, notes):
+        return "Because"
+
+    def explain_followup(self, followup, orig, notes):
+        return "Follow"
+
+    def simulate_answer(self, question, notes):
+        return "Simulated"
+
+    def summarize_profile(self, profile):
+        return "Profile summary"
+
     def profile_from_answers(self, notes, qa_pairs):
-        return {"notes": notes, "interview": qa_pairs, "traits": {"openness": 0.5}}
+        return {
+            "notes": notes,
+            "interview": qa_pairs,
+            "traits": {"openness": 0.5},
+            "psychologicalSummary": "Stub summary",
+        }
 
 
 @pytest.fixture()
@@ -73,6 +93,7 @@ def test_profile_saved_and_loaded(client):
     assert resp.status_code == 200
     prof = resp.json()
     assert prof["traits"]["openness"] == 0.5
+    assert "psychologicalSummary" in prof
 
     resp2 = client.get("/profile/current")
     assert resp2.status_code == 200
@@ -108,7 +129,44 @@ def test_pending_and_complete(client, api_module):
         json={"file": "data.txt", "profile": profile},
     )
     assert resp.status_code == 200
+    assert resp.json()["file"] == "data.json"
     assert (processed_dir / "data.txt").exists()
     assert (output_dir / "data.json").exists()
+
+
+def test_new_endpoints(client):
+    resp = client.post("/summarize", json={"notes": "text"})
+    assert resp.json()["summary"] == "Summary"
+
+    resp = client.post(
+        "/explain_question",
+        json={"question": "Q?", "notes": "text"},
+    )
+    assert resp.json()["explanation"] == "Because"
+
+    resp = client.post(
+        "/explain_followup",
+        json={"followup": "F?", "original": "Q?", "notes": "text"},
+    )
+    assert resp.json()["explanation"] == "Follow"
+
+    resp = client.post(
+        "/simulate_answer",
+        json={"question": "Q?", "notes": "text"},
+    )
+    assert resp.json()["answer"] == "Simulated"
+
+    profile = {"foo": 1}
+    resp = client.post("/save_profile", json={"profile": profile})
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "saved"
+
+    resp = client.post("/acknowledge")
+    assert resp.status_code == 200
+    assert resp.json()["message"] == "Acknowledged"
+
+    resp = client.post("/summarize_profile", json={"profile": profile})
+    assert resp.status_code == 200
+    assert resp.json()["summary"] == "Profile summary"
 
 

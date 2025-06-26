@@ -78,15 +78,20 @@ class PersonalityInterviewer:
             return ChatOpenAI(model=model_name, temperature=0)
 
     def _load_research_docs(self) -> str:
-        """Load supporting research papers from the ``docs`` directory."""
-        docs_dir = Path(__file__).resolve().parents[2] / "docs"
+        """Load research papers relevant to the interview process."""
+        docs_dir = Path(__file__).resolve().parents[2] / "docs" / "research"
+        if not docs_dir.exists():
+            raise FileNotFoundError(
+                f"Research directory not found: {docs_dir}. Ensure documentation files are present."
+            )
         texts = []
+        # Load all Markdown files in the docs/research directory.
+        # Assumes that all files in this directory are research-related documents.
         for p in docs_dir.glob("*.md"):
-            if p.name != "index.md":
-                try:
-                    texts.append(p.read_text(encoding="utf-8"))
-                except UnicodeDecodeError:
-                    texts.append(p.read_text(encoding="utf-8", errors="replace"))
+            try:
+                texts.append(p.read_text(encoding="utf-8"))
+            except UnicodeDecodeError:
+                texts.append(p.read_text(encoding="utf-8", errors="replace"))
         return "\n\n".join(texts)
 
     def _load_schema_fields(self, filename: str) -> List[str]:
@@ -162,6 +167,18 @@ class PersonalityInterviewer:
             for q in response.splitlines()
             if "?" in q and len(q.strip()) < self.MAX_QUESTION_LEN
         ]
+
+    def summarize_profile(self, profile: dict) -> str:
+        """Return a concise, human-readable summary of the profile."""
+        prompt = (
+            "Provide a short friendly summary of the psychological profile below. "
+            "Highlight notable traits, goals and the overall impression."
+        )
+        msg = [
+            SystemMessage(content="You create one paragraph summaries."),
+            HumanMessage(content=prompt + "\n" + json.dumps(profile, indent=2)),
+        ]
+        return self.llm.invoke(msg).content.strip()
 
     def generate_followup(self, question: str, answer: str) -> str | None:
         """Ask the LLM for a clarification follow-up question if needed."""
