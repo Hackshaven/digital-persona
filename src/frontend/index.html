@@ -196,7 +196,11 @@
       document.getElementById('status').textContent = 'Waiting for new data...';
     }
     if (profile.psychologicalSummary) {
-      addMsg('bot', 'Psychological summary: ' + profile.psychologicalSummary);
+      let summary = profile.psychologicalSummary;
+      if (typeof summary !== 'string') {
+        summary = JSON.stringify(summary, null, 2);
+      }
+      addMsg('bot', 'Psychological summary: ' + summary);
     } else if (profile.traits) {
       const traitList = Object.entries(profile.traits)
         .map(([k, v]) => `${k}: ${v}`)
