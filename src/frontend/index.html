@@ -181,15 +181,17 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ file, profile })
       });
+      document.getElementById('status').textContent =
+        'Finished processing ' + file;
     } else {
       await fetch('/save_profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profile })
       });
+      document.getElementById('status').textContent = 'Waiting for new data...';
     }
     addMsg('bot', 'Psychological summary: ' + profile.psychologicalSummary);
-    document.getElementById('status').textContent = 'Waiting for new data...';
     currentFile = null;
   }
 
