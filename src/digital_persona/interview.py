@@ -80,6 +80,8 @@ class PersonalityInterviewer:
     def _load_research_docs(self) -> str:
         """Load research papers relevant to the interview process."""
         docs_dir = Path(__file__).resolve().parents[2] / "docs" / "research"
+        if not docs_dir.exists():
+            return ""
         texts = []
         # Load all Markdown files in the docs/research directory.
         # Assumes that all files in this directory are research-related documents.

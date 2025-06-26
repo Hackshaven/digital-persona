@@ -91,12 +91,14 @@
       if (!currentFile) {
         if (data.files.length > 0) {
           currentFile = data.files[0];
-          startInterviewFromFile(currentFile);
+          // start an interview using the contents of the uploaded file
+          startFileInterview(currentFile);
         } else if (!awaitingNotes) {
           awaitingNotes = true;
           notesText = await ask("What's on your mind?");
           awaitingNotes = false;
-          startInterview(notesText);
+          // start an interview based directly on the typed notes
+          startNotesInterview(notesText);
         }
       }
     } catch (err) {
@@ -106,7 +108,8 @@
     }
   }
 
-  async function startInterviewFromFile(file) {
+  // Begin an interview using notes from an uploaded file
+  async function startFileInterview(file) {
     document.getElementById('status').textContent = 'Processing ' + file;
     const notes = await fetch('/start_interview?file=' + encodeURIComponent(file));
     const noteData = await notes.json();
@@ -114,7 +117,8 @@
     await runInterview(file);
   }
 
-  async function startInterview(textNotes) {
+  // Begin an interview using notes entered directly by the user
+  async function startNotesInterview(textNotes) {
     document.getElementById('status').textContent = 'Processing your notes';
     notesText = textNotes;
     await runInterview(null);

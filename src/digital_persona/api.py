@@ -184,9 +184,15 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     def save_profile(payload: SaveProfileRequest) -> dict:
         ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         out_path = OUTPUT_DIR / f"profile-{ts}.json"
-        with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(payload.profile, f, indent=2)
-        PROFILE_FILE.write_text(json.dumps(payload.profile, indent=2), encoding="utf-8")
+        try:
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(payload.profile, f, indent=2)
+            PROFILE_FILE.write_text(
+                json.dumps(payload.profile, indent=2), encoding="utf-8"
+            )
+        except OSError as exc:
+            return {"status": "error", "detail": str(exc)}
+
         return {"status": "saved", "file": out_path.name}
 
     @app.post("/acknowledge")
