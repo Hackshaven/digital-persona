@@ -30,6 +30,7 @@ dependencies = [
     "referencing (>=0.36.2,<0.37.0)",
     "fastapi",
     "uvicorn",
+    "cryptography",
 ]
 
 [project.scripts]
