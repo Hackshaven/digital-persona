@@ -17,7 +17,15 @@ This data supports the development of digital personality clones, virtual assist
 
 See the [mission statement](https://github.com/Hackshaven/digital-persona/wiki/Mission) for the guiding principles. When proposing or reviewing new features, ensure they align with that mission.
 
----
+
+### 📚 Research References
+
+When tackling design or architecture questions, consult the research papers stored in the `docs/` directory for guidance:
+- "Representing Personal Data and Personality Traits: Existing JSON/Semantic Standards"
+- "Scientifically Grounded Personality Tests and Their Evolution into Digital Personas"
+- "Personal Digital Clones: Ethical, Legal, and Philosophical Implications"
+- "Designing User Interfaces for Digital Clones: Research & Best Practices"
+Use insights from these documents to inform design decisions.
 
 ### 📁 Directory Overview
 
@@ -64,15 +72,6 @@ If you create:
 - Cognitive biases or coping styles
 - Memory embeddings
 Add new schema entries or narrative types in a consistent style.
-
-### 📚 Research References
-
-When tackling design or architecture questions, consult the research papers stored in the `docs/` directory for guidance:
-- "Representing Personal Data and Personality Traits: Existing JSON/Semantic Standards"
-- "Scientifically Grounded Personality Tests and Their Evolution into Digital Personas"
-- "Personal Digital Clones: Ethical, Legal, and Philosophical Implications"
-- "Designing User Interfaces for Digital Clones: Research & Best Practices"
-Use insights from these documents to inform design decisions.
 
 ### 📄 License
 This project is licensed under the MIT License. See `LICENSE` for details.
