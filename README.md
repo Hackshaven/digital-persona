@@ -1,13 +1,13 @@
 # digital-persona
 
 This project provides a modular AI system that emulates a user's personality using psychometric modeling, memory streams, and narrative identity. 
-[See the introduction](INTRODUCTION.md) for a quick overview of this project.
+[See the introduction](https://github.com/Hackshaven/digital-persona/wiki/Introduction) for a quick overview of this project.
 
 ![CI Status](https://github.com/Hackshaven/digital-persona/actions/workflows/test.yml/badge.svg?branch=main)
 
 ## Mission Statement
 
-See [MISSION.md](MISSION.md) for the project's guiding principles. New features
+See the [mission](https://github.com/Hackshaven/digital-persona/wiki/Mission) for the project's guiding principles. New features
 and pull requests should be checked against this statement to ensure they uphold
 ethical use, user control, and secure handling of personality data.
 
@@ -29,8 +29,7 @@ ethical use, user control, and secure handling of personality data.
 - `src/frontend/` – Static HTML and CSS for the basic web interface
 - `scripts/` – Helper scripts like `start-api.sh` used by the devcontainer
 - Uvicorn output from the devcontainer is written to `/tmp/uvicorn.log` for debugging
-- `docs/` – Research papers used as additional prompt context and published via
-  GitHub Pages
+- `docs/` – Research papers used as additional prompt context (available in the container)
 
 ## Example: Interview Script
 
