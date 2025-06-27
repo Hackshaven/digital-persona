@@ -15,7 +15,7 @@ This repository defines structured formats (JSON-LD contexts, JSON Schemas, exam
 
 This data supports the development of digital personality clones, virtual assistants, and behavioral simulation agents.
 
-See `MISSION.md` for the guiding principles. When proposing or reviewing new features, ensure they align with that mission.
+See the [mission statement](https://github.com/Hackshaven/digital-persona/wiki/Mission) for the guiding principles. When proposing or reviewing new features, ensure they align with that mission.
 
 ---
 
@@ -28,7 +28,11 @@ See `MISSION.md` for the guiding principles. When proposing or reviewing new fea
 | `schema/ontologies/` | Use `trait-vocabulary.md` to interpret meaning of traits. This helps explain or label personality test results. |
 | `schema/utils/` | Reuse `trait_helpers.py` to convert raw percentile or score values to normalized trait scores for consistent use. |
 | `schema/tests/` | Extend with new test cases for any new traits, schema versions, or example content. |
-| `docs/` | Contains research papers and their Markdown conversions. Update `docs/index.md` whenever files here change, and adjust `.github/workflows/pages.yml` if schema filenames referenced there change. |
+| `src/` | Location of source code for commandline tool and web site front end.  Additional code and features shold be put in this directory. |
+| `scripts/` | Helper scripts for container development. |
+| `data/` | Sample input data used to test the project JSON output. |
+| `docs/` | Contains research papers providing project background and design requirements. Adjust `.github/workflows/pages.yml` if schema filenames referenced there change. |
+| `tests/` | Pytest tests |
 | `.github/workflows/` | CI checks will automatically validate schemas and example use cases. Ensure new examples conform. |
 
 ---
@@ -66,7 +70,9 @@ Add new schema entries or narrative types in a consistent style.
 When tackling design or architecture questions, consult the research papers stored in the `docs/` directory for guidance:
 - "Representing Personal Data and Personality Traits: Existing JSON/Semantic Standards"
 - "Scientifically Grounded Personality Tests and Their Evolution into Digital Personas"
-Use insights from these documents to inform design decisions. Whenever you add or remove files in the `docs/` directory, update `docs/index.md` so the GitHub Pages listing remains accurate and modify `.github/workflows/pages.yml` to copy any new or renamed schema files.
+- "Personal Digital Clones: Ethical, Legal, and Philosophical Implications"
+- "Designing User Interfaces for Digital Clones: Research & Best Practices"
+Use insights from these documents to inform design decisions.
 
 ### 📄 License
 This project is licensed under the MIT License. See `LICENSE` for details.
