@@ -36,7 +36,7 @@ Use insights from these documents to inform design decisions.
 | `schema/ontologies/` | Use `trait-vocabulary.md` to interpret meaning of traits. This helps explain or label personality test results. |
 | `schema/utils/` | Reuse `trait_helpers.py` to convert raw percentile or score values to normalized trait scores for consistent use. |
 | `schema/tests/` | Extend with new test cases for any new traits, schema versions, or example content. |
-| `src/` | Location of source code for commandline tool and web site front end.  Additional code and features shold be put in this directory. |
+| `src/` | Location of source code for commandline tool and web site front end.  Additional code and features should be put in this directory. |
 | `scripts/` | Helper scripts for container development. |
 | `data/` | Sample input data used to test the project JSON output. |
 | `docs/` | Contains research papers providing project background and design requirements. Adjust `.github/workflows/pages.yml` if schema filenames referenced there change. |
