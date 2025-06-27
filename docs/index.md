@@ -17,6 +17,6 @@ This project standardizes how personality traits, goals, and memories can be sto
 
 ## Reference Documents
 
-Can be found in the project's [wiki](https://github.com/Hackshaven/digital-persona/wiki)
+Documentation and research papers can be found in the project's [wiki](https://github.com/Hackshaven/digital-persona/wiki)
 
 These files can be fetched directly via [GitHub Pages](https://hackshaven.github.io/digital-persona/). Ensure the repository's Pages settings use **GitHub Actions** as the build and deploy source so these schema files are included.
