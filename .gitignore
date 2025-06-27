@@ -98,3 +98,5 @@ $RECYCLE.BIN/
 !LICENSE
 !README.md
 !pyproject.toml
+docs/*.md
+!docs/index.md

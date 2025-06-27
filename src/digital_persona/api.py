@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,6 +14,11 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .interview import PersonalityInterviewer
+from .secure_storage import (
+    get_fernet,
+    save_json_encrypted,
+    load_json_encrypted,
+)
 
 
 def _valid_openai_key() -> bool:
@@ -43,6 +47,7 @@ PROCESSED_DIR = PERSONA_DIR / "processed"
 OUTPUT_DIR = PERSONA_DIR / "output"
 # web UI resources live in the ``frontend`` package
 FRONTEND_DIR = resources.files("frontend")
+FERNET = get_fernet(PERSONA_DIR)
 
 PERSONA_DIR.mkdir(exist_ok=True)
 MEMORY_DIR.mkdir(exist_ok=True)
@@ -102,31 +107,28 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     def profile_from_answers(payload: QAPayload) -> dict:
         qa_pairs = [f"Q: {item.question}\nA: {item.answer}" for item in payload.qa]
         profile = interviewer.profile_from_answers(payload.notes, qa_pairs)
-        PROFILE_FILE.write_text(json.dumps(profile, indent=2), encoding="utf-8")
+        save_json_encrypted(profile, PROFILE_FILE, FERNET)
         return profile
 
     @app.get("/profile/current")
     def profile_current() -> dict:
         if not PROFILE_FILE.exists():
             raise HTTPException(status_code=404, detail="No profile saved")
-        with open(PROFILE_FILE, encoding="utf-8") as f:
-            return json.load(f)
+        return load_json_encrypted(PROFILE_FILE, FERNET)
 
     @app.post("/memory/save")
     def memory_save(item: MemoryItem) -> dict:
         ts = item.timestamp or datetime.now(timezone.utc).isoformat()
         safe_ts = ts.replace(":", "-")
         path = MEMORY_DIR / f"{safe_ts}.json"
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump({"text": item.text, "timestamp": ts}, f)
+        save_json_encrypted({"text": item.text, "timestamp": ts}, path, FERNET)
         return {"status": "saved", "timestamp": ts}
 
     @app.get("/memory/timeline")
     def memory_timeline() -> List[dict]:
         memories = []
         for p in sorted(MEMORY_DIR.glob("*.json")):
-            with open(p, encoding="utf-8") as f:
-                memories.append(json.load(f))
+            memories.append(load_json_encrypted(p, FERNET))
         memories.sort(key=lambda m: m.get("timestamp", ""))
         return memories
 
@@ -163,8 +165,7 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
             )
         out_path = OUTPUT_DIR / (Path(req.file).stem + ".json")
         in_path.rename(processed_path)
-        with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(req.profile, f, indent=2)
+        save_json_encrypted(req.profile, out_path, FERNET)
         return {"status": "saved"}
 
     @app.get("/", response_class=HTMLResponse)

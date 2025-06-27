@@ -88,6 +88,15 @@ def test_memory_save_and_timeline(client):
     assert any(m["timestamp"] == ts for m in timeline)
 
 
+def test_memory_file_encrypted(client, api_module):
+    resp = client.post("/memory/save", json={"text": "secret"})
+    ts = resp.json()["timestamp"]
+    safe_ts = ts.replace(":", "-")
+    path = api_module.MEMORY_DIR / f"{safe_ts}.json"
+    raw = path.read_bytes()
+    assert not raw.lstrip().startswith(b"{")
+
+
 def test_pending_and_complete(client, api_module):
     input_dir = api_module.INPUT_DIR
     processed_dir = api_module.PROCESSED_DIR
