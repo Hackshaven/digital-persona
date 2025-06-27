@@ -7,7 +7,7 @@ This project provides a modular AI system that emulates a user's personality usi
 
 ## Mission Statement
 
-See [MISSION.md](https://github.com/Hackshaven/digital-persona/wiki/Mission) for the project's guiding principles. New features
+See the [mission](https://github.com/Hackshaven/digital-persona/wiki/Mission) for the project's guiding principles. New features
 and pull requests should be checked against this statement to ensure they uphold
 ethical use, user control, and secure handling of personality data.
 
