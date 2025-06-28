@@ -1,7 +1,7 @@
 # digital-persona
 
 This project provides a modular AI system that emulates a user's personality using psychometric modeling, memory streams, and narrative identity. 
-[See the introduction](https://github.com/Hackshaven/digital-persona/wiki/Introduction) for a quick overview of this project.
+[See the introduction](https://github.com/Hackshaven/digital-persona/wiki/Introduction) for a quick overview of this project. You can also chat with the [helper bot](https://chatgpt.com/g/g-6860217d14fc8191b9be6b80e74134fe-digital-persona-helper-bot) with questions about this project.
 
 ![CI Status](https://github.com/Hackshaven/digital-persona/actions/workflows/test.yml/badge.svg?branch=main)
 
