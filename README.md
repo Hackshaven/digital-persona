@@ -1,74 +1,116 @@
-# digital-persona
+## Digital Persona Project
 
-This project provides a modular AI system that emulates a user's personality using psychometric modeling, memory streams, and narrative identity. 
-[See the introduction](https://github.com/Hackshaven/digital-persona/wiki/Introduction) for a quick overview of this project. You can also chat with the [helper bot](https://chatgpt.com/g/g-6860217d14fc8191b9be6b80e74134fe-digital-persona-helper-bot) with questions about this project.
+[![Chat with our Bot](https://img.shields.io/badge/ChatBot-Online-green)](https://chatgpt.com/g/g-6860217d14fc8191b9be6b80e74134fe-digital-persona-helper-bot) [![CI Status](https://github.com/Hackshaven/digital-persona/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/Hackshaven/digital-persona/actions/workflows/test.yml)
 
-[![Chat with our Bot](https://img.shields.io/badge/ChatBot-Online-green)](https://chatgpt.com/g/g-6860217d14fc8191b9be6b80e74134fe-digital-persona-helper-bot) ![CI Status](https://github.com/Hackshaven/digital-persona/actions/workflows/test.yml/badge.svg?branch=main)
+This project provides a modular AI system that emulates a user's personality using psychometric modeling, memory streams, and narrative identity. It aims to serve as a personal assistant, memory companion, and expressive interface—all under user control.
 
-## Mission Statement
+For more detailed architecture, schema examples, ethical principles, and tutorials, visit the [GitHub Wiki](https://github.com/Hackshaven/digital-persona/wiki). If you'd prefer to ask questions or get into a philosophical argument check in with the [Digital Persona Helper Bot](https://chatgpt.com/g/g-6860217d14fc8191b9be6b80e74134fe-digital-persona-helper-bot).
 
-See the [mission](https://github.com/Hackshaven/digital-persona/wiki/Mission) for the project's guiding principles. New features
-and pull requests should be checked against this statement to ensure they uphold
-ethical use, user control, and secure handling of personality data.
+---
 
-## Key Features
-- Big Five, HEXACO, MBTI, Dark Triad, and MMPI trait support
-- JSON-LD context for semantic personality tagging
-- JSON Schema for trait validation
-- Sample entries and narrative fragments
+### Project Mission
 
-## Directory Structure
-- `schema/context/` – JSON-LD context extensions
-- `schema/schemas/` – JSON Schema files for trait and test validation plus interview results
-- `schema/ontologies/` – Markdown definitions for traits and goals
-- `schema/utils/` – Helper utilities for trait conversions
-- `schema/tests/` – Unit tests for schema validation
-- `src/digital_persona/` – Python package containing utilities
-- `src/digital_persona/interview.py` – Interview assistant that derives
-  personality traits from unstructured user data
-- `src/frontend/` – Static HTML and CSS for the basic web interface
-- `scripts/` – Helper scripts like `start-api.sh` used by the devcontainer
-- Uvicorn output from the devcontainer is written to `/tmp/uvicorn.log` for debugging
-- `docs/` – Research papers used as additional prompt context (available in the container)
+See the [Mission Statement](https://github.com/Hackshaven/digital-persona/wiki/Mission) for the project’s guiding principles. New features and pull requests should be checked against this statement to ensure ethical use, user control, and safe handling of personality data.
 
-## Example: Interview Script
+---
 
-The script can analyze diary entries, emails, or other free-form text. It then
-poses follow-up questions and returns a profile matching the
-`personality-interview.json` schema, which includes the interview data,
-trait scores, and optional MBTI, Dark Triad, MMPI, goal, value, and narrative
-information.
+### What is a Digital Persona?
+
+A "Digital Persona" is an AI clone that mirrors your thinking style, goals, and values. It differs from generic chatbots by learning from your actual data—emails, notes, journals—to reflect your true voice and behavior. It can:
+
+- Simulate realistic conversations in your voice
+- Recall and reason over memories
+- Assist with daily tasks while reflecting your preferences
+- Offer psychologically grounded reflections using MBTI, Big Five, Dark Triad, and other validated models
+
+---
+
+### Features and Architecture
+
+- **Ethical Guardrails**: Guided by four principles:
+  - Do No Harm
+  - Respect User Autonomy
+  - Integrity and Self-Protection
+  - Honest Identity
+
+- **Directory Structure**:
+  - `schema/context/` → JSON-LD context extensions
+  - `schema/schemas/` → JSON Schema files for trait and test validation plus interview results
+  - `schema/ontologies/` → Markdown definitions for traits and goals
+  - `schema/utils/` → Helper utilities for trait conversions
+  - `schema/tests/` → Unit tests for schema validation
+  - `src/digital_persona/` → Python package containing utilities
+  - `src/digital_persona/interview.py` → Interview assistant that derives personality traits from unstructured user data
+  - `src/frontend/` → Static HTML and CSS for the basic web interface
+  - `scripts/` → Helper scripts like `start-api.sh` used by the devcontainer
+  - `docs/` → Research papers used as additional prompt context (available in the container, otherwise in the wiki)
+
+- **Prompt Engineering**: Prompts use structured memory, personality traits, and psychological insight to produce deeply personalized responses.
+
+- **Semantic Standards**: Includes trait schemas, tagging ontologies, and alignment to scientific models (MMPIs, BFI, etc).
+
+- **Security & Privacy**:
+  - Private vs. Public memory tagging
+  - User-controlled memory deletion and editing
+  - Output filters to prevent impersonation or data leaks
+
+---
+
+### Development Setup
+
+The project is designed for interactive local development using either OpenAI or Ollama models.
+
+1. **OpenAI Setup**:
+   - Set `OPENAI_API_KEY` in your environment.
+   - Optionally set `OPENAI_MODEL` (e.g., `gpt-4o`).
+
+2. **Ollama Setup**:
+   - Install [Ollama](https://ollama.com/) locally.
+   - Run a model (e.g., `ollama run llama3`).
+   - Set environment:
+     ```bash
+     export OLLAMA_BASE_URL=http://localhost:11434
+     export OLLAMA_MODEL=llama3
+     ```
+
+3. **Run Dev CLI**:
+   - Use the CLI directly or within the devcontainer: `digital-persona-interview data/my_notes.txt -p openai` or `-p ollama`
+   - Add `--dry-run` to simulate answers from the model.
+4. **Devcontainer Notes**:
+   - Use `scripts/start-api.sh` to launch the local API server inside the container.
+   - The container logs to `/tmp/uvicorn.log`.
+   - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
+
+---
+
+### Example: Personality Interview
+
+The `interview` script analyzes text (emails, journal entries, etc.), generates reflection questions, and compiles a JSON profile.
 
 ```python
 from digital_persona.interview import PersonalityInterviewer
-import json
 
-data = """Email: I'm looking forward to the team retreat next month.
+data = """Email: I'm looking forward to the team retreat next month.\n
 Journal: I've been worried about meeting deadlines but remain optimistic."""
 
 interviewer = PersonalityInterviewer(num_questions=3)
 questions = interviewer.generate_questions(data)
 print("\n".join(questions))
-# Example output:
-# How do you manage approaching deadlines?
-# What steps do you take to resolve conflicts at work?
-# What hobbies help you relax?
-# The interviewer may add clarifying follow-ups such as:
-# Could you give an example of how you prioritize tasks?
-# Up to two short follow-up questions may be asked to clarify each answer.
-
-# After answering the questions (including any follow-ups), gather the Q&A pairs
-qa_pairs = [
-    "Q: " + questions[0] + "\nA: I set priorities and talk with the team.",
-    "Q: " + questions[1] + "\nA: I try to consider everyone's viewpoint.",
-    "Q: " + questions[2] + "\nA: Hiking and reading help me unwind.",
-]
-profile = interviewer.profile_from_answers(data, qa_pairs)
-print(json.dumps(profile, indent=2))
 ```
 
-Which outputs JSON similar to:
+Question sample:
+```
+Q: How do you manage approaching deadlines?
+A: I set priorities and talk with the team.
 
+Q: What steps do you take to resolve conflicts at work?
+A: I try to consider everyone’s viewpoint.
+
+Q: What hobbies help you relax?
+A: Hiking and reading help me unwind.
+```
+
+JSON output:
 ```json
 {
   "unstructuredData": "Email: I'm looking forward to the team retreat next month.\nJournal: I've been worried about meeting deadlines but remain optimistic.",
@@ -118,66 +160,14 @@ Which outputs JSON similar to:
 }
 ```
 
-The exact questions and scores will vary depending on the language model and
-your responses. Missing details appear as `null`. Each profile also includes an
-anonymous `userID` and a psychological summary describing why each attribute was
-inferred, along with an ISO 8601 `timestamp` marking when the interview was completed.
+---
 
-### Command Line Usage
+### License
 
-You can run the interviewer directly from the command line. Pass a text
-file or `-` to read from standard input, and optionally choose the language model
-provider:
+MIT — see the [LICENSE](LICENSE) file for details.
 
-```bash
-$ digital-persona-interview my_notes.txt -p openai   # or -p ollama
-```
+---
 
-This launches an interactive session where you answer the generated questions
-and any clarifying follow-ups, then receive a JSON profile at the end. When
-answering, you can enter multiple lines; press Enter on an empty line when you
-are finished. A short summary of your input text will be shown at the start and
-before each question you'll see a brief note explaining why that question
-relates to what you shared. Follow-up questions include a similar sentence
-explaining how they connect to your previous answer and notes. No more than two
-follow-up questions are asked for each main question. You may end the interview early at any time by
-typing `/end` on a line by itself. If you do not specify `--questions`, the
-interviewer picks about half as many questions as there are traits and tries to
-cover multiple traits per question. At the start you'll see the full list of
-questions along with your progress as you answer them.
+### Documentation
 
-To quickly test without providing real answers, run the command with
-`--dry-run`. In this mode the language model simulates interview answers based
-on your notes. You'll see the entire exchange printed before the resulting JSON
-profile.
-
-The interviewer defaults to OpenAI's API and reads your `OPENAI_API_KEY` from the
-environment. If that variable is empty or still contains the placeholder
-`${{ secrets.OPENAI_API_KEY }}` it is ignored and the Ollama provider is used
-instead. You can explicitly run against a local Ollama server with `-p ollama`
-and by setting `OLLAMA_BASE_URL` (default `http://localhost:11434`) and
-`OLLAMA_MODEL`. When using the devcontainer, `OLLAMA_BASE_URL` is preset to
-`http://host.docker.internal:11434` so the container can reach an Ollama service
-running on your host machine.
-
-Environment variables:
-
-- `OPENAI_API_KEY` – API key for OpenAI models when using the `openai` provider.
-- `OPENAI_MODEL` – optional model name (e.g., `gpt-4o`).
-- `OLLAMA_BASE_URL` – base URL of your Ollama server (default `http://localhost:11434`).
-- `OLLAMA_MODEL` – model name served by Ollama (e.g., `llama3`).
-
-In GitHub Codespaces, you can select **Run Task → Interview** to start the
-`digital-persona-interview` CLI. The task prompts for your notes file and
-which provider to use (``openai`` or ``ollama``) and runs ``poetry run`` for you
-so the command works without manually activating the virtual environment.
-There is also an **Interview (Dry Run)** task that launches the command with
-``--dry-run`` so the language model generates sample answers for testing.
-
-## License
-MIT - see the [LICENSE](LICENSE) file for details.
-
-## GitHub Pages
-
-This repository publishes the research and schema via GitHub Pages. You can view the hosted files at [https://hackshaven.github.io/digital-persona/](https://hackshaven.github.io/digital-persona/).
-The Markdown papers inside `docs/` are loaded as extra context for interview prompts and are also published on this site so they are easy to access online.
+Explore research and schema docs at [digital-persona GitHub Pages](https://hackshaven.github.io/digital-persona/). Markdown files in `docs/` power the site and help explain schemas, interviews, and integrations.
