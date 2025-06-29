@@ -162,6 +162,9 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
                 f"{processed_path.stem}-{ts}"
             )
         out_path = OUTPUT_DIR / (Path(req.file).stem + ".json")
+        out_path = out_path.resolve()
+        if not str(out_path).startswith(str(OUTPUT_DIR)):
+            raise HTTPException(status_code=400, detail="Invalid file path")
         in_path.rename(processed_path)
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(req.profile, f, indent=2)
