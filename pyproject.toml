@@ -32,15 +32,13 @@ dependencies = [
     "uvicorn",
 ]
 
-[project.scripts]
-digital-persona-interview = "digital_persona.interview:_cli"
-
 [project.optional-dependencies]
 dev = [
     "pytest",
 ]
 
 [tool.poetry.scripts]
+digital-persona-interview = "digital_persona.interview:_cli"
 test = "pytest"
 
 [project.urls]
