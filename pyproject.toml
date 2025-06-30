@@ -39,7 +39,7 @@ dev = [
 
 [tool.poetry.scripts]
 digital-persona-interview = "digital_persona.interview:_cli"
-test = "pytest"
+test = "pytest:main"
 
 [project.urls]
 Homepage = "https://github.com/hackshaven/digital-persona"
