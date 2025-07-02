@@ -44,6 +44,8 @@ def make_video(path: Path) -> None:
             str(tmp_wav),
             "-c:v",
             "libx264",
+            "-c:a",
+            "aac",
             "-t",
             "1",
             str(path),

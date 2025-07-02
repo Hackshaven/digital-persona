@@ -101,7 +101,7 @@ files aren't stored in the repository. Generate them locally with
 - `sample_data.json` – example daily schedule in JSON form
 - `sample_image.jpg` – generated 10×10 sky-blue image
 - `sample_audio.wav` – generated one-second sine wave
-- `sample_video.mp4` – generated one-second red-square video with audio
+- `sample_video.mp4` – generated one-second red-square video with audio (uses AAC encoding for broad compatibility)
 
 Copy any of these files into `PERSONA_DIR/input` to see how different media
 types are processed.
