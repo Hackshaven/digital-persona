@@ -80,6 +80,31 @@ The project is designed for interactive local development using either OpenAI or
    - Use `scripts/start-api.sh` to launch the local API server inside the container.
    - The container logs to `/tmp/uvicorn.log`.
    - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
+5. **Run the Ingest Loop**:
+   - Execute `digital_persona.ingest` to poll the `input` folder and convert new files into memory JSON entries.
+   - Install optional media dependencies with `pip install -e .[media]` to enable image, audio, and video processing.
+   - Ensure the `ffmpeg` binary is available on your PATH for video extraction.
+   - After cloning the repo run `git lfs install` so the sample media files are fetched correctly.
+   - Image files are detected automatically; EXIF metadata is stored and a short caption is generated so they can be used during interviews.
+   - Audio files are transcribed using OpenAI Whisper (or a local model if `TRANSCRIBE_PROVIDER=whisper`); summaries and sentiment tags are saved alongside basic metadata.
+   - Video files are processed by extracting a preview frame and audio track. The frame is captioned and the audio is transcribed, summarized, and tagged with sentiment.
+   - Set `CAPTION_PROVIDER` to `openai` or `ollama` to choose the model for captions, summaries, and sentiment. Use `CAPTION_MODEL` to select the model name.
+
+### Sample Data
+
+The `data/` folder contains example files for testing ingestion. Binary media
+files aren't stored in the repository. Generate them locally with
+`python scripts/generate_samples.py`:
+
+- `my_notes.txt` – snippet of email, journal, and chat messages
+- `sample_page.html` – short blog-style page describing a weekend hike
+- `sample_data.json` – example daily schedule in JSON form
+- `sample_image.jpg` – generated 10×10 sky-blue image
+- `sample_audio.wav` – generated one-second sine wave
+- `sample_video.mp4` – generated one-second red-square video with audio
+
+Copy any of these files into `PERSONA_DIR/input` to see how different media
+types are processed.
 
 ---
 
