@@ -81,7 +81,7 @@ The project is designed for interactive local development using either OpenAI or
    - The container logs to `/tmp/uvicorn.log`.
    - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
 5. **Run the Ingest Loop**:
-   - Execute `digital_persona.ingest` to poll the `input` folder and convert new files into memory JSON entries.
+   - Execute `digital-persona-ingest` to poll the `input` folder and convert new files into memory JSON entries.
    - Install optional media dependencies with `pip install -e .[media]` to enable image, audio, and video processing.
    - Ensure the `ffmpeg` binary is available on your PATH for video extraction.
    - After cloning the repo run `git lfs install` so the sample media files are fetched correctly.

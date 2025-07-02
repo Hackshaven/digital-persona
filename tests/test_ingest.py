@@ -60,6 +60,36 @@ def test_image_ingestion(monkeypatch, tmp_path):
     assert data["caption"] == "a red square"
 
 
+def test_extract_exif(monkeypatch, tmp_path):
+    ingest = setup_ingest(monkeypatch, tmp_path)
+    pil = pytest.importorskip("PIL")
+    from PIL import Image, ExifTags
+
+    class DummyImage:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+        def getexif(self):
+            return {
+                36867: "2024:07:02 12:00:00",
+                34853: {
+                    1: "N",
+                    2: ((40, 1), (0, 1), (0, 1)),
+                    3: "E",
+                    4: ((75, 1), (0, 1), (0, 1)),
+                },
+            }
+
+    monkeypatch.setattr(ingest.Image, "open", lambda p: DummyImage())
+    meta = ingest._extract_exif(tmp_path / "img.jpg")
+    assert meta["originalTimestamp"] == "2024:07:02 12:00:00"
+    assert abs(meta["latitude"] - 40.0) < 0.01
+    assert abs(meta["longitude"] - 75.0) < 0.01
+
+
 def test_generate_caption_ollama(monkeypatch, tmp_path):
     monkeypatch.setenv("CAPTION_PROVIDER", "ollama")
     monkeypatch.setenv("CAPTION_MODEL", "local")
