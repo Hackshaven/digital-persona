@@ -390,8 +390,9 @@ def preprocess_text(path: Path) -> str:
 
 
 def process_file(path: Path) -> None:
-    ts = datetime.now(timezone.utc).isoformat()
-    safe_ts = ts.replace(":", "-")
+    now = datetime.now(timezone.utc)
+    ts = now.isoformat()
+    safe_ts = now.strftime("%Y%m%d%H%M%S%f")
     mem_path = MEMORY_DIR / f"{safe_ts}.json"
 
     if _is_image(path):
@@ -462,7 +463,7 @@ def process_file(path: Path) -> None:
     if dest.exists():
         ts_tag = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         dest = dest.with_name(f"{dest.stem}-{ts_tag}{dest.suffix}")
-    path.rename(dest)
+    shutil.move(str(path), str(dest))
 
 
 def process_pending_files() -> None:
