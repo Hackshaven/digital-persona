@@ -11,9 +11,16 @@ import subprocess
 import shutil
 import tempfile
 
-from mutagen import File as MutagenFile
+try:
+    from mutagen import File as MutagenFile
+except Exception:  # pragma: no cover - optional dependency may be missing
+    MutagenFile = None  # type: ignore
 
-from PIL import Image, ExifTags
+try:
+    from PIL import Image, ExifTags
+except Exception:  # pragma: no cover - optional dependency may be missing
+    Image = None  # type: ignore
+    ExifTags = None  # type: ignore
 
 
 def _persona_dir() -> Path:
@@ -73,6 +80,8 @@ def _is_video(path: Path) -> bool:
 def _extract_exif(path: Path) -> Dict[str, Any]:
     """Return basic EXIF metadata for an image file."""
     meta: Dict[str, Any] = {}
+    if Image is None:
+        return meta
     try:
         with Image.open(path) as img:
             info = img.getexif()
@@ -113,6 +122,8 @@ def _extract_exif(path: Path) -> Dict[str, Any]:
 def _extract_audio_metadata(path: Path) -> Dict[str, Any]:
     """Return duration and other basic metadata for an audio file."""
     meta: Dict[str, Any] = {}
+    if MutagenFile is None:
+        return meta
     try:
         audio = MutagenFile(path)
         if audio and audio.info:
