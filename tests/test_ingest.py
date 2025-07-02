@@ -43,6 +43,7 @@ def test_html_stripped(monkeypatch, tmp_path):
 
 def test_image_ingestion(monkeypatch, tmp_path):
     ingest = setup_ingest(monkeypatch, tmp_path)
+    pytest.importorskip("PIL")
     from PIL import Image
 
     img_path = ingest.INPUT_DIR / "img.jpg"
