@@ -148,7 +148,11 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
         path = INPUT_DIR / file
         if not path.exists():
             raise HTTPException(status_code=404, detail="File not found")
-        return {"text": path.read_text(encoding="utf-8")}
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            raise HTTPException(status_code=400, detail="File is not UTF-8 text")
+        return {"text": text}
 
     @app.post("/complete_interview")
     def complete_interview(req: CompleteRequest) -> dict:
