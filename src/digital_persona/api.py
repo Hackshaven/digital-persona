@@ -140,31 +140,33 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
 
     @app.get("/pending")
     def pending() -> dict:
-        files = [p.name for p in INPUT_DIR.glob("*") if p.is_file()]
+        """Return a list of memory JSON files awaiting interview."""
+        files = [p.name for p in MEMORY_DIR.glob("*.json") if p.is_file()]
         return {"files": sorted(files)}
 
     @app.get("/start_interview")
     def start_interview(file: str) -> dict:
-        path = INPUT_DIR / file
+        """Load a memory JSON file and return its ``content`` field."""
+        path = MEMORY_DIR / file
         if not path.exists():
             raise HTTPException(status_code=404, detail="File not found")
-        return {"text": path.read_text(encoding="utf-8")}
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid memory file")
+        text = data.get("content")
+        if not isinstance(text, str):
+            raise HTTPException(status_code=400, detail="Memory missing 'content' field")
+        return {"text": text}
 
     @app.post("/complete_interview")
     def complete_interview(req: CompleteRequest) -> dict:
-        in_path = INPUT_DIR / req.file
-        if not in_path.exists():
+        mem_path = MEMORY_DIR / req.file
+        if not mem_path.exists():
             raise HTTPException(status_code=404, detail="File not found")
-        processed_path = PROCESSED_DIR / req.file
-        if processed_path.exists():
-            ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-            processed_path = processed_path.with_stem(
-                f"{processed_path.stem}-{ts}"
-            )
         out_path = (OUTPUT_DIR / (Path(req.file).stem + ".json")).resolve()
         if not str(out_path).startswith(str(OUTPUT_DIR)):
             raise HTTPException(status_code=400, detail="Invalid file path")
-        in_path.rename(processed_path)
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(req.profile, f, indent=2)
         return {"status": "saved"}
