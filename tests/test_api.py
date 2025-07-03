@@ -112,3 +112,11 @@ def test_pending_and_complete(client, api_module):
     assert (output_dir / "data.json").exists()
 
 
+def test_start_interview_binary_file(client, api_module):
+    path = api_module.INPUT_DIR / "image.jpg"
+    path.write_bytes(b"\xff\xd8\xff")
+
+    resp = client.get("/start_interview", params={"file": "image.jpg"})
+    assert resp.status_code == 400
+
+

@@ -89,6 +89,9 @@ The project is designed for interactive local development using either OpenAI or
    - Audio files are transcribed using OpenAI Whisper (or a local model if `TRANSCRIBE_PROVIDER=whisper`); summaries and sentiment tags are saved alongside basic metadata.
    - Video files are processed by extracting a preview frame and audio track. The frame is captioned and the audio is transcribed, summarized, and tagged with sentiment.
    - Set `CAPTION_PROVIDER` to `openai` or `ollama` to choose the model for captions, summaries, and sentiment. Use `CAPTION_MODEL` to select the model name.
+6. **API Usage**:
+   - The `/start_interview` endpoint reads files from `PERSONA_DIR/input`.
+   - It only accepts UTF‑8 text files. Run the ingest loop first for images, audio, or video.
 
 ### Sample Data
 
