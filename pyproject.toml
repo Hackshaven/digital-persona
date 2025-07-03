@@ -5,21 +5,18 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.4.1"
-pytest-cov = "^6.2.1"
-
 [project]
 name = "digital-persona"
 version = "0.1.0"
 description = "Schemas and utilities for building digital personality profiles"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
+
 authors = [
     { name = "Eric Hackathorn", email = "erichackathorn@gmail.com" }
 ]
+
 dependencies = [
     "langchain",
     "openai",
@@ -29,21 +26,21 @@ dependencies = [
     "langchain-ollama (>=0.3.3,<0.4.0)",
     "referencing (>=0.36.2,<0.37.0)",
     "fastapi",
-    "uvicorn",
+    "uvicorn"
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "pillow",
-    "mutagen",
-]
-media = [
-    "pillow",
-    "mutagen",
+    "pytest-cov"
 ]
 
-[tool.poetry.scripts]
+media = [
+    "pillow",
+    "mutagen"
+]
+
+[project.scripts]
 digital-persona-interview = "digital_persona.interview:_cli"
 digital-persona-ingest = "digital_persona.ingest:_cli"
 test = "pytest:main"
@@ -52,3 +49,4 @@ test = "pytest:main"
 Homepage = "https://github.com/hackshaven/digital-persona"
 Repository = "https://github.com/hackshaven/digital-persona"
 Issues = "https://github.com/hackshaven/digital-persona/issues"
+Documentation = "https://github.com/Hackshaven/digital-persona/wiki"
