@@ -236,7 +236,7 @@ def _extract_video_audio(path: Path) -> Path | None:
 
 def _transcribe_audio(path: Path) -> str:
     """Return a transcript for ``path`` using an LLM if available."""
-    provider = os.getenv("TRANSCRIBE_PROVIDER", "openai").lower()
+    provider = os.getenv("TRANSCRIBE_PROVIDER", "whisper").lower()
     model = os.getenv("TRANSCRIBE_MODEL")
 
     if provider == "openai":
@@ -266,7 +266,7 @@ def _transcribe_audio(path: Path) -> str:
 
 def _generate_caption(path: Path) -> str:
     """Return a short caption for ``path`` using an LLM if available."""
-    provider = os.getenv("CAPTION_PROVIDER", "openai").lower()
+    provider = os.getenv("CAPTION_PROVIDER", "ollama").lower()
     model = os.getenv("CAPTION_MODEL")
 
     if provider == "openai":
@@ -313,7 +313,7 @@ def _generate_caption(path: Path) -> str:
 
 def _generate_summary(text: str) -> str:
     """Return a short summary for ``text`` using an LLM if available."""
-    provider = os.getenv("CAPTION_PROVIDER", "openai").lower()
+    provider = os.getenv("CAPTION_PROVIDER", "ollama").lower()
     model = os.getenv("CAPTION_MODEL")
 
     if not text:
@@ -347,7 +347,7 @@ def _generate_summary(text: str) -> str:
 
 def _analyze_sentiment(text: str) -> str:
     """Return a simple sentiment classification."""
-    provider = os.getenv("CAPTION_PROVIDER", "openai").lower()
+    provider = os.getenv("CAPTION_PROVIDER", "ollama").lower()
     model = os.getenv("CAPTION_MODEL")
 
     if not text:

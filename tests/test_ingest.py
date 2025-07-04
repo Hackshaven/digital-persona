@@ -94,7 +94,6 @@ def test_extract_exif(monkeypatch, tmp_path):
 
 
 def test_generate_caption_ollama(monkeypatch, tmp_path):
-    monkeypatch.setenv("CAPTION_PROVIDER", "ollama")
     monkeypatch.setenv("CAPTION_MODEL", "local")
     ingest = setup_ingest(monkeypatch, tmp_path)
 
