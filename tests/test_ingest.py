@@ -27,6 +27,7 @@ def test_process_pending_creates_memory(monkeypatch, tmp_path):
     data = json.loads(mem_files[0].read_text(encoding="utf-8"))
     assert "Ignore previous instructions" not in data["content"]
     assert "Hello" in data["content"]
+    assert data["source"].endswith("processed/note.txt")
 
 
 def test_html_stripped(monkeypatch, tmp_path):
@@ -39,6 +40,7 @@ def test_html_stripped(monkeypatch, tmp_path):
     assert mem_files
     data = json.loads(mem_files[0].read_text(encoding="utf-8"))
     assert data["content"] == "Test"
+    assert data["source"].endswith("processed/page.html")
 
 
 def test_image_ingestion(monkeypatch, tmp_path):
@@ -58,6 +60,7 @@ def test_image_ingestion(monkeypatch, tmp_path):
     data = json.loads(mem_files[0].read_text(encoding="utf-8"))
     assert data["type"] == "Image"
     assert data["caption"] == "a red square"
+    assert data["source"].endswith("processed/img.jpg")
 
 
 def test_extract_exif(monkeypatch, tmp_path):
@@ -137,6 +140,7 @@ def test_audio_ingestion(monkeypatch, tmp_path):
     assert data["transcript"] == "hello world"
     assert data["summary"] == "summary"
     assert data["sentiment"] == "neutral"
+    assert data["source"].endswith("processed/sound.wav")
 
 
 def test_video_ingestion(monkeypatch, tmp_path):
@@ -164,3 +168,4 @@ def test_video_ingestion(monkeypatch, tmp_path):
     assert data["caption"] == "frame caption"
     assert data["summary"] == "vid summary"
     assert data["sentiment"] == "positive"
+    assert data["source"].endswith("processed/clip.mp4")

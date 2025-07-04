@@ -395,6 +395,11 @@ def process_file(path: Path) -> None:
     safe_ts = now.strftime("%Y%m%d%H%M%S%f")
     mem_path = MEMORY_DIR / f"{safe_ts}.json"
 
+    # determine final destination for the original file
+    dest = PROCESSED_DIR / path.name
+    if dest.exists():
+        dest = dest.with_name(f"{dest.stem}-{safe_ts}{dest.suffix}")
+
     if _is_image(path):
         caption = _generate_caption(path)
         meta = _extract_exif(path)
@@ -406,6 +411,7 @@ def process_file(path: Path) -> None:
             "caption": caption,
             "metadata": meta,
             "timestamp": ts,
+            "source": str(dest.relative_to(PERSONA_DIR)),
         }
     elif _is_audio(path):
         transcript = _transcribe_audio(path)
@@ -422,6 +428,7 @@ def process_file(path: Path) -> None:
             "sentiment": sentiment,
             "metadata": meta,
             "timestamp": ts,
+            "source": str(dest.relative_to(PERSONA_DIR)),
         }
     elif _is_video(path):
         frame_path = _extract_frame(path)
@@ -446,6 +453,7 @@ def process_file(path: Path) -> None:
             "sentiment": sentiment,
             "metadata": meta,
             "timestamp": ts,
+            "source": str(dest.relative_to(PERSONA_DIR)),
         }
     else:
         content = preprocess_text(path)
@@ -455,14 +463,11 @@ def process_file(path: Path) -> None:
             "name": path.name,
             "content": content,
             "timestamp": ts,
+            "source": str(dest.relative_to(PERSONA_DIR)),
         }
 
     with open(mem_path, "w", encoding="utf-8") as f:
         json.dump(mem_obj, f)
-    dest = PROCESSED_DIR / path.name
-    if dest.exists():
-        ts_tag = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-        dest = dest.with_name(f"{dest.stem}-{ts_tag}{dest.suffix}")
     shutil.move(str(path), str(dest))
 
 

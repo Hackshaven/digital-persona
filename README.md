@@ -93,6 +93,7 @@ The project is designed for interactive local development using either OpenAI or
 6. **API Usage**:
    - The `/pending` and `/start_interview` endpoints operate on files in `PERSONA_DIR/memory` produced by the ingest loop.
    - Each memory is a JSON object with a `content` field used for interview questions.
+   - The object also stores a relative `source` path to the processed original file so you can reference images or audio later.
    - Non-text media should be ingested first so a text summary is available.
 
 ### Sample Data
