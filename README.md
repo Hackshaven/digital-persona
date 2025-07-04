@@ -92,6 +92,8 @@ The project is designed for interactive local development using either OpenAI or
    - Audio files are transcribed using OpenAI Whisper (or a local model if `TRANSCRIBE_PROVIDER=whisper`); summaries and sentiment tags are saved alongside basic metadata.
    - Video files are processed by extracting a preview frame and audio track. The frame is captioned and the audio is transcribed, summarized, and tagged with sentiment.
    - Set `CAPTION_PROVIDER` to `openai` or `ollama` to choose the model for captions, summaries, and sentiment. Use `CAPTION_MODEL` to select the model name.
+   - Sanitize input text to remove injection phrases and convert HTML or JSON to clean plain text before creating ActivityStreams memories.
+   - Non-text inputs are transcribed or captioned by the ingest loop so the interview script can reason over them.
 6. **API Usage**:
    - The `/pending` and `/start_interview` endpoints operate on files in `PERSONA_DIR/memory` produced by the ingest loop.
    - Each memory is a JSON object with a `content` field used for interview questions.
