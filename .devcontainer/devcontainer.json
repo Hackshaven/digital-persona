@@ -24,6 +24,7 @@
       ]
     }
   },
+  "envFile": ".devcontainer/.env",
   "remoteEnv": {
     "OPENAI_API_KEY": "${{ secrets.OPENAI_API_KEY }}",
     "HF_API_KEY": "${{ secrets.HF_API_KEY }}",

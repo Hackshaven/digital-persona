@@ -16,7 +16,7 @@ Welcome to the dev container for the **Digital Persona** project. This environme
 
 ## Secrets
 
-Provide the following Codespaces secrets so the interviewer can use language models:
+Provide the following Codespaces secrets so the interviewer can use language models. You can also set them in `.devcontainer/.env`:
 
 - `OPENAI_API_KEY` – required for OpenAI integration
 - `HF_API_KEY` – optional, for HuggingFace models
@@ -34,7 +34,8 @@ Provide the following Codespaces secrets so the interviewer can use language mod
 
 1. Open the repository in GitHub Codespaces.
 2. The container installs `ffmpeg` and the project's Python dependencies (including media extras) automatically using Poetry.
-3. Open the command palette (**Run Task → Interview**) or run:
+3. Copy `.devcontainer/.env.example` to `.devcontainer/.env` and fill in any API keys you want to use.
+4. Open the command palette (**Run Task → Interview**) or run:
 
    ```bash
    poetry run digital-persona-interview

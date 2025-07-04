@@ -82,6 +82,7 @@ The project is designed for interactive local development using either OpenAI or
   - Logs are written to `/tmp/uvicorn.log`, `/tmp/ingest.log`, and `/tmp/services.log`.
     The ingest loop prints a message each time it processes a file so you can
     watch that log to confirm activity.
+  - Copy `.devcontainer/.env.example` to `.devcontainer/.env` to provide your API keys and other settings.
   - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
 5. **Run the Ingest Loop**:
    - Execute `digital-persona-ingest` to poll the `input` folder and convert new files into JSON memories.
