@@ -78,6 +78,7 @@ The project is designed for interactive local development using either OpenAI or
    - Add `--dry-run` to simulate answers from the model.
 4. **Devcontainer Notes**:
   - The container automatically runs `scripts/start-services.py` (via `poetry run` and `nohup`) so the API server and ingest loop keep running in the background.
+  - If they fail to start, run `~/.local/bin/poetry run python scripts/start-services.py >/tmp/services.log 2>&1 &`.
   - Logs are written to `/tmp/uvicorn.log`, `/tmp/ingest.log`, and `/tmp/services.log`.
     The ingest loop prints a message each time it processes a file so you can
     watch that log to confirm activity.

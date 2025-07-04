@@ -2,7 +2,7 @@
   "name": "digital-persona-dev",
   "image": "mcr.microsoft.com/devcontainers/python:3.12",
   "postCreateCommand": "sudo mkdir -p /var/lib/apt/lists/partial && sudo chmod 755 /var/lib/apt/lists/partial && sudo apt-get update && sudo apt-get install -y ffmpeg && pipx ensurepath && pipx install --force --include-deps poetry && poetry config virtualenvs.in-project true && poetry install && poetry run pip install pillow mutagen pytest pytest-cov",
-  "postStartCommand": "nohup poetry run python scripts/start-services.py >/tmp/services.log 2>&1 &",
+  "postStartCommand": "nohup ~/.local/bin/poetry run python scripts/start-services.py >/tmp/services.log 2>&1 &",
   "forwardPorts": [8000],
   "runArgs": [
     "-p", "8000:8000",
