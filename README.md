@@ -79,6 +79,8 @@ The project is designed for interactive local development using either OpenAI or
 4. **Devcontainer Notes**:
   - The container automatically runs `scripts/start-services.py` (via `nohup`) so the API server and ingest loop keep running in the background.
   - Logs are written to `/tmp/uvicorn.log`, `/tmp/ingest.log`, and `/tmp/services.log`.
+    The ingest loop prints a message each time it processes a file so you can
+    watch that log to confirm activity.
   - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
 5. **Run the Ingest Loop**:
    - Execute `digital-persona-ingest` to poll the `input` folder and convert new files into JSON memories.

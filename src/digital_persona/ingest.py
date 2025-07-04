@@ -10,6 +10,7 @@ from typing import Iterable, Dict, Any
 import subprocess
 import shutil
 import tempfile
+import logging
 
 try:
     from mutagen import File as MutagenFile
@@ -37,6 +38,10 @@ MEMORY_DIR = PERSONA_DIR / "memory"
 
 for d in (PERSONA_DIR, INPUT_DIR, PROCESSED_DIR, MEMORY_DIR):
     d.mkdir(exist_ok=True)
+
+logger = logging.getLogger(__name__)
+if not logger.handlers:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 # Patterns that should be sanitized from user inputs
 _SANITIZE_PATTERNS: Iterable[re.Pattern[str]] = [
@@ -390,6 +395,7 @@ def preprocess_text(path: Path) -> str:
 
 
 def process_file(path: Path) -> None:
+    logger.info("Processing %s", path.name)
     now = datetime.now(timezone.utc)
     ts = now.isoformat()
     safe_ts = now.strftime("%Y%m%d%H%M%S%f")
@@ -469,12 +475,15 @@ def process_file(path: Path) -> None:
     with open(mem_path, "w", encoding="utf-8") as f:
         json.dump(mem_obj, f)
     shutil.move(str(path), str(dest))
+    logger.info("Saved memory %s", mem_path.name)
 
 
 def process_pending_files() -> None:
-    for p in INPUT_DIR.iterdir():
-        if p.is_file():
-            process_file(p)
+    files = [p for p in INPUT_DIR.iterdir() if p.is_file()]
+    if not files:
+        logger.debug("No files to process")
+    for p in files:
+        process_file(p)
 
 
 __all__ = ["process_pending_files"]
@@ -483,6 +492,7 @@ __all__ = ["process_pending_files"]
 def _cli() -> None:
     import time
     interval = float(os.getenv("INGEST_INTERVAL", "5"))
+    logger.info("Starting ingest loop (interval=%s seconds)", interval)
     while True:
         process_pending_files()
         time.sleep(interval)
