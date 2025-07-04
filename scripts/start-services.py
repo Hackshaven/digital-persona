@@ -2,6 +2,7 @@
 """Start the API server and ingest loop in the background."""
 
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -24,8 +25,8 @@ def launch(cmd: list[str], log_path: Path) -> None:
 def main() -> None:
     launch(
         [
-            "poetry",
-            "run",
+            sys.executable,
+            "-m",
             "uvicorn",
             "digital_persona.api:create_app",
             "--factory",
@@ -33,12 +34,11 @@ def main() -> None:
             "0.0.0.0",
             "--port",
             "8000",
-            "--reload",
         ],
         UVICORN_LOG,
     )
 
-    launch(["poetry", "run", "digital-persona-ingest"], INGEST_LOG)
+    launch([sys.executable, "-m", "digital_persona.ingest"], INGEST_LOG)
 
 
 if __name__ == "__main__":
