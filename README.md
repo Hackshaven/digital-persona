@@ -77,9 +77,9 @@ The project is designed for interactive local development using either OpenAI or
    - Use the CLI directly or within the devcontainer: `digital-persona-interview data/my_notes.txt -p openai` or `-p ollama`
    - Add `--dry-run` to simulate answers from the model.
 4. **Devcontainer Notes**:
-   - The container automatically runs `scripts/start-services.py` which launches the API server and the ingest loop.
-   - Logs are written to `/tmp/uvicorn.log` and `/tmp/ingest.log`.
-   - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
+  - The container automatically runs `scripts/start-services.py` (via `nohup`) so the API server and ingest loop keep running in the background.
+  - Logs are written to `/tmp/uvicorn.log`, `/tmp/ingest.log`, and `/tmp/services.log`.
+  - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
 5. **Run the Ingest Loop**:
    - Execute `digital-persona-ingest` to poll the `input` folder and convert new files into JSON memories.
    - Place any text, image, audio, or video files you want processed into `PERSONA_DIR/input` (defaults to `./persona/input`).

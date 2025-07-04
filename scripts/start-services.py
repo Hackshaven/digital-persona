@@ -1,56 +1,45 @@
 #!/usr/bin/env python3
-"""Start the API server and ingest loop."""
+"""Start the API server and ingest loop in the background."""
+
 import subprocess
-import signal
-import sys
 from pathlib import Path
 
-processes = []
 
 LOG_DIR = Path("/tmp")
 UVICORN_LOG = LOG_DIR / "uvicorn.log"
 INGEST_LOG = LOG_DIR / "ingest.log"
 
 
-def launch(cmd, log_path):
-    log_file = open(log_path, "a")
-    proc = subprocess.Popen(cmd, stdout=log_file, stderr=subprocess.STDOUT)
-    processes.append((proc, log_file))
+def launch(cmd: list[str], log_path: Path) -> None:
+    """Run *cmd* detached with output appended to *log_path*."""
+    with open(log_path, "a") as log_file:
+        subprocess.Popen(
+            cmd,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
 
 
-def shutdown(*_):
-    for proc, log_file in processes:
-        proc.terminate()
-    for proc, log_file in processes:
-        try:
-            proc.wait(timeout=10)
-        except Exception:
-            proc.kill()
-        log_file.close()
-    sys.exit(0)
+def main() -> None:
+    launch(
+        [
+            "poetry",
+            "run",
+            "uvicorn",
+            "digital_persona.api:create_app",
+            "--factory",
+            "--host",
+            "0.0.0.0",
+            "--port",
+            "8000",
+            "--reload",
+        ],
+        UVICORN_LOG,
+    )
+
+    launch(["poetry", "run", "digital-persona-ingest"], INGEST_LOG)
 
 
-signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
-
-launch(
-    [
-        "poetry",
-        "run",
-        "uvicorn",
-        "digital_persona.api:create_app",
-        "--factory",
-        "--host",
-        "0.0.0.0",
-        "--port",
-        "8000",
-        "--reload",
-    ],
-    UVICORN_LOG,
-)
-
-launch(["poetry", "run", "digital-persona-ingest"], INGEST_LOG)
-
-# Wait for subprocesses
-for proc, _ in processes:
-    proc.wait()
+if __name__ == "__main__":
+    main()
