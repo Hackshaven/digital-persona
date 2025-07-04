@@ -39,7 +39,7 @@ Provide the following Codespaces secrets so the interviewer can use language mod
    poetry run digital-persona-interview
    ```
 
-  The devcontainer also starts the FastAPI service automatically on port `8000`. It calls `scripts/start-api.sh` via `postStartCommand`, which runs Uvicorn with `nohup` so the process keeps running after startup. You can stop it with `pkill -f uvicorn` and rerun the same script. If the `OPENAI_API_KEY` secret is missing or still reads `${{ secrets.OPENAI_API_KEY }}` the app switches to an Ollama model instead. The container is configured to reach an Ollama server on your host machine using `http://host.docker.internal:11434`. Visit `http://localhost:8000/docs` to try the API. The Uvicorn output is written to `/tmp/uvicorn.log` inside the container for troubleshooting.
+  The devcontainer also starts the FastAPI service automatically on port `8000`. It calls `scripts/start-services.py` via `postStartCommand`, which launches Uvicorn and the ingest loop so both run in the background. You can stop the processes with `pkill -f uvicorn` and rerun the same script. If the `OPENAI_API_KEY` secret is missing or still reads `${{ secrets.OPENAI_API_KEY }}` the app switches to an Ollama model instead. The container is configured to reach an Ollama server on your host machine using `http://host.docker.internal:11434`. Visit `http://localhost:8000/docs` to try the API. Logs are written to `/tmp/uvicorn.log` and `/tmp/ingest.log` for troubleshooting.
 
    If you launch the devcontainer using the command line instead of VS Code or Codespaces, be sure to map the port explicitly with `-p 8000:8000` so the API is reachable from your host machine.
 

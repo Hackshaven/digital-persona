@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Start both the API server and ingest loop."""
+"""Start the API server and ingest loop."""
 import subprocess
 import signal
 import sys
