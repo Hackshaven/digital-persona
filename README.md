@@ -85,8 +85,8 @@ The project is designed for interactive local development using either OpenAI or
 5. **Run the Ingest Loop**:
    - Execute `digital-persona-ingest` to poll the `input` folder and convert new files into JSON memories.
    - Place any text, image, audio, or video files you want processed into `PERSONA_DIR/input` (defaults to `./persona/input`).
-   - Install optional media dependencies with `pip install -e .[media]` to enable image, audio, and video processing.
-   - Ensure the `ffmpeg` binary is available on your PATH for video extraction.
+  - Install optional media dependencies with `pip install -e .[media]` to enable image, audio, and video processing (the devcontainer installs them automatically).
+  - Ensure the `ffmpeg` binary is available on your PATH for video extraction (preinstalled in the devcontainer).
    - After cloning the repo run `git lfs install` so the sample media files are fetched correctly.
    - Image files are detected automatically; EXIF metadata is stored and a short caption is generated so they can be used during interviews.
    - Audio files are transcribed using OpenAI Whisper (or a local model if `TRANSCRIBE_PROVIDER=whisper`); summaries and sentiment tags are saved alongside basic metadata.

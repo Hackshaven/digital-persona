@@ -10,6 +10,7 @@ Welcome to the dev container for the **Digital Persona** project. This environme
 - VS Code extensions for Python, Jupyter, YAML, Markdown, and Docker
 - Libraries for OpenAI, LangChain, HuggingFace, Pandas, and Scikit-learn
 - RDF and JSON-LD utilities for semantic formats used by the schemas
+- Installs `ffmpeg` and the project's optional media dependencies during container setup
 
 ---
 
@@ -32,7 +33,7 @@ Provide the following Codespaces secrets so the interviewer can use language mod
 ## Getting Started
 
 1. Open the repository in GitHub Codespaces.
-2. The container builds and runs `poetry install` automatically.
+2. The container installs `ffmpeg` and the project's Python dependencies (including media extras) automatically using Poetry.
 3. Open the command palette (**Run Task → Interview**) or run:
 
    ```bash
