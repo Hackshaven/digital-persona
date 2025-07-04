@@ -97,6 +97,7 @@ The project is designed for interactive local development using either OpenAI or
    - Each memory is a JSON object with a `content` field used for interview questions.
    - The object also stores a relative `source` path to the processed original file so you can reference images or audio later.
    - Non-text media should be ingested first so a text summary is available.
+   - Completed memories are moved to `PERSONA_DIR/archive` after `/complete_interview` so they won't be processed twice.
 
 ### Sample Data
 

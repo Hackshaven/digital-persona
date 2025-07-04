@@ -91,6 +91,7 @@ def test_memory_save_and_timeline(client):
 def test_pending_and_complete(client, api_module):
     mem_dir = api_module.MEMORY_DIR
     output_dir = api_module.OUTPUT_DIR
+    archive_dir = api_module.ARCHIVE_DIR
     mem_dir.mkdir(exist_ok=True)
     file = mem_dir / "data.json"
     file.write_text(json.dumps({"content": "info"}), encoding="utf-8")
@@ -108,6 +109,12 @@ def test_pending_and_complete(client, api_module):
     )
     assert resp.status_code == 200
     assert (output_dir / "data.json").exists()
+    assert not file.exists()
+    archived = [p for p in archive_dir.glob("data*.json")]
+    assert archived
+
+    resp = client.get("/pending")
+    assert resp.json()["files"] == []
 
 
 def test_start_interview_bad_memory_file(client, api_module):

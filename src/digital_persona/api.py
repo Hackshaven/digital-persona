@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from importlib import resources
@@ -41,6 +42,7 @@ MEMORY_DIR = PERSONA_DIR / "memory"
 INPUT_DIR = PERSONA_DIR / "input"
 PROCESSED_DIR = PERSONA_DIR / "processed"
 OUTPUT_DIR = PERSONA_DIR / "output"
+ARCHIVE_DIR = PERSONA_DIR / "archive"
 # web UI resources live in the ``frontend`` package
 FRONTEND_DIR = resources.files("frontend")
 
@@ -49,6 +51,7 @@ MEMORY_DIR.mkdir(exist_ok=True)
 INPUT_DIR.mkdir(exist_ok=True)
 PROCESSED_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
+ARCHIVE_DIR.mkdir(exist_ok=True)
 
 
 class Notes(BaseModel):
@@ -169,6 +172,11 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
             raise HTTPException(status_code=400, detail="Invalid file path")
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(req.profile, f, indent=2)
+        archive = ARCHIVE_DIR / req.file
+        if archive.exists():
+            safe_ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
+            archive = archive.with_name(f"{archive.stem}-{safe_ts}{archive.suffix}")
+        shutil.move(str(mem_path), str(archive))
         return {"status": "saved"}
 
     @app.get("/", response_class=HTMLResponse)
