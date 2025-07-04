@@ -42,7 +42,7 @@ A "Digital Persona" is an AI clone that mirrors your thinking style, goals, and 
   - `src/digital_persona/` → Python package containing utilities
   - `src/digital_persona/interview.py` → Interview assistant that derives personality traits from unstructured user data
   - `src/frontend/` → Static HTML and CSS for the basic web interface
-  - `scripts/` → Helper scripts like `start-api.sh` used by the devcontainer
+  - `scripts/` → Helper scripts like `start-api.py` used by the devcontainer
   - `docs/` → Research papers used as additional prompt context (available in the container, otherwise in the wiki)
 
 - **Prompt Engineering**: Prompts use structured memory, personality traits, and psychological insight to produce deeply personalized responses.
@@ -77,8 +77,8 @@ The project is designed for interactive local development using either OpenAI or
    - Use the CLI directly or within the devcontainer: `digital-persona-interview data/my_notes.txt -p openai` or `-p ollama`
    - Add `--dry-run` to simulate answers from the model.
 4. **Devcontainer Notes**:
-   - Use `scripts/start-api.sh` to launch the local API server inside the container.
-   - The container logs to `/tmp/uvicorn.log`.
+   - The container automatically runs `scripts/start-api.py` which launches the API server and the ingest loop.
+   - Logs are written to `/tmp/uvicorn.log` and `/tmp/ingest.log`.
    - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
 5. **Run the Ingest Loop**:
    - Execute `digital-persona-ingest` to poll the `input` folder and convert new files into JSON memories.

@@ -2,7 +2,7 @@
   "name": "digital-persona-dev",
   "image": "mcr.microsoft.com/devcontainers/python:3.12",
   "postCreateCommand": "apt-get update && apt-get install -y ffmpeg && pipx install --include-deps poetry && poetry install --with dev,media",
-  "postStartCommand": "./scripts/start-api.sh",
+  "postStartCommand": "python scripts/start-api.py",
   "forwardPorts": [8000],
   "runArgs": [
     "-p", "8000:8000",
