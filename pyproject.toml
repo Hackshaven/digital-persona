@@ -35,8 +35,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "pillow",
-    "mutagen",
 ]
 media = [
     "pillow",
