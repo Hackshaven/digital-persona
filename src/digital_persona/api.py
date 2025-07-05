@@ -151,7 +151,9 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     @app.get("/start_interview")
     def start_interview(file: str) -> dict:
         """Load a memory JSON file and return its ``content`` field."""
-        path = MEMORY_DIR / file
+        path = (MEMORY_DIR / file).resolve()
+        if not str(path).startswith(str(MEMORY_DIR)):
+            raise HTTPException(status_code=400, detail="Invalid file path")
         if not path.exists():
             raise HTTPException(status_code=404, detail="File not found")
         try:
