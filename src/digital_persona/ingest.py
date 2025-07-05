@@ -251,6 +251,21 @@ def _extract_video_audio(path: Path) -> Path | None:
         return None
 
 
+def _convert_heic_to_jpeg(path: Path) -> Path | None:
+    """Convert a HEIC/HEIF image to a temporary JPEG and return its path."""
+    if Image is None:
+        return None
+    temp_fd, temp_path = tempfile.mkstemp(suffix=".jpg")
+    os.close(temp_fd)
+    try:
+        with Image.open(path) as img:
+            img.convert("RGB").save(temp_path, format="JPEG")
+        return Path(temp_path)
+    except Exception:
+        Path(temp_path).unlink(missing_ok=True)
+        return None
+
+
 def _transcribe_audio(path: Path) -> str:
     """Return a transcript for ``path`` using an LLM if available."""
     provider = os.getenv("TRANSCRIBE_PROVIDER", "openai").lower()
@@ -480,12 +495,16 @@ def process_file(path: Path) -> bool:
     if dest.exists():
         dest = dest.with_name(f"{dest.stem}-{safe_ts}{dest.suffix}")
 
+    is_heic = _is_image(path) and path.suffix.lower() in {".heic", ".heif"}
+    temp_jpg: Path | None = None
+
     try:
         if _is_image(path):
-            caption = _generate_caption(path)
+            meta = _extract_exif(path)
+            temp_jpg = _convert_heic_to_jpeg(path) if is_heic else None
+            caption = _generate_caption(temp_jpg or path)
             if not caption:
                 raise RuntimeError("caption failed")
-            meta = _extract_exif(path)
             mem_obj = {
             "@context": "https://www.w3.org/ns/activitystreams",
             "type": "Image",
@@ -556,6 +575,11 @@ def process_file(path: Path) -> bool:
         with open(mem_path, "w", encoding="utf-8") as f:
             json.dump(mem_obj, f)
         shutil.move(str(path), str(dest))
+        if _is_image(path) and path.suffix.lower() in {".heic", ".heif"} and temp_jpg:
+            dest_jpg = dest.with_suffix(".jpg")
+            if dest_jpg.exists():
+                dest_jpg = dest_jpg.with_name(f"{dest_jpg.stem}-{safe_ts}{dest_jpg.suffix}")
+            shutil.move(str(temp_jpg), str(dest_jpg))
         logger.info("Saved memory %s", mem_path.name)
         return True
     except Exception as exc:
@@ -564,6 +588,8 @@ def process_file(path: Path) -> bool:
         if fail.exists():
             fail = fail.with_name(f"{fail.stem}-{safe_ts}{fail.suffix}")
         shutil.move(str(path), str(fail))
+        if _is_image(path) and path.suffix.lower() in {".heic", ".heif"} and temp_jpg and temp_jpg.exists():
+            temp_jpg.unlink(missing_ok=True)
         logger.info("Moved %s to %s", path.name, fail)
         return False
 

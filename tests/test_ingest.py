@@ -83,6 +83,8 @@ def test_heic_ingestion(monkeypatch, tmp_path):
     assert data["type"] == "Image"
     assert data["caption"] == "a blue square"
     assert data["source"].endswith("processed/photo.heic")
+    jpeg_files = list(ingest.PROCESSED_DIR.glob("photo*.jpg"))
+    assert jpeg_files and jpeg_files[0].exists()
 
 
 def test_extract_exif(monkeypatch, tmp_path):
