@@ -170,7 +170,6 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     @app.post("/complete_interview")
     def complete_interview(req: CompleteRequest) -> dict:
         """Save interview results and archive the memory file."""
-        from werkzeug.utils import secure_filename
         sanitized_file = secure_filename(req.file)
         mem_path = (MEMORY_DIR / sanitized_file).resolve()
         if not str(mem_path).startswith(str(MEMORY_DIR)):
