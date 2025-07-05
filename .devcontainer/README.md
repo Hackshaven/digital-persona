@@ -42,7 +42,7 @@ Provide your API keys via Codespaces secrets or by creating `.devcontainer/.env`
    poetry run digital-persona-interview
    ```
 
- The devcontainer also starts the FastAPI service automatically on port `8000`. It calls `scripts/start-services.py` via `poetry run` in the `postStartCommand` using `nohup`, so Uvicorn and the ingest loop run in the background. You can stop the processes with `pkill -f uvicorn` and rerun the same script. If `OPENAI_API_KEY` is not provided, the app falls back to an Ollama model instead. The container is configured to reach an Ollama server on your host machine using `http://host.docker.internal:11434`. Visit `http://localhost:8000/docs` to try the API. Logs are written to `/tmp/uvicorn.log`, `/tmp/ingest.log`, and `/tmp/services.log` for troubleshooting.
+ The devcontainer also starts the FastAPI service automatically on port `8000`. It calls `scripts/start-services.py` via `poetry run` in the `postStartCommand` using `nohup`, so Uvicorn and the ingest loop run in the background. You can stop the processes with `pkill -f uvicorn` and rerun the same script. If `OPENAI_API_KEY` is not provided, the app falls back to an Ollama model. Captions and summaries also fall back to OpenAI when Ollama returns an error and your key is set. The container is configured to reach an Ollama server on your host machine using `http://host.docker.internal:11434`. Visit `http://localhost:8000/docs` to try the API. Logs are written to `/tmp/uvicorn.log`, `/tmp/ingest.log`, and `/tmp/services.log` for troubleshooting.
 
    If you launch the devcontainer using the command line instead of VS Code or Codespaces, be sure to map the port explicitly with `-p 8000:8000` so the API is reachable from your host machine.
 

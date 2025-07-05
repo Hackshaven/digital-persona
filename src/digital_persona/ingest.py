@@ -293,8 +293,8 @@ def _generate_caption(path: Path) -> str:
 
     logger.debug("Captioning %s via %s", path.name, provider)
 
-    if provider == "openai":
-        model = model or "gpt-4o"
+    def _via_openai() -> str:
+        mdl = model or "gpt-4o"
         try:
             import openai
 
@@ -318,11 +318,14 @@ def _generate_caption(path: Path) -> str:
                     ],
                 }
             ]
-            resp = openai.chat.completions.create(model=model, messages=messages)
+            resp = openai.chat.completions.create(model=mdl, messages=messages)
             return resp.choices[0].message.content.strip()
         except Exception:
             logger.exception("OpenAI captioning failed for %s", path.name)
             return ""
+
+    if provider == "openai":
+        return _via_openai()
 
     if provider == "ollama":
         model = model or os.getenv("OLLAMA_MODEL", "llava")
@@ -343,6 +346,9 @@ def _generate_caption(path: Path) -> str:
             return (resp["response"] if isinstance(resp, dict) else resp.response).strip()
         except Exception:
             logger.exception("Ollama captioning failed for %s", path.name)
+            if os.getenv("OPENAI_API_KEY"):
+                logger.info("Falling back to OpenAI for caption")
+                return _via_openai()
             return ""
 
     logger.warning("Unknown caption provider %s", provider)

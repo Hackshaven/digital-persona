@@ -250,3 +250,29 @@ def test_sentiment_fallback(monkeypatch, tmp_path):
 
     result = ingest._analyze_sentiment("hi")
     assert result == "positive"
+
+
+def test_caption_fallback(monkeypatch, tmp_path):
+    ingest = setup_ingest(monkeypatch, tmp_path)
+    monkeypatch.setenv("CAPTION_PROVIDER", "ollama")
+    monkeypatch.setenv("OPENAI_API_KEY", "x")
+
+    def fail_generate(**kwargs):
+        raise RuntimeError("oops")
+
+    def openai_create(model=None, messages=None):
+        return types.SimpleNamespace(
+            choices=[types.SimpleNamespace(message=types.SimpleNamespace(content="cap"))]
+        )
+
+    monkeypatch.setitem(sys.modules, "ollama", types.SimpleNamespace(generate=fail_generate))
+    monkeypatch.setitem(
+        sys.modules,
+        "openai",
+        types.SimpleNamespace(chat=types.SimpleNamespace(completions=types.SimpleNamespace(create=openai_create))),
+    )
+
+    img = tmp_path / "img.jpg"
+    img.write_bytes(b"0")
+    caption = ingest._generate_caption(img)
+    assert caption == "cap"
