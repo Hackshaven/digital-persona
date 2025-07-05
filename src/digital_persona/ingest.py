@@ -239,6 +239,8 @@ def _transcribe_audio(path: Path) -> str:
     provider = os.getenv("TRANSCRIBE_PROVIDER", "whisper").lower()
     model = os.getenv("TRANSCRIBE_MODEL")
 
+    logger.debug("Transcribing %s via %s", path.name, provider)
+
     if provider == "openai":
         model = model or "whisper-1"
         try:
@@ -248,7 +250,8 @@ def _transcribe_audio(path: Path) -> str:
                 resp = openai.audio.transcriptions.create(model=model, file=f)
             text = resp.text if hasattr(resp, "text") else resp["text"]
             return text.strip()
-        except Exception:
+        except Exception as exc:
+            logger.exception("OpenAI transcription failed for %s", path.name)
             return ""
 
     if provider == "whisper":
@@ -259,8 +262,10 @@ def _transcribe_audio(path: Path) -> str:
             result = wmodel.transcribe(str(path))
             return result.get("text", "").strip()
         except Exception:
+            logger.exception("Whisper transcription failed for %s", path.name)
             return ""
 
+    logger.warning("Unknown transcription provider %s", provider)
     return ""
 
 
@@ -268,6 +273,8 @@ def _generate_caption(path: Path) -> str:
     """Return a short caption for ``path`` using an LLM if available."""
     provider = os.getenv("CAPTION_PROVIDER", "ollama").lower()
     model = os.getenv("CAPTION_MODEL")
+
+    logger.debug("Captioning %s via %s", path.name, provider)
 
     if provider == "openai":
         model = model or "gpt-4o"
@@ -280,20 +287,15 @@ def _generate_caption(path: Path) -> str:
                 {
                     "role": "user",
                     "content": [
-                        {
-                            "type": "text",
-                            "text": CAPTION_PROMPT,
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"data:image/jpeg;base64,{b64}"},
-                        },
+                        {"type": "text", "text": CAPTION_PROMPT},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
                     ],
                 }
             ]
             resp = openai.chat.completions.create(model=model, messages=messages)
             return resp.choices[0].message.content.strip()
         except Exception:
+            logger.exception("OpenAI captioning failed for %s", path.name)
             return ""
 
     if provider == "ollama":
@@ -306,8 +308,10 @@ def _generate_caption(path: Path) -> str:
             resp = ollama.generate(model=model, prompt=CAPTION_PROMPT, images=[img_bytes])
             return (resp["response"] if isinstance(resp, dict) else resp.response).strip()
         except Exception:
+            logger.exception("Ollama captioning failed for %s", path.name)
             return ""
 
+    logger.warning("Unknown caption provider %s", provider)
     return ""
 
 
@@ -318,6 +322,8 @@ def _generate_summary(text: str) -> str:
 
     if not text:
         return ""
+
+    logger.debug("Summarizing text via %s", provider)
 
     if provider == "openai":
         model = model or "gpt-4o"
@@ -330,6 +336,7 @@ def _generate_summary(text: str) -> str:
             resp = openai.chat.completions.create(model=model, messages=messages)
             return resp.choices[0].message.content.strip()
         except Exception:
+            logger.exception("OpenAI summary failed")
             return ""
 
     if provider == "ollama":
@@ -340,8 +347,10 @@ def _generate_summary(text: str) -> str:
             resp = ollama.generate(model=model, prompt=f"{SUMMARY_PROMPT}\n{text}")
             return (resp["response"] if isinstance(resp, dict) else resp.response).strip()
         except Exception:
+            logger.exception("Ollama summary failed")
             return ""
 
+    logger.warning("Unknown caption provider %s", provider)
     return ""
 
 
@@ -352,6 +361,8 @@ def _analyze_sentiment(text: str) -> str:
 
     if not text:
         return ""
+
+    logger.debug("Analyzing sentiment via %s", provider)
 
     if provider == "openai":
         model = model or "gpt-4o"
@@ -364,6 +375,7 @@ def _analyze_sentiment(text: str) -> str:
             resp = openai.chat.completions.create(model=model, messages=messages)
             return resp.choices[0].message.content.strip().split()[0].lower()
         except Exception:
+            logger.exception("OpenAI sentiment analysis failed")
             return ""
 
     if provider == "ollama":
@@ -375,8 +387,10 @@ def _analyze_sentiment(text: str) -> str:
             content = resp["response"] if isinstance(resp, dict) else resp.response
             return content.strip().split()[0].lower()
         except Exception:
+            logger.exception("Ollama sentiment analysis failed")
             return ""
 
+    logger.warning("Unknown caption provider %s", provider)
     return ""
 
 
