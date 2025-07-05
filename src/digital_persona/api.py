@@ -8,6 +8,7 @@ import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from importlib import resources
+from werkzeug.utils import secure_filename
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -169,18 +170,18 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     @app.post("/complete_interview")
     def complete_interview(req: CompleteRequest) -> dict:
         """Save interview results and archive the memory file."""
-        mem_path = (MEMORY_DIR / req.file).resolve()
+        from werkzeug.utils import secure_filename
+        sanitized_file = secure_filename(req.file)
+        mem_path = (MEMORY_DIR / sanitized_file).resolve()
         if not str(mem_path).startswith(str(MEMORY_DIR)):
             raise HTTPException(status_code=400, detail="Invalid file path")
         if not mem_path.exists():
             raise HTTPException(status_code=404, detail="File not found")
-        out_path = (OUTPUT_DIR / (Path(req.file).stem + ".json")).resolve()
+        out_path = (OUTPUT_DIR / (Path(sanitized_file).stem + ".json")).resolve()
         if not str(out_path).startswith(str(OUTPUT_DIR)):
             raise HTTPException(status_code=400, detail="Invalid file path")
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(req.profile, f, indent=2)
-        from werkzeug.utils import secure_filename
-        sanitized_file = secure_filename(req.file)
         archive = (ARCHIVE_DIR / sanitized_file).resolve()
         if not str(archive).startswith(str(ARCHIVE_DIR)):
             raise HTTPException(status_code=400, detail="Invalid file path")
