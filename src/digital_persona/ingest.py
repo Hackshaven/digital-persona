@@ -326,19 +326,22 @@ def _generate_summary(text: str) -> str:
 
     logger.debug("Summarizing text via %s", provider)
 
-    if provider == "openai":
-        model = model or "gpt-4o"
+    def _via_openai() -> str:
+        mdl = model or "gpt-4o"
         try:
             import openai
 
             messages = [
                 {"role": "user", "content": f"{SUMMARY_PROMPT}\n{text}"},
             ]
-            resp = openai.chat.completions.create(model=model, messages=messages)
+            resp = openai.chat.completions.create(model=mdl, messages=messages)
             return resp.choices[0].message.content.strip()
         except Exception:
             logger.exception("OpenAI summary failed")
             return ""
+
+    if provider == "openai":
+        return _via_openai()
 
     if provider == "ollama":
         model = model or os.getenv("OLLAMA_MODEL", "llama3")
@@ -349,6 +352,9 @@ def _generate_summary(text: str) -> str:
             return (resp["response"] if isinstance(resp, dict) else resp.response).strip()
         except Exception:
             logger.exception("Ollama summary failed")
+            if os.getenv("OPENAI_API_KEY"):
+                logger.info("Falling back to OpenAI for summary")
+                return _via_openai()
             return ""
 
     logger.warning("Unknown caption provider %s", provider)
@@ -365,19 +371,22 @@ def _analyze_sentiment(text: str) -> str:
 
     logger.debug("Analyzing sentiment via %s", provider)
 
-    if provider == "openai":
-        model = model or "gpt-4o"
+    def _via_openai() -> str:
+        mdl = model or "gpt-4o"
         try:
             import openai
 
             messages = [
                 {"role": "user", "content": f"{SENTIMENT_PROMPT}\n{text}"},
             ]
-            resp = openai.chat.completions.create(model=model, messages=messages)
+            resp = openai.chat.completions.create(model=mdl, messages=messages)
             return resp.choices[0].message.content.strip().split()[0].lower()
         except Exception:
             logger.exception("OpenAI sentiment analysis failed")
             return ""
+
+    if provider == "openai":
+        return _via_openai()
 
     if provider == "ollama":
         model = model or os.getenv("OLLAMA_MODEL", "llama3")
@@ -389,6 +398,9 @@ def _analyze_sentiment(text: str) -> str:
             return content.strip().split()[0].lower()
         except Exception:
             logger.exception("Ollama sentiment analysis failed")
+            if os.getenv("OPENAI_API_KEY"):
+                logger.info("Falling back to OpenAI for sentiment analysis")
+                return _via_openai()
             return ""
 
     logger.warning("Unknown caption provider %s", provider)

@@ -186,3 +186,39 @@ def test_failed_ingestion_moves_file(monkeypatch, tmp_path):
     assert not list(ingest.MEMORY_DIR.glob("*.json"))
     moved = list(ingest.TROUBLE_DIR.glob("bad*.wav"))
     assert moved and moved[0].exists()
+
+
+def test_summary_fallback(monkeypatch, tmp_path):
+    ingest = setup_ingest(monkeypatch, tmp_path)
+    monkeypatch.setenv("CAPTION_PROVIDER", "ollama")
+    monkeypatch.setenv("OPENAI_API_KEY", "x")
+
+    def fail_generate(**kwargs):
+        raise RuntimeError("oops")
+
+    def openai_create(model=None, messages=None):
+        return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(content="sum"))])
+
+    monkeypatch.setitem(sys.modules, "ollama", types.SimpleNamespace(generate=fail_generate))
+    monkeypatch.setitem(sys.modules, "openai", types.SimpleNamespace(chat=types.SimpleNamespace(completions=types.SimpleNamespace(create=openai_create))))
+
+    summary = ingest._generate_summary("hello")
+    assert summary == "sum"
+
+
+def test_sentiment_fallback(monkeypatch, tmp_path):
+    ingest = setup_ingest(monkeypatch, tmp_path)
+    monkeypatch.setenv("CAPTION_PROVIDER", "ollama")
+    monkeypatch.setenv("OPENAI_API_KEY", "x")
+
+    def fail_generate(**kwargs):
+        raise RuntimeError("oops")
+
+    def openai_create(model=None, messages=None):
+        return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(content="positive"))])
+
+    monkeypatch.setitem(sys.modules, "ollama", types.SimpleNamespace(generate=fail_generate))
+    monkeypatch.setitem(sys.modules, "openai", types.SimpleNamespace(chat=types.SimpleNamespace(completions=types.SimpleNamespace(create=openai_create))))
+
+    result = ingest._analyze_sentiment("hi")
+    assert result == "positive"
