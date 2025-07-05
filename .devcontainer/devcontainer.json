@@ -26,8 +26,6 @@
     }
   },
   "remoteEnv": {
-    "OPENAI_API_KEY": "${{ secrets.OPENAI_API_KEY }}",
-    "HF_API_KEY": "${{ secrets.HF_API_KEY }}",
     "OLLAMA_BASE_URL": "http://host.docker.internal:11434"
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/digital-persona,type=bind",
