@@ -309,7 +309,7 @@ def _generate_caption(path: Path) -> str:
     logger.debug("Captioning %s via %s", path.name, provider)
 
     def _via_openai() -> str:
-        mdl = model or "gpt-4o"
+        mdl = os.getenv("OPENAI_MODEL", "gpt-4o")
         try:
             import openai
 
@@ -381,7 +381,7 @@ def _generate_summary(text: str) -> str:
     logger.debug("Summarizing text via %s", provider)
 
     def _via_openai() -> str:
-        mdl = model or "gpt-4o"
+        mdl = os.getenv("OPENAI_MODEL", "gpt-4o")
         try:
             import openai
 
@@ -433,7 +433,7 @@ def _analyze_sentiment(text: str) -> str:
         return resp.strip().split()[0].lower()
 
     def _via_openai() -> str:
-        mdl = model or "gpt-4o"
+        mdl = os.getenv("OPENAI_MODEL", "gpt-4o")
         try:
             import openai
 
