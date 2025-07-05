@@ -42,6 +42,9 @@ media = [
     "pillow",
     "mutagen",
 ]
+speech = [
+    "openai-whisper",
+]
 
 [tool.poetry.scripts]
 digital-persona-interview = "digital_persona.interview:_cli"

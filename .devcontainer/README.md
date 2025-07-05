@@ -11,6 +11,7 @@ Welcome to the dev container for the **Digital Persona** project. This environme
 - Libraries for OpenAI, LangChain, HuggingFace, Pandas, and Scikit-learn
 - RDF and JSON-LD utilities for semantic formats used by the schemas
 - Installs `ffmpeg` and the project's optional media dependencies during container setup
+- Includes the open-source `openai-whisper` package so you can run local audio transcription
 
 ---
 
