@@ -12,6 +12,16 @@ import shutil
 import tempfile
 import logging
 
+
+def _ollama_client():
+    """Return an Ollama client respecting OLLAMA_BASE_URL/OLLAMA_HOST."""
+    host = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_HOST")
+    if host:
+        import ollama
+        return ollama.Client(host=host)
+    import ollama
+    return ollama
+
 try:
     from mutagen import File as MutagenFile
 except Exception:  # pragma: no cover - optional dependency may be missing
@@ -302,11 +312,11 @@ def _generate_caption(path: Path) -> str:
     if provider == "ollama":
         model = model or os.getenv("OLLAMA_MODEL", "llava")
         try:
-            import ollama
+            client = _ollama_client()
 
             with open(path, "rb") as f:
                 img_bytes = f.read()
-            resp = ollama.generate(model=model, prompt=CAPTION_PROMPT, images=[img_bytes])
+            resp = client.generate(model=model, prompt=CAPTION_PROMPT, images=[img_bytes])
             return (resp["response"] if isinstance(resp, dict) else resp.response).strip()
         except Exception:
             logger.exception("Ollama captioning failed for %s", path.name)
@@ -346,9 +356,9 @@ def _generate_summary(text: str) -> str:
     if provider == "ollama":
         model = model or os.getenv("OLLAMA_MODEL", "llama3")
         try:
-            import ollama
+            client = _ollama_client()
 
-            resp = ollama.generate(model=model, prompt=f"{SUMMARY_PROMPT}\n{text}")
+            resp = client.generate(model=model, prompt=f"{SUMMARY_PROMPT}\n{text}")
             return (resp["response"] if isinstance(resp, dict) else resp.response).strip()
         except Exception:
             logger.exception("Ollama summary failed")
@@ -391,9 +401,9 @@ def _analyze_sentiment(text: str) -> str:
     if provider == "ollama":
         model = model or os.getenv("OLLAMA_MODEL", "llama3")
         try:
-            import ollama
+            client = _ollama_client()
 
-            resp = ollama.generate(model=model, prompt=f"{SENTIMENT_PROMPT}\n{text}")
+            resp = client.generate(model=model, prompt=f"{SENTIMENT_PROMPT}\n{text}")
             content = resp["response"] if isinstance(resp, dict) else resp.response
             return content.strip().split()[0].lower()
         except Exception:

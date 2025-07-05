@@ -67,9 +67,9 @@ The project is designed for interactive local development using either OpenAI or
 2. **Ollama Setup**:
    - Install [Ollama](https://ollama.com/) locally.
    - Run a model (e.g., `ollama run llama3`).
-   - Set environment:
+   - Set environment variables:
      ```bash
-     export OLLAMA_BASE_URL=http://localhost:11434
+     export OLLAMA_HOST=http://localhost:11434  # or set OLLAMA_BASE_URL
      export OLLAMA_MODEL=llama3
      ```
 

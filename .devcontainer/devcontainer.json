@@ -26,7 +26,7 @@
     }
   },
   "remoteEnv": {
-    "OLLAMA_BASE_URL": "http://host.docker.internal:11434"
+    "OLLAMA_HOST": "http://host.docker.internal:11434"
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/digital-persona,type=bind",
   "workspaceFolder": "/workspace/digital-persona",
