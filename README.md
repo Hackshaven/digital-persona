@@ -92,6 +92,7 @@ The project is designed for interactive local development using either OpenAI or
   - Ensure the `ffmpeg` binary is available on your PATH for video extraction (preinstalled in the devcontainer).
    - After cloning the repo run `git lfs install` so the sample media files are fetched correctly.
   - Image files are detected automatically; EXIF metadata is stored and a short caption is generated so they can be used during interviews.
+  - HEIC/HEIF photos are supported if `pillow-heif` is installed; they are converted to JPEG for captioning.
   - Image metadata may include GPS coordinates and the original timestamp if present in EXIF headers.
   - Audio files are transcribed using the OpenAI API by default. Set `TRANSCRIBE_PROVIDER=whisper` to use a local Whisper model instead.
   - Audio metadata captures duration, sample rate, and channel count when available.

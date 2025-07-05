@@ -63,6 +63,28 @@ def test_image_ingestion(monkeypatch, tmp_path):
     assert data["source"].endswith("processed/img.jpg")
 
 
+def test_heic_ingestion(monkeypatch, tmp_path):
+    ingest = setup_ingest(monkeypatch, tmp_path)
+    pytest.importorskip("PIL")
+    from PIL import Image
+
+    img_path = ingest.INPUT_DIR / "photo.heic"
+    tmp_jpg = ingest.INPUT_DIR / "tmp.jpg"
+    Image.new("RGB", (5, 5), color="blue").save(tmp_jpg)
+    tmp_jpg.replace(img_path)
+
+    monkeypatch.setattr(ingest, "_generate_caption", lambda p: "a blue square")
+
+    ingest.process_pending_files()
+
+    mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
+    assert mem_files
+    data = json.loads(mem_files[0].read_text(encoding="utf-8"))
+    assert data["type"] == "Image"
+    assert data["caption"] == "a blue square"
+    assert data["source"].endswith("processed/photo.heic")
+
+
 def test_extract_exif(monkeypatch, tmp_path):
     ingest = setup_ingest(monkeypatch, tmp_path)
     pil = pytest.importorskip("PIL")

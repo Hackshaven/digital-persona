@@ -7,6 +7,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, Dict, Any
+import io
 import subprocess
 import shutil
 import tempfile
@@ -29,6 +30,11 @@ except Exception:  # pragma: no cover - optional dependency may be missing
 
 try:
     from PIL import Image, ExifTags
+    try:
+        from pillow_heif import register_heif_opener
+        register_heif_opener()  # enables HEIC/HEIF support if available
+    except Exception:  # pragma: no cover - optional dependency may be missing
+        pass
 except Exception:  # pragma: no cover - optional dependency may be missing
     Image = None  # type: ignore
     ExifTags = None  # type: ignore
@@ -59,7 +65,7 @@ _SANITIZE_PATTERNS: Iterable[re.Pattern[str]] = [
     re.compile(r"ignore\s+previous\s+instructions", re.IGNORECASE),
 ]
 
-IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff"}
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".heic", ".heif"}
 AUDIO_SUFFIXES = {".mp3", ".wav", ".flac", ".ogg", ".m4a"}
 VIDEO_SUFFIXES = {".mp4", ".mkv", ".mov", ".avi"}
 
@@ -292,8 +298,17 @@ def _generate_caption(path: Path) -> str:
         try:
             import openai
 
-            with open(path, "rb") as f:
-                b64 = base64.b64encode(f.read()).decode()
+            if path.suffix.lower() in {".heic", ".heif"} and Image:
+                try:
+                    with Image.open(path) as img:
+                        buf = io.BytesIO()
+                        img.convert("RGB").save(buf, format="JPEG")
+                        img_bytes = buf.getvalue()
+                except Exception:
+                    img_bytes = path.read_bytes()
+            else:
+                img_bytes = path.read_bytes()
+            b64 = base64.b64encode(img_bytes).decode()
             messages = [
                 {
                     "role": "user",
@@ -314,8 +329,16 @@ def _generate_caption(path: Path) -> str:
         try:
             client = _ollama_client()
 
-            with open(path, "rb") as f:
-                img_bytes = f.read()
+            if path.suffix.lower() in {".heic", ".heif"} and Image:
+                try:
+                    with Image.open(path) as img:
+                        buf = io.BytesIO()
+                        img.convert("RGB").save(buf, format="JPEG")
+                        img_bytes = buf.getvalue()
+                except Exception:
+                    img_bytes = path.read_bytes()
+            else:
+                img_bytes = path.read_bytes()
             resp = client.generate(model=model, prompt=CAPTION_PROMPT, images=[img_bytes])
             return (resp["response"] if isinstance(resp, dict) else resp.response).strip()
         except Exception:
