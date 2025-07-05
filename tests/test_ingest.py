@@ -215,7 +215,13 @@ def test_sentiment_fallback(monkeypatch, tmp_path):
         raise RuntimeError("oops")
 
     def openai_create(model=None, messages=None):
-        return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(content="positive"))])
+        return types.SimpleNamespace(
+            choices=[
+                types.SimpleNamespace(
+                    message=types.SimpleNamespace(content="The sentiment is positive.")
+                )
+            ]
+        )
 
     monkeypatch.setitem(sys.modules, "ollama", types.SimpleNamespace(generate=fail_generate))
     monkeypatch.setitem(sys.modules, "openai", types.SimpleNamespace(chat=types.SimpleNamespace(completions=types.SimpleNamespace(create=openai_create))))

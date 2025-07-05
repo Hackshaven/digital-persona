@@ -91,9 +91,12 @@ The project is designed for interactive local development using either OpenAI or
   - If you want local audio transcription, also install `pip install -e .[speech]` (or `poetry install --with speech`) and set `TRANSCRIBE_PROVIDER=whisper`.
   - Ensure the `ffmpeg` binary is available on your PATH for video extraction (preinstalled in the devcontainer).
    - After cloning the repo run `git lfs install` so the sample media files are fetched correctly.
-   - Image files are detected automatically; EXIF metadata is stored and a short caption is generated so they can be used during interviews.
+  - Image files are detected automatically; EXIF metadata is stored and a short caption is generated so they can be used during interviews.
+  - Image metadata may include GPS coordinates and the original timestamp if present in EXIF headers.
   - Audio files are transcribed using the OpenAI API by default. Set `TRANSCRIBE_PROVIDER=whisper` to use a local Whisper model instead.
+  - Audio metadata captures duration, sample rate, and channel count when available.
   - Video files are processed by extracting a preview frame and audio track. The frame is captioned and the audio is transcribed, summarized, and tagged with sentiment.
+  - Video metadata includes duration, resolution, and frame rate extracted via `ffprobe`.
   - Captions, summaries, and sentiment defaults to using Ollama models. Set `CAPTION_PROVIDER=openai` to use OpenAI APIs instead. Use `CAPTION_MODEL` to select the model name.
   - Sanitize input text to remove injection phrases and convert HTML or JSON to clean plain text before creating ActivityStreams memories.
   - Non-text inputs are transcribed or captioned by the ingest loop so the interview script can reason over them.

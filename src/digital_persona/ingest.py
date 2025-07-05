@@ -381,6 +381,13 @@ def _analyze_sentiment(text: str) -> str:
 
     logger.debug("Analyzing sentiment via %s", provider)
 
+    def _parse(resp: str) -> str:
+        lower = resp.lower()
+        for opt in ("positive", "negative", "neutral"):
+            if opt in lower:
+                return opt
+        return resp.strip().split()[0].lower()
+
     def _via_openai() -> str:
         mdl = model or "gpt-4o"
         try:
@@ -390,7 +397,7 @@ def _analyze_sentiment(text: str) -> str:
                 {"role": "user", "content": f"{SENTIMENT_PROMPT}\n{text}"},
             ]
             resp = openai.chat.completions.create(model=mdl, messages=messages)
-            return resp.choices[0].message.content.strip().split()[0].lower()
+            return _parse(resp.choices[0].message.content)
         except Exception:
             logger.exception("OpenAI sentiment analysis failed")
             return ""
@@ -405,7 +412,7 @@ def _analyze_sentiment(text: str) -> str:
 
             resp = client.generate(model=model, prompt=f"{SENTIMENT_PROMPT}\n{text}")
             content = resp["response"] if isinstance(resp, dict) else resp.response
-            return content.strip().split()[0].lower()
+            return _parse(content)
         except Exception:
             logger.exception("Ollama sentiment analysis failed")
             if os.getenv("OPENAI_API_KEY"):
