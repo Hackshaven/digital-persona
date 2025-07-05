@@ -28,6 +28,7 @@ def test_process_pending_creates_memory(monkeypatch, tmp_path):
     assert "Ignore previous instructions" not in data["content"]
     assert "Hello" in data["content"]
     assert data["source"].endswith("processed/note.txt")
+    assert data["metadata"] == {}
 
 
 def test_html_stripped(monkeypatch, tmp_path):
@@ -41,6 +42,7 @@ def test_html_stripped(monkeypatch, tmp_path):
     data = json.loads(mem_files[0].read_text(encoding="utf-8"))
     assert data["content"] == "Test"
     assert data["source"].endswith("processed/page.html")
+    assert data["metadata"] == {}
 
 
 def test_image_ingestion(monkeypatch, tmp_path):

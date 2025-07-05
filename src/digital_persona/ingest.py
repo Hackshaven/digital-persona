@@ -575,6 +575,7 @@ def process_file(path: Path) -> bool:
             "type": "Note",
             "name": path.name,
             "content": content,
+            "metadata": {},
             "timestamp": ts,
             "source": str(dest.relative_to(PERSONA_DIR)),
         }
