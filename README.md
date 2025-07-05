@@ -42,7 +42,7 @@ A "Digital Persona" is an AI clone that mirrors your thinking style, goals, and 
   - `src/digital_persona/` → Python package containing utilities
   - `src/digital_persona/interview.py` → Interview assistant that derives personality traits from unstructured user data
   - `src/frontend/` → Static HTML and CSS for the basic web interface
-  - `scripts/` → Helper scripts like `start-api.sh` used by the devcontainer
+  - `scripts/` → Helper scripts like `start-services.py` used by the devcontainer
   - `docs/` → Research papers used as additional prompt context (available in the container, otherwise in the wiki)
 
 - **Prompt Engineering**: Prompts use structured memory, personality traits, and psychological insight to produce deeply personalized responses.
@@ -67,9 +67,9 @@ The project is designed for interactive local development using either OpenAI or
 2. **Ollama Setup**:
    - Install [Ollama](https://ollama.com/) locally.
    - Run a model (e.g., `ollama run llama3`).
-   - Set environment:
+   - Set environment variables:
      ```bash
-     export OLLAMA_BASE_URL=http://localhost:11434
+     export OLLAMA_HOST=http://localhost:11434  # or set OLLAMA_BASE_URL
      export OLLAMA_MODEL=llama3
      ```
 
@@ -77,9 +77,52 @@ The project is designed for interactive local development using either OpenAI or
    - Use the CLI directly or within the devcontainer: `digital-persona-interview data/my_notes.txt -p openai` or `-p ollama`
    - Add `--dry-run` to simulate answers from the model.
 4. **Devcontainer Notes**:
-   - Use `scripts/start-api.sh` to launch the local API server inside the container.
-   - The container logs to `/tmp/uvicorn.log`.
-   - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
+  - The container automatically runs `scripts/start-services.py` (via `poetry run` and `nohup`) so the API server and ingest loop keep running in the background.
+  - If they fail to start, run `~/.local/bin/poetry run python scripts/start-services.py >/tmp/services.log 2>&1 &`.
+  - Logs are written to `/tmp/uvicorn.log`, `/tmp/ingest.log`, and `/tmp/services.log`.
+    The ingest loop prints a message each time it processes a file so you can
+    watch that log to confirm activity.
+  - Copy `.devcontainer/.env.example` to `.devcontainer/.env` to provide your API keys and other settings. The container loads this file automatically via a Docker `--env-file` argument.
+  - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
+5. **Run the Ingest Loop**:
+   - Execute `digital-persona-ingest` to poll the `input` folder and convert new files into JSON memories.
+   - Place any text, image, audio, or video files you want processed into `PERSONA_DIR/input` (defaults to `./persona/input`).
+  - Install optional media dependencies with `pip install -e .[media]` to enable image, audio, and video processing (the devcontainer installs them automatically).
+  - If you want local audio transcription, also install `pip install -e .[speech]` (or `poetry install --with speech`) and set `TRANSCRIBE_PROVIDER=whisper`.
+  - Ensure the `ffmpeg` binary is available on your PATH for video extraction (preinstalled in the devcontainer).
+   - After cloning the repo run `git lfs install` so the sample media files are fetched correctly.
+  - Image files are detected automatically; EXIF metadata is stored and a short caption is generated so they can be used during interviews.
+  - HEIC/HEIF photos are converted to JPEG for captioning. The converter uses `pillow-heif` when available or falls back to `ffmpeg`.
+  - Image metadata may include GPS coordinates and the original timestamp if present in EXIF headers.
+  - Audio files are transcribed using the OpenAI API by default. Set `TRANSCRIBE_PROVIDER=whisper` to use a local Whisper model instead.
+  - Audio metadata captures duration, sample rate, and channel count when available.
+  - Video files are processed by extracting a preview frame and audio track. The frame is captioned and the audio is transcribed, summarized, and tagged with sentiment.
+  - Video metadata includes duration, resolution, and frame rate extracted via `ffprobe`.
+  - Captions, summaries, and sentiment default to Ollama models. Set `CAPTION_PROVIDER=openai` to use OpenAI APIs instead (or rely on automatic fallback when Ollama fails). Use `CAPTION_MODEL` to select the Ollama model, and `OPENAI_MODEL` to choose the OpenAI model when that provider is used.
+  - Sanitize input text to remove injection phrases and convert HTML or JSON to clean plain text before creating ActivityStreams memories.
+  - Non-text inputs are transcribed or captioned by the ingest loop so the interview script can reason over them.
+  - Files that fail to process are moved to `PERSONA_DIR/troubleshooting` for manual review.
+6. **API Usage**:
+   - The `/pending` and `/start_interview` endpoints operate on files in `PERSONA_DIR/memory` produced by the ingest loop.
+   - Each memory is a JSON object with a `content` field used for interview questions.
+   - The object also stores a relative `source` path to the processed original file so you can reference images or audio later.
+   - Non-text media should be ingested first so a text summary is available.
+   - Completed memories are moved to `PERSONA_DIR/archive` after `/complete_interview` so they won't be processed twice.
+
+### Sample Data
+
+The `data/` folder contains example files for testing ingestion. Binary media
+files aren't stored in the repository. Generate them locally with
+`python scripts/generate_samples.py`:
+
+- `my_notes.txt` – snippet of email, journal, and chat messages
+- `sample_page.html` – short blog-style page describing a weekend hike
+- `sample_data.json` – example daily schedule in JSON form
+- `sample_image.jpg` – generated 10×10 sky-blue image
+- `sample_audio.wav` – generated one-second sine wave
+- `sample_video.mp4` – generated one-second red-square video with audio (uses AAC encoding for broad compatibility)
+
+Copy any of these files into `PERSONA_DIR/input` and run the ingest loop to see how different media types are processed.
 
 ---
 
