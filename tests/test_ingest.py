@@ -168,3 +168,21 @@ def test_video_ingestion(monkeypatch, tmp_path):
     assert data["summary"] == "vid summary"
     assert data["sentiment"] == "positive"
     assert data["source"].endswith("processed/clip.mp4")
+
+
+def test_failed_ingestion_moves_file(monkeypatch, tmp_path):
+    ingest = setup_ingest(monkeypatch, tmp_path)
+
+    audio_path = ingest.INPUT_DIR / "bad.wav"
+    audio_path.write_bytes(b"0")
+
+    def fail_transcribe(p):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(ingest, "_transcribe_audio", fail_transcribe)
+
+    ingest.process_pending_files()
+
+    assert not list(ingest.MEMORY_DIR.glob("*.json"))
+    moved = list(ingest.TROUBLE_DIR.glob("bad*.wav"))
+    assert moved and moved[0].exists()

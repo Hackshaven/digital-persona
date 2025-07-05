@@ -35,8 +35,9 @@ PERSONA_DIR = _persona_dir()
 INPUT_DIR = PERSONA_DIR / "input"
 PROCESSED_DIR = PERSONA_DIR / "processed"
 MEMORY_DIR = PERSONA_DIR / "memory"
+TROUBLE_DIR = PERSONA_DIR / "troubleshooting"
 
-for d in (PERSONA_DIR, INPUT_DIR, PROCESSED_DIR, MEMORY_DIR):
+for d in (PERSONA_DIR, INPUT_DIR, PROCESSED_DIR, MEMORY_DIR, TROUBLE_DIR):
     d.mkdir(exist_ok=True)
 
 logger = logging.getLogger(__name__)
@@ -236,7 +237,7 @@ def _extract_video_audio(path: Path) -> Path | None:
 
 def _transcribe_audio(path: Path) -> str:
     """Return a transcript for ``path`` using an LLM if available."""
-    provider = os.getenv("TRANSCRIBE_PROVIDER", "whisper").lower()
+    provider = os.getenv("TRANSCRIBE_PROVIDER", "openai").lower()
     model = os.getenv("TRANSCRIBE_MODEL")
 
     logger.debug("Transcribing %s via %s", path.name, provider)
@@ -408,7 +409,8 @@ def preprocess_text(path: Path) -> str:
     return _sanitize(text).strip()
 
 
-def process_file(path: Path) -> None:
+def process_file(path: Path) -> bool:
+    """Process ``path`` and return True on success."""
     logger.info("Processing %s", path.name)
     now = datetime.now(timezone.utc)
     ts = now.isoformat()
@@ -420,10 +422,13 @@ def process_file(path: Path) -> None:
     if dest.exists():
         dest = dest.with_name(f"{dest.stem}-{safe_ts}{dest.suffix}")
 
-    if _is_image(path):
-        caption = _generate_caption(path)
-        meta = _extract_exif(path)
-        mem_obj = {
+    try:
+        if _is_image(path):
+            caption = _generate_caption(path)
+            if not caption:
+                raise RuntimeError("caption failed")
+            meta = _extract_exif(path)
+            mem_obj = {
             "@context": "https://www.w3.org/ns/activitystreams",
             "type": "Image",
             "name": path.name,
@@ -433,12 +438,14 @@ def process_file(path: Path) -> None:
             "timestamp": ts,
             "source": str(dest.relative_to(PERSONA_DIR)),
         }
-    elif _is_audio(path):
-        transcript = _transcribe_audio(path)
-        summary = _generate_summary(transcript)
-        sentiment = _analyze_sentiment(transcript)
-        meta = _extract_audio_metadata(path)
-        mem_obj = {
+        elif _is_audio(path):
+            transcript = _transcribe_audio(path)
+            if not transcript:
+                raise RuntimeError("transcription failed")
+            summary = _generate_summary(transcript)
+            sentiment = _analyze_sentiment(transcript)
+            meta = _extract_audio_metadata(path)
+            mem_obj = {
             "@context": "https://www.w3.org/ns/activitystreams",
             "type": "Audio",
             "name": path.name,
@@ -450,19 +457,21 @@ def process_file(path: Path) -> None:
             "timestamp": ts,
             "source": str(dest.relative_to(PERSONA_DIR)),
         }
-    elif _is_video(path):
-        frame_path = _extract_frame(path)
-        caption = _generate_caption(frame_path) if frame_path else ""
-        if frame_path:
-            frame_path.unlink(missing_ok=True)
-        audio_path = _extract_video_audio(path)
-        transcript = _transcribe_audio(audio_path) if audio_path else ""
-        if audio_path:
-            audio_path.unlink(missing_ok=True)
-        summary = _generate_summary(transcript)
-        sentiment = _analyze_sentiment(transcript)
-        meta = _extract_video_metadata(path)
-        mem_obj = {
+        elif _is_video(path):
+            frame_path = _extract_frame(path)
+            caption = _generate_caption(frame_path) if frame_path else ""
+            if frame_path:
+                frame_path.unlink(missing_ok=True)
+            audio_path = _extract_video_audio(path)
+            transcript = _transcribe_audio(audio_path) if audio_path else ""
+            if audio_path:
+                audio_path.unlink(missing_ok=True)
+            if not caption and not transcript:
+                raise RuntimeError("video analysis failed")
+            summary = _generate_summary(transcript)
+            sentiment = _analyze_sentiment(transcript)
+            meta = _extract_video_metadata(path)
+            mem_obj = {
             "@context": "https://www.w3.org/ns/activitystreams",
             "type": "Video",
             "name": path.name,
@@ -475,9 +484,9 @@ def process_file(path: Path) -> None:
             "timestamp": ts,
             "source": str(dest.relative_to(PERSONA_DIR)),
         }
-    else:
-        content = preprocess_text(path)
-        mem_obj = {
+        else:
+            content = preprocess_text(path)
+            mem_obj = {
             "@context": "https://www.w3.org/ns/activitystreams",
             "type": "Note",
             "name": path.name,
@@ -486,10 +495,19 @@ def process_file(path: Path) -> None:
             "source": str(dest.relative_to(PERSONA_DIR)),
         }
 
-    with open(mem_path, "w", encoding="utf-8") as f:
-        json.dump(mem_obj, f)
-    shutil.move(str(path), str(dest))
-    logger.info("Saved memory %s", mem_path.name)
+        with open(mem_path, "w", encoding="utf-8") as f:
+            json.dump(mem_obj, f)
+        shutil.move(str(path), str(dest))
+        logger.info("Saved memory %s", mem_path.name)
+        return True
+    except Exception as exc:
+        logger.exception("Failed to process %s", path.name)
+        fail = TROUBLE_DIR / path.name
+        if fail.exists():
+            fail = fail.with_name(f"{fail.stem}-{safe_ts}{fail.suffix}")
+        shutil.move(str(path), str(fail))
+        logger.info("Moved %s to %s", path.name, fail)
+        return False
 
 
 def process_pending_files() -> None:

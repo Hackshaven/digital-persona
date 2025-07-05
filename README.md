@@ -91,11 +91,12 @@ The project is designed for interactive local development using either OpenAI or
   - Ensure the `ffmpeg` binary is available on your PATH for video extraction (preinstalled in the devcontainer).
    - After cloning the repo run `git lfs install` so the sample media files are fetched correctly.
    - Image files are detected automatically; EXIF metadata is stored and a short caption is generated so they can be used during interviews.
-  - Audio files are transcribed using Whisper by default. Set `TRANSCRIBE_PROVIDER=openai` to use the OpenAI API instead.
+  - Audio files are transcribed using the OpenAI API by default. Set `TRANSCRIBE_PROVIDER=whisper` to use a local Whisper model instead.
   - Video files are processed by extracting a preview frame and audio track. The frame is captioned and the audio is transcribed, summarized, and tagged with sentiment.
   - Captions, summaries, and sentiment defaults to using Ollama models. Set `CAPTION_PROVIDER=openai` to use OpenAI APIs instead. Use `CAPTION_MODEL` to select the model name.
-   - Sanitize input text to remove injection phrases and convert HTML or JSON to clean plain text before creating ActivityStreams memories.
-   - Non-text inputs are transcribed or captioned by the ingest loop so the interview script can reason over them.
+  - Sanitize input text to remove injection phrases and convert HTML or JSON to clean plain text before creating ActivityStreams memories.
+  - Non-text inputs are transcribed or captioned by the ingest loop so the interview script can reason over them.
+  - Files that fail to process are moved to `PERSONA_DIR/troubleshooting` for manual review.
 6. **API Usage**:
    - The `/pending` and `/start_interview` endpoints operate on files in `PERSONA_DIR/memory` produced by the ingest loop.
    - Each memory is a JSON object with a `content` field used for interview questions.
