@@ -6,7 +6,8 @@
   "forwardPorts": [8000],
   "runArgs": [
     "-p", "8000:8000",
-    "--add-host", "host.docker.internal:host-gateway"
+    "--add-host", "host.docker.internal:host-gateway",
+    "--env-file", ".devcontainer/.env"
   ],
   "portsAttributes": {
     "8000": {"label": "Interview API"}
@@ -24,7 +25,6 @@
       ]
     }
   },
-  "envFile": ".devcontainer/.env",
   "remoteEnv": {
     "OPENAI_API_KEY": "${{ secrets.OPENAI_API_KEY }}",
     "HF_API_KEY": "${{ secrets.HF_API_KEY }}",

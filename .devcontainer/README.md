@@ -34,7 +34,7 @@ Provide the following Codespaces secrets so the interviewer can use language mod
 
 1. Open the repository in GitHub Codespaces.
 2. The container installs `ffmpeg` and the project's Python dependencies (including media extras) automatically using Poetry.
-3. Copy `.devcontainer/.env.example` to `.devcontainer/.env` and fill in any API keys you want to use.
+3. Copy `.devcontainer/.env.example` to `.devcontainer/.env` and fill in any API keys you want to use. The container loads this file automatically when it starts.
 4. Open the command palette (**Run Task → Interview**) or run:
 
    ```bash
