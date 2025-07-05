@@ -20,7 +20,7 @@ See the [mission statement](https://github.com/Hackshaven/digital-persona/wiki/M
 
 ### 📚 Research References
 
-When tackling design or architecture questions, consult the research papers stored in the `docs/` directory for guidance:
+When tackling design or architecture questions, consult the research papers stored in the `docs/` directory for guidance: These files are copied from the repository wiki during container setup and remain untracked. Do not delete them; use them for context.
 - "Representing Personal Data and Personality Traits: Existing JSON/Semantic Standards"
 - "Scientifically Grounded Personality Tests and Their Evolution into Digital Personas"
 - "Personal Digital Clones: Ethical, Legal, and Philosophical Implications"
@@ -39,7 +39,7 @@ Use insights from these documents to inform design decisions.
 | `src/` | Location of source code for commandline tool and web site front end.  Additional code and features should be put in this directory. |
 | `scripts/` | Helper scripts for container development. |
 | `data/` | Sample input data used to test the project JSON output. |
-| `docs/` | Contains research papers providing project background and design requirements. Adjust `.github/workflows/pages.yml` if schema filenames referenced there change. |
+| `docs/` | Contains research papers providing project background and design requirements. The devcontainer copies these files from the repository wiki and leaves them untracked; use them for context and do not delete them. Adjust `.github/workflows/pages.yml` if schema filenames referenced there change. |
 | `tests/` | Pytest tests |
 | `.github/workflows/` | CI checks will automatically validate schemas and example use cases. Ensure new examples conform. |
 
