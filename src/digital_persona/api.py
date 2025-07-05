@@ -166,6 +166,7 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
 
     @app.post("/complete_interview")
     def complete_interview(req: CompleteRequest) -> dict:
+        """Save interview results and archive the memory file."""
         mem_path = MEMORY_DIR / req.file
         if not mem_path.exists():
             raise HTTPException(status_code=404, detail="File not found")
