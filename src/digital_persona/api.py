@@ -156,7 +156,7 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="File not found")
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
+        except json.JSONDecodeError:
             hint = "Invalid memory file; make sure you have run the ingest loop"
             raise HTTPException(status_code=400, detail=hint)
         text = data.get("content")
