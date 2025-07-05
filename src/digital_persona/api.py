@@ -179,7 +179,11 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
             raise HTTPException(status_code=400, detail="Invalid file path")
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(req.profile, f, indent=2)
-        archive = ARCHIVE_DIR / req.file
+        from werkzeug.utils import secure_filename
+        sanitized_file = secure_filename(req.file)
+        archive = (ARCHIVE_DIR / sanitized_file).resolve()
+        if not str(archive).startswith(str(ARCHIVE_DIR)):
+            raise HTTPException(status_code=400, detail="Invalid file path")
         if archive.exists():
             safe_ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
             archive = archive.with_name(f"{archive.stem}-{safe_ts}{archive.suffix}")
