@@ -157,7 +157,8 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
         except Exception:
-            raise HTTPException(status_code=400, detail="Invalid memory file")
+            hint = "Invalid memory file; make sure you have run the ingest loop"
+            raise HTTPException(status_code=400, detail=hint)
         text = data.get("content")
         if not isinstance(text, str):
             raise HTTPException(status_code=400, detail="Memory missing 'content' field")
