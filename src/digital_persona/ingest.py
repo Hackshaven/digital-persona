@@ -253,17 +253,28 @@ def _extract_video_audio(path: Path) -> Path | None:
 
 def _convert_heic_to_jpeg(path: Path) -> Path | None:
     """Convert a HEIC/HEIF image to a temporary JPEG and return its path."""
-    if Image is None:
-        return None
     temp_fd, temp_path = tempfile.mkstemp(suffix=".jpg")
     os.close(temp_fd)
     try:
-        with Image.open(path) as img:
-            img.convert("RGB").save(temp_path, format="JPEG")
-        return Path(temp_path)
+        if Image is not None:
+            try:
+                with Image.open(path) as img:
+                    img.convert("RGB").save(temp_path, format="JPEG")
+                return Path(temp_path)
+            except Exception:
+                pass
+        if shutil.which("ffmpeg"):
+            subprocess.run(
+                ["ffmpeg", "-y", "-i", str(path), temp_path],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return Path(temp_path)
     except Exception:
-        Path(temp_path).unlink(missing_ok=True)
-        return None
+        pass
+    Path(temp_path).unlink(missing_ok=True)
+    return None
 
 
 def _transcribe_audio(path: Path) -> str:
@@ -313,16 +324,14 @@ def _generate_caption(path: Path) -> str:
         try:
             import openai
 
-            if path.suffix.lower() in {".heic", ".heif"} and Image:
-                try:
-                    with Image.open(path) as img:
-                        buf = io.BytesIO()
-                        img.convert("RGB").save(buf, format="JPEG")
-                        img_bytes = buf.getvalue()
-                except Exception:
-                    img_bytes = path.read_bytes()
-            else:
-                img_bytes = path.read_bytes()
+            img_path = path
+            if path.suffix.lower() in {".heic", ".heif"}:
+                conv = _convert_heic_to_jpeg(path)
+                if conv:
+                    img_path = conv
+            img_bytes = img_path.read_bytes()
+            if img_path != path and img_path.exists():
+                img_path.unlink(missing_ok=True)
             b64 = base64.b64encode(img_bytes).decode()
             messages = [
                 {
@@ -347,16 +356,14 @@ def _generate_caption(path: Path) -> str:
         try:
             client = _ollama_client()
 
-            if path.suffix.lower() in {".heic", ".heif"} and Image:
-                try:
-                    with Image.open(path) as img:
-                        buf = io.BytesIO()
-                        img.convert("RGB").save(buf, format="JPEG")
-                        img_bytes = buf.getvalue()
-                except Exception:
-                    img_bytes = path.read_bytes()
-            else:
-                img_bytes = path.read_bytes()
+            img_path = path
+            if path.suffix.lower() in {".heic", ".heif"}:
+                conv = _convert_heic_to_jpeg(path)
+                if conv:
+                    img_path = conv
+            img_bytes = img_path.read_bytes()
+            if img_path != path and img_path.exists():
+                img_path.unlink(missing_ok=True)
             resp = client.generate(model=model, prompt=CAPTION_PROMPT, images=[img_bytes])
             return (resp["response"] if isinstance(resp, dict) else resp.response).strip()
         except Exception:

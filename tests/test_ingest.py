@@ -278,3 +278,40 @@ def test_caption_fallback(monkeypatch, tmp_path):
     img.write_bytes(b"0")
     caption = ingest._generate_caption(img)
     assert caption == "cap"
+
+
+def test_convert_heic_to_jpeg_ffmpeg(monkeypatch, tmp_path):
+    ingest = setup_ingest(monkeypatch, tmp_path)
+    monkeypatch.setattr(ingest, "Image", None)
+    monkeypatch.setattr(ingest.shutil, "which", lambda c: "/usr/bin/ffmpeg")
+
+    def fake_run(cmd, check=True, stdout=None, stderr=None):
+        Path(cmd[-1]).write_bytes(b"jpeg")
+
+    monkeypatch.setattr(ingest.subprocess, "run", fake_run)
+
+    img = tmp_path / "pic.heic"
+    img.write_bytes(b"0")
+    result = ingest._convert_heic_to_jpeg(img)
+    assert result and result.read_bytes() == b"jpeg"
+
+
+def test_generate_caption_openai_heic(monkeypatch, tmp_path):
+    ingest = setup_ingest(monkeypatch, tmp_path)
+    monkeypatch.setenv("CAPTION_PROVIDER", "openai")
+
+    called = {}
+
+    def openai_create(model=None, messages=None):
+        called["sent"] = messages[0]["content"][1]["image_url"]["url"]
+        return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(content="desc"))])
+
+    monkeypatch.setitem(sys.modules, "openai", types.SimpleNamespace(chat=types.SimpleNamespace(completions=types.SimpleNamespace(create=openai_create))))
+    monkeypatch.setattr(ingest, "_convert_heic_to_jpeg", lambda p: tmp_path / "conv.jpg")
+    (tmp_path / "conv.jpg").write_bytes(b"123")
+
+    img = tmp_path / "photo.heic"
+    img.write_bytes(b"0")
+    result = ingest._generate_caption(img)
+    assert result == "desc"
+    assert "data:image/jpeg;base64" in called["sent"]
