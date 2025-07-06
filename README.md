@@ -28,8 +28,6 @@ digital-persona-decrypt decrypted/
 
 This command writes plaintext copies of your profile and memory files under `decrypted/` using `PERSONA_KEY` (or the key saved in `<PERSONA_DIR>/.persona.key`).  Delete the folder when done to keep your data private.
 
----
-
 ### What is a Digital Persona?
 
 A "Digital Persona" is an AI clone that mirrors your thinking style, goals, and values. It differs from generic chatbots by learning from your actual data—emails, notes, journals—to reflect your true voice and behavior. It can:
@@ -85,18 +83,9 @@ The project is designed for interactive local development using either OpenAI or
    - Run a model (e.g., `ollama run llama3`).
    - Set environment variables:
      ```bash
-         export OLLAMA_HOST=http://localhost:11434  # or set OLLAMA_BASE_URL
-           export OLLAMA_MODEL=llama3
-    ```
-
-Environment variables:
-
-- `OPENAI_API_KEY` – API key for OpenAI models when using the `openai` provider.
-- `OPENAI_MODEL` – optional model name (e.g., `gpt-4o`).
-- `OLLAMA_BASE_URL` – base URL of your Ollama server (default `http://localhost:11434`).
-- `OLLAMA_MODEL` – model name served by Ollama (e.g., `llama3`).
-- `PERSONA_DIR` – directory where the API stores encrypted profile and memory files.
-- `PERSONA_KEY` – optional symmetric key for encryption. If unset a key is created in `<PERSONA_DIR>/.persona.key`.
+     export OLLAMA_HOST=http://localhost:11434  # or set OLLAMA_BASE_URL
+     export OLLAMA_MODEL=llama3
+     ```
 
 3. **Run Dev CLI**:
    - Use the CLI directly or within the devcontainer: `digital-persona-interview data/my_notes.txt -p openai` or `-p ollama`
