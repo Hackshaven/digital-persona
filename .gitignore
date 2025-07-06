@@ -80,6 +80,7 @@ htmlcov/
 .env
 .env.*
 !.env.example
+.devcontainer/.env
 
 # -----------------------------------------------------------------------------
 # OS and file system
@@ -98,3 +99,4 @@ $RECYCLE.BIN/
 !LICENSE
 !README.md
 !pyproject.toml
+docs/

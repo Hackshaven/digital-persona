@@ -10,12 +10,14 @@ Welcome to the dev container for the **Digital Persona** project. This environme
 - VS Code extensions for Python, Jupyter, YAML, Markdown, and Docker
 - Libraries for OpenAI, LangChain, HuggingFace, Pandas, and Scikit-learn
 - RDF and JSON-LD utilities for semantic formats used by the schemas
+- Installs `ffmpeg` and the project's optional media dependencies during container setup
+- Want local audio transcription? Install the optional `openai-whisper` package with `pip install -e .[speech]` and set `TRANSCRIBE_PROVIDER=whisper`.
 
 ---
 
 ## Secrets
 
-Provide the following Codespaces secrets so the interviewer can use language models:
+Provide your API keys via Codespaces secrets or by creating `.devcontainer/.env` (copy the example file). Useful variables include:
 
 - `OPENAI_API_KEY` – required for OpenAI integration
 - `HF_API_KEY` – optional, for HuggingFace models
@@ -32,14 +34,15 @@ Provide the following Codespaces secrets so the interviewer can use language mod
 ## Getting Started
 
 1. Open the repository in GitHub Codespaces.
-2. The container builds and runs `poetry install` automatically.
-3. Open the command palette (**Run Task → Interview**) or run:
+2. The container installs `ffmpeg` and all Python dependencies using `poetry install --with dev --extras media` so image and audio processing works out of the box. This includes FastAPI and Werkzeug so the API service starts without import errors.
+3. Copy `.devcontainer/.env.example` to `.devcontainer/.env` and fill in any API keys you want to use. The container loads this file automatically when it starts.
+4. Open the command palette (**Run Task → Interview**) or run:
 
    ```bash
    poetry run digital-persona-interview
    ```
 
-  The devcontainer also starts the FastAPI service automatically on port `8000`. It calls `scripts/start-api.sh` via `postStartCommand`, which runs Uvicorn with `nohup` so the process keeps running after startup. You can stop it with `pkill -f uvicorn` and rerun the same script. If the `OPENAI_API_KEY` secret is missing or still reads `${{ secrets.OPENAI_API_KEY }}` the app switches to an Ollama model instead. The container is configured to reach an Ollama server on your host machine using `http://host.docker.internal:11434`. Visit `http://localhost:8000/docs` to try the API. The Uvicorn output is written to `/tmp/uvicorn.log` inside the container for troubleshooting.
+ The devcontainer also starts the FastAPI service automatically on port `8000`. It calls `scripts/start-services.py` via `poetry run` in the `postStartCommand` using `nohup`, so Uvicorn and the ingest loop run in the background. You can stop the processes with `pkill -f uvicorn` and rerun the same script. If `OPENAI_API_KEY` is not provided, the app falls back to an Ollama model. Captions and summaries also fall back to OpenAI when Ollama returns an error and your key is set. The container is configured to reach an Ollama server on your host machine using `http://host.docker.internal:11434`. Visit `http://localhost:8000/docs` to try the API. Logs are written to `/tmp/uvicorn.log`, `/tmp/ingest.log`, and `/tmp/services.log` for troubleshooting.
 
    If you launch the devcontainer using the command line instead of VS Code or Codespaces, be sure to map the port explicitly with `-p 8000:8000` so the API is reachable from your host machine.
 
