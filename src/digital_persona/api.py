@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import os
+import json
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from importlib import resources
+from werkzeug.utils import secure_filename
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -41,10 +44,12 @@ def _persona_dir() -> Path:
 
 PERSONA_DIR = _persona_dir()
 PROFILE_FILE = PERSONA_DIR / "profile.json"
+# where memory JSON files await the interview step
 MEMORY_DIR = PERSONA_DIR / "memory"
 INPUT_DIR = PERSONA_DIR / "input"
 PROCESSED_DIR = PERSONA_DIR / "processed"
 OUTPUT_DIR = PERSONA_DIR / "output"
+ARCHIVE_DIR = PERSONA_DIR / "archive"
 # web UI resources live in the ``frontend`` package
 FRONTEND_DIR = resources.files("frontend")
 FERNET = get_fernet(PERSONA_DIR)
@@ -54,6 +59,7 @@ MEMORY_DIR.mkdir(exist_ok=True)
 INPUT_DIR.mkdir(exist_ok=True)
 PROCESSED_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
+ARCHIVE_DIR.mkdir(exist_ok=True)
 
 
 class Notes(BaseModel):
@@ -142,30 +148,49 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
 
     @app.get("/pending")
     def pending() -> dict:
-        files = [p.name for p in INPUT_DIR.glob("*") if p.is_file()]
+        """Return a list of memory JSON files awaiting interview."""
+        files = [p.name for p in MEMORY_DIR.glob("*.json") if p.is_file()]
         return {"files": sorted(files)}
 
     @app.get("/start_interview")
     def start_interview(file: str) -> dict:
-        path = INPUT_DIR / file
+        """Load a memory JSON file and return its ``content`` field."""
+        sanitized_file = secure_filename(file)
+        path = (MEMORY_DIR / sanitized_file).resolve()
+        if not str(path).startswith(str(MEMORY_DIR)):
+            raise HTTPException(status_code=400, detail="Invalid file path")
         if not path.exists():
             raise HTTPException(status_code=404, detail="File not found")
-        return {"text": path.read_text(encoding="utf-8")}
+        try:
+            data = load_json_encrypted(path, FERNET)
+        except json.JSONDecodeError:
+            hint = "Invalid memory file; make sure you have run the ingest loop"
+            raise HTTPException(status_code=400, detail=hint)
+        text = data.get("content")
+        if not isinstance(text, str):
+            raise HTTPException(status_code=400, detail="Memory missing 'content' field")
+        return {"text": text}
 
     @app.post("/complete_interview")
     def complete_interview(req: CompleteRequest) -> dict:
-        in_path = INPUT_DIR / req.file
-        if not in_path.exists():
+        """Save interview results and archive the memory file."""
+        sanitized_file = secure_filename(req.file)
+        mem_path = (MEMORY_DIR / sanitized_file).resolve()
+        if not str(mem_path).startswith(str(MEMORY_DIR)):
+            raise HTTPException(status_code=400, detail="Invalid file path")
+        if not mem_path.exists():
             raise HTTPException(status_code=404, detail="File not found")
-        processed_path = PROCESSED_DIR / req.file
-        if processed_path.exists():
-            ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-            processed_path = processed_path.with_stem(
-                f"{processed_path.stem}-{ts}"
-            )
-        out_path = OUTPUT_DIR / (Path(req.file).stem + ".json")
-        in_path.rename(processed_path)
+        out_path = (OUTPUT_DIR / (Path(sanitized_file).stem + ".json")).resolve()
+        if not str(out_path).startswith(str(OUTPUT_DIR)):
+            raise HTTPException(status_code=400, detail="Invalid file path")
         save_json_encrypted(req.profile, out_path, FERNET)
+        archive = (ARCHIVE_DIR / sanitized_file).resolve()
+        if not str(archive).startswith(str(ARCHIVE_DIR)):
+            raise HTTPException(status_code=400, detail="Invalid file path")
+        if archive.exists():
+            safe_ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
+            archive = archive.with_name(f"{archive.stem}-{safe_ts}{archive.suffix}")
+        shutil.move(str(mem_path), str(archive))
         return {"status": "saved"}
 
     @app.get("/", response_class=HTMLResponse)

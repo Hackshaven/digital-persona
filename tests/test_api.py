@@ -98,26 +98,40 @@ def test_memory_file_encrypted(client, api_module):
 
 
 def test_pending_and_complete(client, api_module):
-    input_dir = api_module.INPUT_DIR
-    processed_dir = api_module.PROCESSED_DIR
+    mem_dir = api_module.MEMORY_DIR
     output_dir = api_module.OUTPUT_DIR
-    input_dir.mkdir(exist_ok=True)
-    file = input_dir / "data.txt"
-    file.write_text("info", encoding="utf-8")
+    archive_dir = api_module.ARCHIVE_DIR
+    mem_dir.mkdir(exist_ok=True)
+    file = mem_dir / "data.json"
+    file.write_text(json.dumps({"content": "info"}), encoding="utf-8")
 
     resp = client.get("/pending")
-    assert resp.json()["files"] == ["data.txt"]
+    assert resp.json()["files"] == ["data.json"]
 
-    resp = client.get("/start_interview", params={"file": "data.txt"})
+    resp = client.get("/start_interview", params={"file": "data.json"})
     assert resp.json()["text"] == "info"
 
     profile = {"done": True}
     resp = client.post(
         "/complete_interview",
-        json={"file": "data.txt", "profile": profile},
+        json={"file": "data.json", "profile": profile},
     )
     assert resp.status_code == 200
-    assert (processed_dir / "data.txt").exists()
     assert (output_dir / "data.json").exists()
+    assert not file.exists()
+    archived = [p for p in archive_dir.glob("data*.json")]
+    assert archived
+
+    resp = client.get("/pending")
+    assert resp.json()["files"] == []
+
+
+def test_start_interview_bad_memory_file(client, api_module):
+    path = api_module.MEMORY_DIR / "bad.json"
+    path.write_text("not-json", encoding="utf-8")
+
+    resp = client.get("/start_interview", params={"file": "bad.json"})
+    assert resp.status_code == 400
+    assert "Invalid memory file" in resp.json()["detail"]
 
 

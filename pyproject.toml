@@ -21,6 +21,7 @@ authors = [
     { name = "Eric Hackathorn", email = "erichackathorn@gmail.com" }
 ]
 dependencies = [
+    "werkzeug==3.1.3",
     "langchain",
     "openai",
     "langchain-openai",
@@ -33,16 +34,22 @@ dependencies = [
     "cryptography",
 ]
 
-[project.scripts]
-digital-persona-interview = "digital_persona.interview:_cli"
-
 [project.optional-dependencies]
 dev = [
     "pytest",
 ]
+media = [
+    "pillow",
+    "mutagen",
+]
+speech = [
+    "openai-whisper",
+]
 
 [tool.poetry.scripts]
-test = "pytest"
+digital-persona-interview = "digital_persona.interview:_cli"
+digital-persona-ingest = "digital_persona.ingest:_cli"
+test = "pytest:main"
 
 [project.urls]
 Homepage = "https://github.com/hackshaven/digital-persona"
