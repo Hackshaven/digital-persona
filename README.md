@@ -16,6 +16,18 @@ See the [Mission Statement](https://github.com/Hackshaven/digital-persona/wiki/M
 
 The API stores the personality profile and memory timeline in encrypted JSON files. When `digital_persona.api` starts up it calls `secure_storage.get_fernet()` with `PERSONA_DIR` as the base directory. This loads a key from the `PERSONA_KEY` environment variable if set, otherwise a key is created or reused in `<PERSONA_DIR>/.persona.key`. Reads and writes of the profile, memory entries, and completed output files go through `save_json_encrypted()` and `load_json_encrypted()` so data remains encrypted at rest. Old plain JSON files are still read correctly.
 
+### Retrieving Encrypted Memories
+
+The research notes that structured stores work best as a **canonical source of truth** with a vector index built for fast semantic lookups【F:docs/Memory-Architecture-in-Digital-Clones,-Generative-Agents,-and-Personal-AIs.md.md†L21-L31】.  The API decrypts each memory on demand using the Fernet key and can cache embeddings locally to retrieve relevant entries efficiently.  Both the JSON store and any search index should remain encrypted as advised in the security guidelines【F:docs/Ensuring-Safe,-Ethical,-and-Legal-Implementation-of-the-Digital-Persona-Project.md†L8-L10】.
+
+You can temporarily decrypt a persona for debugging inside the devcontainer:
+
+```bash
+digital-persona-decrypt decrypted/
+```
+
+This command writes plaintext copies of your profile and memory files under `decrypted/` using `PERSONA_KEY` (or the key saved in `<PERSONA_DIR>/.persona.key`).  Delete the folder when done to keep your data private.
+
 ---
 
 ### What is a Digital Persona?
