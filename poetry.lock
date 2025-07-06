@@ -3711,4 +3711,4 @@ speech = ["openai-whisper"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "80daaa44ce926ae6d6c1216fc0a995bd37d3a67ded5b272b6a75b303d5399886"
+content-hash = "de984dd18099cb47bdcb62f4fec92586e49cefbba6667ef9ffd326c5c8e360ff"
