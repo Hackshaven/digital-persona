@@ -4,6 +4,16 @@ from pathlib import Path
 
 from cryptography.fernet import Fernet, InvalidToken
 
+"""Helpers for encrypting persona data on disk.
+
+The API creates a :class:`~cryptography.fernet.Fernet` instance via
+``get_fernet`` and passes it to ``save_json_encrypted`` and
+``load_json_encrypted`` whenever profile or memory files are written or
+read.  A key can be supplied through the ``PERSONA_KEY`` environment
+variable.  If that variable is unset, a new key is generated and stored
+in ``<base_dir>/.persona.key`` so it persists across runs.
+"""
+
 
 def get_fernet(base_dir: Path) -> Fernet:
     """Return a Fernet instance using a key from env or ``base_dir``."""

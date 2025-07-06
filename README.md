@@ -31,6 +31,18 @@ ethical use, user control, and secure handling of personality data.
 - Uvicorn output from the devcontainer is written to `/tmp/uvicorn.log` for debugging
 - `docs/` – Research papers used as additional prompt context (available in the container)
 
+## Secure Local Storage
+
+The API stores the personality profile and memory timeline in encrypted JSON files.
+When `digital_persona.api` starts up it calls `secure_storage.get_fernet()` with
+`PERSONA_DIR` as the base directory. This loads a key from the `PERSONA_KEY`
+environment variable if set, otherwise it creates or reuses a key in
+`<PERSONA_DIR>/.persona.key`. All reads and writes of the profile, memory
+entries, and completed output files go through
+`save_json_encrypted()` and `load_json_encrypted()` so the data remains
+encrypted at rest. If an older plain JSON file is encountered it is still read
+correctly.
+
 ## Example: Interview Script
 
 The script can analyze diary entries, emails, or other free-form text. It then
@@ -166,6 +178,8 @@ Environment variables:
 - `OPENAI_MODEL` – optional model name (e.g., `gpt-4o`).
 - `OLLAMA_BASE_URL` – base URL of your Ollama server (default `http://localhost:11434`).
 - `OLLAMA_MODEL` – model name served by Ollama (e.g., `llama3`).
+- `PERSONA_DIR` – directory where the API stores encrypted profile and memory files.
+- `PERSONA_KEY` – optional symmetric key for encryption. If unset a key is created in `<PERSONA_DIR>/.persona.key`.
 
 In GitHub Codespaces, you can select **Run Task → Interview** to start the
 `digital-persona-interview` CLI. The task prompts for your notes file and
