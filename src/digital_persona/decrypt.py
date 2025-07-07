@@ -38,8 +38,8 @@ def _cli() -> None:
     parser.add_argument(
         "--persona-dir",
         type=Path,
-        default=os.getenv("PERSONA_DIR", Path(__file__).resolve().parents[2] / "persona"),
-        help="Base persona directory (default: env PERSONA_DIR or ./persona)",
+        default=_persona_dir(),
+        help="Base persona directory (default: determined by _persona_dir())",
     )
     args = parser.parse_args()
     decrypt_persona(args.persona_dir, args.out)
