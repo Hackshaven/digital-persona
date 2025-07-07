@@ -81,6 +81,7 @@ htmlcov/
 .env.*
 !.env.example
 .devcontainer/.env
+.persona.key
 
 # -----------------------------------------------------------------------------
 # OS and file system
