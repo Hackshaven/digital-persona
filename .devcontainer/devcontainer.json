@@ -1,6 +1,7 @@
 {
   "name": "digital-persona-dev",
   "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "postCreateCommand": "sudo mkdir -p /var/lib/apt/lists/partial && sudo chmod 755 /var/lib/apt/lists/partial && sudo apt-get update && sudo apt-get install -y ffmpeg && pipx ensurepath && pipx install --force --include-deps poetry && poetry config virtualenvs.in-project true && poetry install --with dev --extras media",
   "postStartCommand": "[ -f .devcontainer/.env ] && export $(grep -v '^#' .devcontainer/.env | xargs); nohup ~/.local/bin/poetry run python scripts/start-services.py >/tmp/services.log 2>&1 &",
   "forwardPorts": [8000],
   "runArgs": [
