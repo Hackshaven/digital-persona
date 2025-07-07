@@ -31,6 +31,7 @@ dependencies = [
     "referencing (>=0.36.2,<0.37.0)",
     "fastapi",
     "uvicorn",
+    "cryptography",
 ]
 
 [project.optional-dependencies]
@@ -48,6 +49,7 @@ speech = [
 [tool.poetry.scripts]
 digital-persona-interview = "digital_persona.interview:_cli"
 digital-persona-ingest = "digital_persona.ingest:_cli"
+digital-persona-decrypt = "digital_persona.decrypt:_cli"
 test = "pytest:main"
 
 [project.urls]

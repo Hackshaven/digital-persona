@@ -81,6 +81,8 @@ htmlcov/
 .env.*
 !.env.example
 .devcontainer/.env
+.persona.key
+
 
 # -----------------------------------------------------------------------------
 # OS and file system
@@ -100,3 +102,5 @@ $RECYCLE.BIN/
 !README.md
 !pyproject.toml
 docs/
+persona/
+

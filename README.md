@@ -69,14 +69,26 @@ The project is designed for interactive local development using either OpenAI or
    - Run a model (e.g., `ollama run llama3`).
    - Set environment variables:
      ```bash
-     export OLLAMA_HOST=http://localhost:11434  # or set OLLAMA_BASE_URL
-     export OLLAMA_MODEL=llama3
-     ```
+         export OLLAMA_HOST=http://localhost:11434  # or set OLLAMA_BASE_URL
+         export OLLAMA_MODEL=llama3
+    ```
 
-3. **Run Dev CLI**:
+Environment variables:
+
+- `OPENAI_API_KEY` – API key for OpenAI models when using the `openai` provider.
+- `OPENAI_MODEL` – optional model name (e.g., `gpt-4o`).
+- `OLLAMA_BASE_URL` – base URL of your Ollama server (default `http://localhost:11434`).
+- `OLLAMA_MODEL` – model name served by Ollama (e.g., `llama3`).
+- `PERSONA_DIR` – directory where the API stores encrypted profile and memory files.
+- `PERSONA_KEY` – optional symmetric key for encryption. If unset a key is created in `<PERSONA_DIR>/.persona.key`.
+
+3. **Install Dependencies**:
+   - Run `poetry install --with dev --extras media` to set up the project locally.
+
+4. **Run Dev CLI**:
    - Use the CLI directly or within the devcontainer: `digital-persona-interview data/my_notes.txt -p openai` or `-p ollama`
    - Add `--dry-run` to simulate answers from the model.
-4. **Devcontainer Notes**:
+5. **Devcontainer Notes**:
   - The container automatically runs `scripts/start-services.py` (via `poetry run` and `nohup`) so the API server and ingest loop keep running in the background.
   - If they fail to start, run `~/.local/bin/poetry run python scripts/start-services.py >/tmp/services.log 2>&1 &`.
   - Logs are written to `/tmp/uvicorn.log`, `/tmp/ingest.log`, and `/tmp/services.log`.
@@ -203,6 +215,24 @@ JSON output:
 }
 ```
 
+## Secure Local Storage
+
+The API stores memories and processed uploads in encrypted JSON files. When `digital_persona.api` starts up it calls `secure_storage.get_fernet()` with `PERSONA_DIR` as the base directory. This loads a key from the `PERSONA_KEY` environment variable if set, otherwise a key is created or reused in `<PERSONA_DIR>/.persona.key`. Reads and writes of memory entries, completed output files, and processed uploads go through `save_json_encrypted()` and related helpers so data remains encrypted at rest. Old plain JSON files are still read correctly.
+
+All files under `PERSONA_DIR/processed`, `PERSONA_DIR/output`, and `PERSONA_DIR/archive` are encrypted with the same Fernet key. Binary images, audio, and video are stored as encrypted bytes while JSON memories use `save_json_encrypted`. The API decrypts memory files on demand so the interview logic can still understand them.
+
+### Retrieving Encrypted Memories
+
+The research notes that structured stores work best as a **canonical source of truth** with a vector index built for fast semantic lookups【F:docs/Memory-Architecture-in-Digital-Clones,-Generative-Agents,-and-Personal-AIs.md†L21-L31】.  The API decrypts each memory on demand using the Fernet key and can cache embeddings locally to retrieve relevant entries efficiently.  Both the JSON store and any search index should remain encrypted as advised in the security guidelines【F:docs/Ensuring-Safe,-Ethical,-and-Legal-Implementation-of-the-Digital-Persona-Project.md†L8-L10】.
+
+You can temporarily decrypt a persona for debugging inside the devcontainer:
+
+```bash
+digital-persona-decrypt decrypted/
+```
+
+This command writes plaintext copies of your processed uploads and archived memories under `decrypted/` using `PERSONA_KEY` (or the key saved in `<PERSONA_DIR>/.persona.key`).  Delete the folder when done to keep your data private.
+
 ---
 
 ### License
@@ -213,4 +243,4 @@ MIT — see the [LICENSE](LICENSE) file for details.
 
 ### Documentation
 
-Explore research and schema docs at [digital-persona GitHub Pages](https://hackshaven.github.io/digital-persona/). Markdown files in `docs/` power the site and help explain schemas, interviews, and integrations.
+Explore research and schema docs at [digital-persona Wiki](https://github.com/Hackshaven/digital-persona/wiki). Markdown files in `docs/` (available inside the container) power the site and help explain schemas, interviews, and integrations.

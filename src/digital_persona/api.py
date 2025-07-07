@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import os
+import json
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,6 +17,11 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .interview import PersonalityInterviewer
+from .secure_storage import (
+    get_fernet,
+    save_json_encrypted,
+    load_json_encrypted,
+)
 
 
 def _valid_openai_key() -> bool:
@@ -38,7 +43,7 @@ def _persona_dir() -> Path:
 
 
 PERSONA_DIR = _persona_dir()
-PROFILE_FILE = PERSONA_DIR / "profile.json"
+
 # where memory JSON files await the interview step
 MEMORY_DIR = PERSONA_DIR / "memory"
 INPUT_DIR = PERSONA_DIR / "input"
@@ -47,6 +52,7 @@ OUTPUT_DIR = PERSONA_DIR / "output"
 ARCHIVE_DIR = PERSONA_DIR / "archive"
 # web UI resources live in the ``frontend`` package
 FRONTEND_DIR = resources.files("frontend")
+FERNET = get_fernet(PERSONA_DIR)
 
 PERSONA_DIR.mkdir(exist_ok=True)
 MEMORY_DIR.mkdir(exist_ok=True)
@@ -107,31 +113,21 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     def profile_from_answers(payload: QAPayload) -> dict:
         qa_pairs = [f"Q: {item.question}\nA: {item.answer}" for item in payload.qa]
         profile = interviewer.profile_from_answers(payload.notes, qa_pairs)
-        PROFILE_FILE.write_text(json.dumps(profile, indent=2), encoding="utf-8")
         return profile
-
-    @app.get("/profile/current")
-    def profile_current() -> dict:
-        if not PROFILE_FILE.exists():
-            raise HTTPException(status_code=404, detail="No profile saved")
-        with open(PROFILE_FILE, encoding="utf-8") as f:
-            return json.load(f)
 
     @app.post("/memory/save")
     def memory_save(item: MemoryItem) -> dict:
         ts = item.timestamp or datetime.now(timezone.utc).isoformat()
         safe_ts = ts.replace(":", "-")
         path = MEMORY_DIR / f"{safe_ts}.json"
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump({"text": item.text, "timestamp": ts}, f)
+        save_json_encrypted({"text": item.text, "timestamp": ts}, path, FERNET)
         return {"status": "saved", "timestamp": ts}
 
     @app.get("/memory/timeline")
     def memory_timeline() -> List[dict]:
         memories = []
         for p in sorted(MEMORY_DIR.glob("*.json")):
-            with open(p, encoding="utf-8") as f:
-                memories.append(json.load(f))
+            memories.append(load_json_encrypted(p, FERNET))
         memories.sort(key=lambda m: m.get("timestamp", ""))
         return memories
 
@@ -159,7 +155,7 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
         if not path.exists():
             raise HTTPException(status_code=404, detail="File not found")
         try:
-            data = json.loads(path.read_text(encoding="utf-8"))
+            data = load_json_encrypted(path, FERNET)
         except json.JSONDecodeError:
             hint = "Invalid memory file; make sure you have run the ingest loop"
             raise HTTPException(status_code=400, detail=hint)
@@ -180,8 +176,7 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
         out_path = (OUTPUT_DIR / (Path(sanitized_file).stem + ".json")).resolve()
         if not str(out_path).startswith(str(OUTPUT_DIR)):
             raise HTTPException(status_code=400, detail="Invalid file path")
-        with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(req.profile, f, indent=2)
+        save_json_encrypted(req.profile, out_path, FERNET)
         archive = (ARCHIVE_DIR / sanitized_file).resolve()
         if not str(archive).startswith(str(ARCHIVE_DIR)):
             raise HTTPException(status_code=400, detail="Invalid file path")

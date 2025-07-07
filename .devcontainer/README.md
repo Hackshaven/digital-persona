@@ -34,7 +34,7 @@ Provide your API keys via Codespaces secrets or by creating `.devcontainer/.env`
 ## Getting Started
 
 1. Open the repository in GitHub Codespaces.
-2. The container installs `ffmpeg` and all Python dependencies using `poetry install --with dev --extras media` so image and audio processing works out of the box.
+2. The container installs `ffmpeg` and all Python dependencies using `poetry install --with dev --extras media` so image and audio processing works out of the box. This includes FastAPI and Werkzeug so the API service starts without import errors.
 3. Copy `.devcontainer/.env.example` to `.devcontainer/.env` and fill in any API keys you want to use. The container loads this file automatically when it starts.
 4. Open the command palette (**Run Task → Interview**) or run:
 
