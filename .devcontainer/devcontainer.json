@@ -1,12 +1,11 @@
 {
   "name": "digital-persona-dev",
   "image": "mcr.microsoft.com/devcontainers/python:3.12",
-  "postStartCommand": "[ -f .devcontainer/.env ] && export $(grep -v '^#' .devcontainer/.env | xargs) && nohup ~/.local/bin/poetry run python scripts/start-services.py >/tmp/services.log 2>&1 &",
-  "postStartCommand": "nohup ~/.local/bin/poetry run python scripts/start-services.py >/tmp/services.log 2>&1 &",
+  "postStartCommand": "[ -f .devcontainer/.env ] && export $(grep -v '^#' .devcontainer/.env | xargs); nohup ~/.local/bin/poetry run python scripts/start-services.py >/tmp/services.log 2>&1 &",
   "forwardPorts": [8000],
   "runArgs": [
     "-p", "8000:8000",
-    "--add-host", "host.docker.internal:host-gateway",
+    "--add-host", "host.docker.internal:host-gateway"
   ],
   "portsAttributes": {
     "8000": {"label": "Interview API"}
