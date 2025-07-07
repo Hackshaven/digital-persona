@@ -27,6 +27,7 @@ def get_fernet(base_dir: Path) -> Fernet:
         else:
             key = Fernet.generate_key()
             key_path.write_bytes(key)
+            os.chmod(key_path, 0o600)  # Restrict file permissions to owner only
     return Fernet(key)
 
 
