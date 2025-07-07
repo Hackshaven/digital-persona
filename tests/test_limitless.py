@@ -10,7 +10,7 @@ import pytest
 def setup_limitless(monkeypatch, tmp_path: Path):
     monkeypatch.setenv("PERSONA_DIR", str(tmp_path))
     monkeypatch.setenv("LIMITLESS_API_KEY", "test-key")
-    import digital_persona.limitless as limitless
+    import plugins.limitless as limitless
     limitless = importlib.reload(limitless)
     return limitless
 
@@ -41,7 +41,7 @@ def test_requires_api_key(monkeypatch, tmp_path):
     monkeypatch.delenv("LIMITLESS_API_KEY", raising=False)
     with pytest.raises(RuntimeError):
         import importlib as _imp
-        _imp.reload(_imp.import_module("digital_persona.limitless"))
+        _imp.reload(_imp.import_module("plugins.limitless"))
 
 
 def test_default_since_lookback(monkeypatch, tmp_path):

@@ -1,12 +1,11 @@
 import json
 import os
 import logging
-from pathlib import Path
 from datetime import datetime, timedelta
 import time
 import httpx
 
-from .ingest import INPUT_DIR, _persona_dir
+from digital_persona.ingest import INPUT_DIR, _persona_dir
 
 STATE_FILE = _persona_dir() / "limitless_state.json"
 API_URL = os.getenv("LIMITLESS_API_URL", "https://api.limitless.ai/v1")

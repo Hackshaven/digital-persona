@@ -47,7 +47,7 @@ def main() -> None:
         launch([sys.executable, "-m", "digital_persona.ingest"], INGEST_LOG)
 
     if "limitless" in services:
-        launch([sys.executable, "-m", "digital_persona.limitless"], LIMITLESS_LOG)
+        launch([sys.executable, "-m", "plugins.limitless"], LIMITLESS_LOG)
 
 
 if __name__ == "__main__":
