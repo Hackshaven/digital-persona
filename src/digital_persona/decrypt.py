@@ -7,7 +7,6 @@ from .secure_storage import (
     get_fernet,
     load_json_encrypted,
     decrypt_bytes,
-    _persona_dir,  # Import _persona_dir for CLI default
 )
 
 # Define shared constants for subdirectory names
@@ -44,6 +43,13 @@ def _cli() -> None:
     )
     args = parser.parse_args()
     decrypt_persona(args.persona_dir, args.out)
+
+
+def _persona_dir() -> Path:
+    base = os.getenv("PERSONA_DIR")
+    if base:
+        return Path(base)
+    return Path(__file__).resolve().parents[2] / "persona"
 
 
 if __name__ == "__main__":
