@@ -52,7 +52,6 @@ OUTPUT_DIR = PERSONA_DIR / "output"
 ARCHIVE_DIR = PERSONA_DIR / "archive"
 # web UI resources live in the ``frontend`` package
 FRONTEND_DIR = resources.files("frontend")
-FERNET = get_fernet(PERSONA_DIR)
 
 PERSONA_DIR.mkdir(exist_ok=True)
 MEMORY_DIR.mkdir(exist_ok=True)
@@ -60,6 +59,8 @@ INPUT_DIR.mkdir(exist_ok=True)
 PROCESSED_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 ARCHIVE_DIR.mkdir(exist_ok=True)
+
+FERNET = get_fernet(PERSONA_DIR)
 
 
 class Notes(BaseModel):

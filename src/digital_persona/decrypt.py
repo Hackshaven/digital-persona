@@ -7,6 +7,7 @@ from .secure_storage import (
     get_fernet,
     load_json_encrypted,
     decrypt_bytes,
+    _persona_dir,  # Import _persona_dir for CLI default
 )
 
 # Define shared constants for subdirectory names

@@ -57,11 +57,12 @@ INPUT_DIR = PERSONA_DIR / "input"
 PROCESSED_DIR = PERSONA_DIR / "processed"
 MEMORY_DIR = PERSONA_DIR / "memory"
 TROUBLE_DIR = PERSONA_DIR / "troubleshooting"
-FERNET = get_fernet(PERSONA_DIR)
-
 
 for d in (PERSONA_DIR, INPUT_DIR, PROCESSED_DIR, MEMORY_DIR, TROUBLE_DIR):
     d.mkdir(exist_ok=True)
+
+FERNET = get_fernet(PERSONA_DIR)
+
 
 logger = logging.getLogger(__name__)
 if not logger.handlers:
