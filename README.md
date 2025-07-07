@@ -71,7 +71,6 @@ The project is designed for interactive local development using either OpenAI or
      ```bash
          export OLLAMA_HOST=http://localhost:11434  # or set OLLAMA_BASE_URL
          export OLLAMA_MODEL=llama3
-    ```
 
 Environment variables:
 
@@ -96,7 +95,7 @@ Environment variables:
     watch that log to confirm activity.
   - Copy `.devcontainer/.env.example` to `.devcontainer/.env` to provide your API keys and other settings. The container loads this file automatically via a Docker `--env-file` argument.
   - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
-5. **Run the Ingest Loop**:
+6. **Run the Ingest Loop**:
    - Execute `digital-persona-ingest` to poll the `input` folder and convert new files into JSON memories.
    - Place any text, image, audio, or video files you want processed into `PERSONA_DIR/input` (defaults to `./persona/input`).
   - Install optional media dependencies with `pip install -e .[media]` to enable image, audio, and video processing (the devcontainer installs them automatically).
@@ -114,7 +113,7 @@ Environment variables:
   - Sanitize input text to remove injection phrases and convert HTML or JSON to clean plain text before creating ActivityStreams memories.
   - Non-text inputs are transcribed or captioned by the ingest loop so the interview script can reason over them.
   - Files that fail to process are moved to `PERSONA_DIR/troubleshooting` for manual review.
-6. **API Usage**:
+7. **API Usage**:
    - The `/pending` and `/start_interview` endpoints operate on files in `PERSONA_DIR/memory` produced by the ingest loop.
    - Each memory is a JSON object with a `content` field used for interview questions.
    - The object also stores a relative `source` path to the processed original file so you can reference images or audio later.
