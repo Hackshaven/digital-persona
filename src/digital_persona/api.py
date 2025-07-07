@@ -43,6 +43,7 @@ def _persona_dir() -> Path:
 
 
 PERSONA_DIR = _persona_dir()
+
 # where memory JSON files await the interview step
 MEMORY_DIR = PERSONA_DIR / "memory"
 INPUT_DIR = PERSONA_DIR / "input"

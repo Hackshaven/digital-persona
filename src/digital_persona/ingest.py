@@ -19,7 +19,6 @@ from .secure_storage import (
     encrypt_bytes,
 )
 
-
 def _ollama_client():
     """Return an Ollama client respecting OLLAMA_BASE_URL/OLLAMA_HOST."""
     host = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_HOST")
@@ -59,6 +58,7 @@ PROCESSED_DIR = PERSONA_DIR / "processed"
 MEMORY_DIR = PERSONA_DIR / "memory"
 TROUBLE_DIR = PERSONA_DIR / "troubleshooting"
 FERNET = get_fernet(PERSONA_DIR)
+
 
 for d in (PERSONA_DIR, INPUT_DIR, PROCESSED_DIR, MEMORY_DIR, TROUBLE_DIR):
     d.mkdir(exist_ok=True)
@@ -593,12 +593,14 @@ def process_file(path: Path) -> bool:
         data_bytes = path.read_bytes()
         dest.write_bytes(encrypt_bytes(data_bytes, FERNET))
         path.unlink()
+
         if _is_image(path) and path.suffix.lower() in {".heic", ".heif"} and temp_jpg:
             dest_jpg = dest.with_suffix(".jpg")
             if dest_jpg.exists():
                 dest_jpg = dest_jpg.with_name(f"{dest_jpg.stem}-{safe_ts}{dest_jpg.suffix}")
             dest_jpg.write_bytes(encrypt_bytes(temp_jpg.read_bytes(), FERNET))
             temp_jpg.unlink(missing_ok=True)
+
         logger.info("Saved memory %s", mem_path.name)
         return True
     except Exception as exc:
@@ -606,8 +608,10 @@ def process_file(path: Path) -> bool:
         fail = TROUBLE_DIR / path.name
         if fail.exists():
             fail = fail.with_name(f"{fail.stem}-{safe_ts}{fail.suffix}")
+
         fail.write_bytes(encrypt_bytes(path.read_bytes(), FERNET))
         path.unlink(missing_ok=True)
+
         if _is_image(path) and path.suffix.lower() in {".heic", ".heif"} and temp_jpg and temp_jpg.exists():
             temp_jpg.unlink(missing_ok=True)
         logger.info("Moved %s to %s", path.name, fail)

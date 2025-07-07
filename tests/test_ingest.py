@@ -34,6 +34,7 @@ def test_process_pending_creates_memory(monkeypatch, tmp_path):
     assert b"Hello" not in enc_bytes
 
 
+
 def test_html_stripped(monkeypatch, tmp_path):
     ingest = setup_ingest(monkeypatch, tmp_path)
     page = ingest.INPUT_DIR / "page.html"
@@ -63,6 +64,7 @@ def test_image_ingestion(monkeypatch, tmp_path):
     mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
     assert mem_files
     data = load_json_encrypted(mem_files[0], ingest.FERNET)
+
     assert data["type"] == "Image"
     assert data["caption"] == "a red square"
     assert data["source"].endswith("processed/img.jpg")
@@ -85,6 +87,7 @@ def test_heic_ingestion(monkeypatch, tmp_path):
     mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
     assert mem_files
     data = load_json_encrypted(mem_files[0], ingest.FERNET)
+
     assert data["type"] == "Image"
     assert data["caption"] == "a blue square"
     assert data["source"].endswith("processed/photo.heic")
@@ -163,6 +166,7 @@ def test_audio_ingestion(monkeypatch, tmp_path):
 
     mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
     assert mem_files
+
     data = load_json_encrypted(mem_files[0], ingest.FERNET)
     assert data["type"] == "Audio"
     assert data["transcript"] == "hello world"

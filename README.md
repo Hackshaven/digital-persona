@@ -12,24 +12,6 @@ For more detailed architecture, schema examples, ethical principles, and tutoria
 
 See the [Mission Statement](https://github.com/Hackshaven/digital-persona/wiki/Mission) for the project’s guiding principles. New features and pull requests should be checked against this statement to ensure ethical use, user control, and safe handling of personality data.
 
-## Secure Local Storage
-
-The API stores memories and processed uploads in encrypted JSON files. When `digital_persona.api` starts up it calls `secure_storage.get_fernet()` with `PERSONA_DIR` as the base directory. This loads a key from the `PERSONA_KEY` environment variable if set, otherwise a key is created or reused in `<PERSONA_DIR>/.persona.key`. Reads and writes of memory entries, completed output files, and processed uploads go through `save_json_encrypted()` and related helpers so data remains encrypted at rest. Old plain JSON files are still read correctly.
-
-All files under `PERSONA_DIR/processed`, `PERSONA_DIR/output`, and `PERSONA_DIR/archive` are encrypted with the same Fernet key. Binary images, audio, and video are stored as encrypted bytes while JSON memories use `save_json_encrypted`. The API decrypts memory files on demand so the interview logic can still understand them.
-
-### Retrieving Encrypted Memories
-
-The research notes that structured stores work best as a **canonical source of truth** with a vector index built for fast semantic lookups【F:docs/Memory-Architecture-in-Digital-Clones,-Generative-Agents,-and-Personal-AIs.md.md†L21-L31】.  The API decrypts each memory on demand using the Fernet key and can cache embeddings locally to retrieve relevant entries efficiently.  Both the JSON store and any search index should remain encrypted as advised in the security guidelines【F:docs/Ensuring-Safe,-Ethical,-and-Legal-Implementation-of-the-Digital-Persona-Project.md†L8-L10】.
-
-You can temporarily decrypt a persona for debugging inside the devcontainer:
-
-```bash
-digital-persona-decrypt decrypted/
-```
-
-This command writes plaintext copies of your processed uploads and archived memories under `decrypted/` using `PERSONA_KEY` (or the key saved in `<PERSONA_DIR>/.persona.key`).  Delete the folder when done to keep your data private.
-
 ---
 
 ### What is a Digital Persona?
@@ -88,7 +70,7 @@ The project is designed for interactive local development using either OpenAI or
    - Set environment variables:
      ```bash
          export OLLAMA_HOST=http://localhost:11434  # or set OLLAMA_BASE_URL
-           export OLLAMA_MODEL=llama3
+         export OLLAMA_MODEL=llama3
     ```
 
 Environment variables:
@@ -114,7 +96,7 @@ Environment variables:
     watch that log to confirm activity.
   - Copy `.devcontainer/.env.example` to `.devcontainer/.env` to provide your API keys and other settings. The container loads this file automatically via a Docker `--env-file` argument.
   - Add your markdown files to `docs/` for inclusion in the runtime prompt context.
-6. **Run the Ingest Loop**:
+5. **Run the Ingest Loop**:
    - Execute `digital-persona-ingest` to poll the `input` folder and convert new files into JSON memories.
    - Place any text, image, audio, or video files you want processed into `PERSONA_DIR/input` (defaults to `./persona/input`).
   - Install optional media dependencies with `pip install -e .[media]` to enable image, audio, and video processing (the devcontainer installs them automatically).
@@ -233,6 +215,24 @@ JSON output:
 }
 ```
 
+## Secure Local Storage
+
+The API stores memories and processed uploads in encrypted JSON files. When `digital_persona.api` starts up it calls `secure_storage.get_fernet()` with `PERSONA_DIR` as the base directory. This loads a key from the `PERSONA_KEY` environment variable if set, otherwise a key is created or reused in `<PERSONA_DIR>/.persona.key`. Reads and writes of memory entries, completed output files, and processed uploads go through `save_json_encrypted()` and related helpers so data remains encrypted at rest. Old plain JSON files are still read correctly.
+
+All files under `PERSONA_DIR/processed`, `PERSONA_DIR/output`, and `PERSONA_DIR/archive` are encrypted with the same Fernet key. Binary images, audio, and video are stored as encrypted bytes while JSON memories use `save_json_encrypted`. The API decrypts memory files on demand so the interview logic can still understand them.
+
+### Retrieving Encrypted Memories
+
+The research notes that structured stores work best as a **canonical source of truth** with a vector index built for fast semantic lookups【F:docs/Memory-Architecture-in-Digital-Clones,-Generative-Agents,-and-Personal-AIs.md.md†L21-L31】.  The API decrypts each memory on demand using the Fernet key and can cache embeddings locally to retrieve relevant entries efficiently.  Both the JSON store and any search index should remain encrypted as advised in the security guidelines【F:docs/Ensuring-Safe,-Ethical,-and-Legal-Implementation-of-the-Digital-Persona-Project.md†L8-L10】.
+
+You can temporarily decrypt a persona for debugging inside the devcontainer:
+
+```bash
+digital-persona-decrypt decrypted/
+```
+
+This command writes plaintext copies of your processed uploads and archived memories under `decrypted/` using `PERSONA_KEY` (or the key saved in `<PERSONA_DIR>/.persona.key`).  Delete the folder when done to keep your data private.
+
 ---
 
 ### License
@@ -243,4 +243,4 @@ MIT — see the [LICENSE](LICENSE) file for details.
 
 ### Documentation
 
-Explore research and schema docs at [digital-persona GitHub Pages](https://hackshaven.github.io/digital-persona/). Markdown files in `docs/` power the site and help explain schemas, interviews, and integrations.
+Explore research and schema docs at [digital-persona Wiki](https://github.com/Hackshaven/digital-persona/wiki). Markdown files in `docs/` (available inside the container) power the site and help explain schemas, interviews, and integrations.
