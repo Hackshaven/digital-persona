@@ -119,7 +119,9 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     def memory_save(item: MemoryItem) -> dict:
         ts = item.timestamp or datetime.now(timezone.utc).isoformat()
         safe_ts = ts.replace(":", "-")
-        path = MEMORY_DIR / f"{safe_ts}.json"
+        path = (MEMORY_DIR / f"{safe_ts}.json").resolve()
+        if not str(path).startswith(str(MEMORY_DIR)):
+            raise HTTPException(status_code=400, detail="Invalid file path")
         save_json_encrypted({"text": item.text, "timestamp": ts}, path, FERNET)
         return {"status": "saved", "timestamp": ts}
 
