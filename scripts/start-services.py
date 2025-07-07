@@ -5,10 +5,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+from digital_persona.config import enabled_services
+
 
 LOG_DIR = Path("/tmp")
 UVICORN_LOG = LOG_DIR / "uvicorn.log"
 INGEST_LOG = LOG_DIR / "ingest.log"
+LIMITLESS_LOG = LOG_DIR / "limitless.log"
 
 
 def launch(cmd: list[str], log_path: Path) -> None:
@@ -38,7 +41,13 @@ def main() -> None:
         UVICORN_LOG,
     )
 
-    launch([sys.executable, "-m", "digital_persona.ingest"], INGEST_LOG)
+    services = set(enabled_services())
+
+    if "ingest" in services:
+        launch([sys.executable, "-m", "digital_persona.ingest"], INGEST_LOG)
+
+    if "limitless" in services:
+        launch([sys.executable, "-m", "digital_persona.limitless"], LIMITLESS_LOG)
 
 
 if __name__ == "__main__":
