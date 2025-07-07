@@ -223,7 +223,7 @@ All files under `PERSONA_DIR/processed`, `PERSONA_DIR/output`, and `PERSONA_DIR/
 
 ### Retrieving Encrypted Memories
 
-The research notes that structured stores work best as a **canonical source of truth** with a vector index built for fast semantic lookups【F:docs/Memory-Architecture-in-Digital-Clones,-Generative-Agents,-and-Personal-AIs.md.md†L21-L31】.  The API decrypts each memory on demand using the Fernet key and can cache embeddings locally to retrieve relevant entries efficiently.  Both the JSON store and any search index should remain encrypted as advised in the security guidelines【F:docs/Ensuring-Safe,-Ethical,-and-Legal-Implementation-of-the-Digital-Persona-Project.md†L8-L10】.
+The research notes that structured stores work best as a **canonical source of truth** with a vector index built for fast semantic lookups【F:docs/Memory-Architecture-in-Digital-Clones,-Generative-Agents,-and-Personal-AIs.md†L21-L31】.  The API decrypts each memory on demand using the Fernet key and can cache embeddings locally to retrieve relevant entries efficiently.  Both the JSON store and any search index should remain encrypted as advised in the security guidelines【F:docs/Ensuring-Safe,-Ethical,-and-Legal-Implementation-of-the-Digital-Persona-Project.md†L8-L10】.
 
 You can temporarily decrypt a persona for debugging inside the devcontainer:
 
