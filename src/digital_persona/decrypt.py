@@ -9,13 +9,15 @@ from .secure_storage import (
     decrypt_bytes,
 )
 
+# Define shared constants for subdirectory names
+SUBDIRECTORIES = ("memory", "output", "archive", "processed")
 
 def decrypt_persona(base_dir: Path, out_dir: Path) -> None:
     """Decrypt all JSON files from *base_dir* into *out_dir*."""
     fernet = get_fernet(base_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    for sub in ("memory", "output", "archive", "processed"):
+    for sub in SUBDIRECTORIES:
         src_dir = base_dir / sub
         dest_dir = out_dir / sub
         if not src_dir.exists():
