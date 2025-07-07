@@ -15,12 +15,6 @@ def decrypt_persona(base_dir: Path, out_dir: Path) -> None:
     fernet = get_fernet(base_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    for name in ("profile.json",):
-        src = base_dir / name
-        if src.exists():
-            data = load_json_encrypted(src, fernet)
-            (out_dir / name).write_text(json.dumps(data, indent=2), encoding="utf-8")
-
     for sub in ("memory", "output", "archive", "processed"):
         src_dir = base_dir / sub
         dest_dir = out_dir / sub

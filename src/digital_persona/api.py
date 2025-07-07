@@ -43,7 +43,6 @@ def _persona_dir() -> Path:
 
 
 PERSONA_DIR = _persona_dir()
-PROFILE_FILE = PERSONA_DIR / "profile.json"
 # where memory JSON files await the interview step
 MEMORY_DIR = PERSONA_DIR / "memory"
 INPUT_DIR = PERSONA_DIR / "input"
@@ -113,14 +112,7 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     def profile_from_answers(payload: QAPayload) -> dict:
         qa_pairs = [f"Q: {item.question}\nA: {item.answer}" for item in payload.qa]
         profile = interviewer.profile_from_answers(payload.notes, qa_pairs)
-        save_json_encrypted(profile, PROFILE_FILE, FERNET)
         return profile
-
-    @app.get("/profile/current")
-    def profile_current() -> dict:
-        if not PROFILE_FILE.exists():
-            raise HTTPException(status_code=404, detail="No profile saved")
-        return load_json_encrypted(PROFILE_FILE, FERNET)
 
     @app.post("/memory/save")
     def memory_save(item: MemoryItem) -> dict:

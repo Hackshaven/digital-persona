@@ -67,16 +67,13 @@ def test_generate_questions_endpoint(client):
     assert resp.json()["questions"] == ["Q1?", "Q2?"]
 
 
-def test_profile_saved_and_loaded(client):
+def test_profile_from_answers_returns_profile_without_saving(client, api_module):
     qa = [{"question": "Q1", "answer": "A1"}]
     resp = client.post("/profile_from_answers", json={"notes": "txt", "qa": qa})
     assert resp.status_code == 200
     prof = resp.json()
     assert prof["traits"]["openness"] == 0.5
-
-    resp2 = client.get("/profile/current")
-    assert resp2.status_code == 200
-    assert resp2.json()["traits"]["openness"] == 0.5
+    assert not (api_module.PERSONA_DIR / "profile.json").exists()
 
 
 def test_memory_save_and_timeline(client):
