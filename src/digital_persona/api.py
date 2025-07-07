@@ -118,7 +118,7 @@ def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     @app.post("/memory/save")
     def memory_save(item: MemoryItem) -> dict:
         ts = item.timestamp or datetime.now(timezone.utc).isoformat()
-        safe_ts = ts.replace(":", "-")
+        safe_ts = secure_filename(ts.replace(":", "-"))
         path = (MEMORY_DIR / f"{safe_ts}.json").resolve()
         if not str(path).startswith(str(MEMORY_DIR)):
             raise HTTPException(status_code=400, detail="Invalid file path")
