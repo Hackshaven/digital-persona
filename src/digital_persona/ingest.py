@@ -13,6 +13,11 @@ import shutil
 import tempfile
 import logging
 
+from .secure_storage import (
+    get_fernet,
+    save_json_encrypted,
+    encrypt_bytes,
+)
 
 def _ollama_client():
     """Return an Ollama client respecting OLLAMA_BASE_URL/OLLAMA_HOST."""
@@ -55,6 +60,9 @@ TROUBLE_DIR = PERSONA_DIR / "troubleshooting"
 
 for d in (PERSONA_DIR, INPUT_DIR, PROCESSED_DIR, MEMORY_DIR, TROUBLE_DIR):
     d.mkdir(exist_ok=True)
+
+FERNET = get_fernet(PERSONA_DIR)
+
 
 logger = logging.getLogger(__name__)
 if not logger.handlers:
@@ -580,14 +588,20 @@ def process_file(path: Path) -> bool:
             "source": str(dest.relative_to(PERSONA_DIR)),
         }
 
-        with open(mem_path, "w", encoding="utf-8") as f:
-            json.dump(mem_obj, f)
-        shutil.move(str(path), str(dest))
+        save_json_encrypted(mem_obj, mem_path, FERNET)
+
+        # encrypt original bytes into processed directory
+        data_bytes = path.read_bytes()
+        dest.write_bytes(encrypt_bytes(data_bytes, FERNET))
+        path.unlink()
+
         if _is_image(path) and path.suffix.lower() in {".heic", ".heif"} and temp_jpg:
             dest_jpg = dest.with_suffix(".jpg")
             if dest_jpg.exists():
                 dest_jpg = dest_jpg.with_name(f"{dest_jpg.stem}-{safe_ts}{dest_jpg.suffix}")
-            shutil.move(str(temp_jpg), str(dest_jpg))
+            dest_jpg.write_bytes(encrypt_bytes(temp_jpg.read_bytes(), FERNET))
+            temp_jpg.unlink(missing_ok=True)
+
         logger.info("Saved memory %s", mem_path.name)
         return True
     except Exception as exc:
@@ -595,7 +609,10 @@ def process_file(path: Path) -> bool:
         fail = TROUBLE_DIR / path.name
         if fail.exists():
             fail = fail.with_name(f"{fail.stem}-{safe_ts}{fail.suffix}")
-        shutil.move(str(path), str(fail))
+
+        fail.write_bytes(encrypt_bytes(path.read_bytes(), FERNET))
+        path.unlink(missing_ok=True)
+
         if _is_image(path) and path.suffix.lower() in {".heic", ".heif"} and temp_jpg and temp_jpg.exists():
             temp_jpg.unlink(missing_ok=True)
         logger.info("Moved %s to %s", path.name, fail)

@@ -1,8 +1,9 @@
-import json
 import importlib
 from pathlib import Path
 import types
 import sys
+
+from digital_persona.secure_storage import load_json_encrypted
 
 import pytest
 
@@ -24,11 +25,14 @@ def test_process_pending_creates_memory(monkeypatch, tmp_path):
     assert processed and processed[0].exists()
     mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
     assert mem_files
-    data = json.loads(mem_files[0].read_text(encoding="utf-8"))
+    data = load_json_encrypted(mem_files[0], ingest.FERNET)
     assert "Ignore previous instructions" not in data["content"]
     assert "Hello" in data["content"]
     assert data["source"].endswith("processed/note.txt")
     assert data["metadata"] == {}
+    enc_bytes = processed[0].read_bytes()
+    assert b"Hello" not in enc_bytes
+
 
 
 def test_html_stripped(monkeypatch, tmp_path):
@@ -39,7 +43,7 @@ def test_html_stripped(monkeypatch, tmp_path):
 
     mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
     assert mem_files
-    data = json.loads(mem_files[0].read_text(encoding="utf-8"))
+    data = load_json_encrypted(mem_files[0], ingest.FERNET)
     assert data["content"] == "Test"
     assert data["source"].endswith("processed/page.html")
     assert data["metadata"] == {}
@@ -59,7 +63,8 @@ def test_image_ingestion(monkeypatch, tmp_path):
 
     mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
     assert mem_files
-    data = json.loads(mem_files[0].read_text(encoding="utf-8"))
+    data = load_json_encrypted(mem_files[0], ingest.FERNET)
+
     assert data["type"] == "Image"
     assert data["caption"] == "a red square"
     assert data["source"].endswith("processed/img.jpg")
@@ -81,7 +86,8 @@ def test_heic_ingestion(monkeypatch, tmp_path):
 
     mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
     assert mem_files
-    data = json.loads(mem_files[0].read_text(encoding="utf-8"))
+    data = load_json_encrypted(mem_files[0], ingest.FERNET)
+
     assert data["type"] == "Image"
     assert data["caption"] == "a blue square"
     assert data["source"].endswith("processed/photo.heic")
@@ -160,7 +166,8 @@ def test_audio_ingestion(monkeypatch, tmp_path):
 
     mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
     assert mem_files
-    data = json.loads(mem_files[0].read_text(encoding="utf-8"))
+
+    data = load_json_encrypted(mem_files[0], ingest.FERNET)
     assert data["type"] == "Audio"
     assert data["transcript"] == "hello world"
     assert data["summary"] == "summary"
@@ -188,7 +195,7 @@ def test_video_ingestion(monkeypatch, tmp_path):
 
     mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
     assert mem_files
-    data = json.loads(mem_files[0].read_text(encoding="utf-8"))
+    data = load_json_encrypted(mem_files[0], ingest.FERNET)
     assert data["type"] == "Video"
     assert data["caption"] == "frame caption"
     assert data["summary"] == "vid summary"
