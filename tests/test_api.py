@@ -7,6 +7,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 from fastapi.testclient import TestClient
+from werkzeug.utils import secure_filename
 
 if "langchain" not in sys.modules:
     class FakeMessage:
@@ -88,7 +89,7 @@ def test_memory_save_and_timeline(client):
 def test_memory_file_encrypted(client, api_module):
     resp = client.post("/memory/save", json={"text": "secret"})
     ts = resp.json()["timestamp"]
-    safe_ts = ts.replace(":", "-")
+    safe_ts = secure_filename(ts.replace(":", "-"))
     path = api_module.MEMORY_DIR / f"{safe_ts}.json"
     raw = path.read_bytes()
     assert not raw.lstrip().startswith(b"{")
