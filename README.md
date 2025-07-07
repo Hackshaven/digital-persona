@@ -14,7 +14,9 @@ See the [Mission Statement](https://github.com/Hackshaven/digital-persona/wiki/M
 
 ## Secure Local Storage
 
-The API stores the personality profile and memory timeline in encrypted JSON files. When `digital_persona.api` starts up it calls `secure_storage.get_fernet()` with `PERSONA_DIR` as the base directory. This loads a key from the `PERSONA_KEY` environment variable if set, otherwise a key is created or reused in `<PERSONA_DIR>/.persona.key`. Reads and writes of the profile, memory entries, and completed output files go through `save_json_encrypted()` and `load_json_encrypted()` so data remains encrypted at rest. Old plain JSON files are still read correctly.
+The API stores the personality profile and memory timeline in encrypted JSON files. When `digital_persona.api` starts up it calls `secure_storage.get_fernet()` with `PERSONA_DIR` as the base directory. This loads a key from the `PERSONA_KEY` environment variable if set, otherwise a key is created or reused in `<PERSONA_DIR>/.persona.key`. Reads and writes of the profile, memory entries, completed output files, and processed uploads go through `save_json_encrypted()` and related helpers so data remains encrypted at rest. Old plain JSON files are still read correctly.
+
+All files under `PERSONA_DIR/memory`, `PERSONA_DIR/archive`, and `PERSONA_DIR/processed` are encrypted with the same Fernet key. Binary images, audio, and video are stored as encrypted bytes while JSON memories use `save_json_encrypted`. The API decrypts memory files on demand so the interview logic can still understand them.
 
 ### Retrieving Encrypted Memories
 
@@ -26,7 +28,7 @@ You can temporarily decrypt a persona for debugging inside the devcontainer:
 digital-persona-decrypt decrypted/
 ```
 
-This command writes plaintext copies of your profile and memory files under `decrypted/` using `PERSONA_KEY` (or the key saved in `<PERSONA_DIR>/.persona.key`).  Delete the folder when done to keep your data private.
+This command writes plaintext copies of your profile, processed uploads, and archived memories under `decrypted/` using `PERSONA_KEY` (or the key saved in `<PERSONA_DIR>/.persona.key`).  Delete the folder when done to keep your data private.
 
 ---
 

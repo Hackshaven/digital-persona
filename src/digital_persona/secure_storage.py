@@ -47,3 +47,16 @@ def load_json_encrypted(path: Path, fernet: Fernet) -> dict:
         return json.loads(decrypted.decode("utf-8"))
     except (InvalidToken, ValueError, json.JSONDecodeError):
         return json.loads(raw.decode("utf-8"))
+
+
+def encrypt_bytes(data: bytes, fernet: Fernet) -> bytes:
+    """Return encrypted ``data`` using ``fernet``."""
+    return fernet.encrypt(data)
+
+
+def decrypt_bytes(data: bytes, fernet: Fernet) -> bytes:
+    """Decrypt ``data`` if possible, otherwise return it unchanged."""
+    try:
+        return fernet.decrypt(data)
+    except InvalidToken:
+        return data
