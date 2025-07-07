@@ -2,6 +2,8 @@ import json
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 
 def persona_dir() -> Path:
     base = os.getenv("PERSONA_DIR")
@@ -11,6 +13,19 @@ def persona_dir() -> Path:
 
 
 CONFIG_FILE = persona_dir() / "persona_config.json"
+
+
+def load_env() -> None:
+    """Load environment variables from a .env file if present."""
+    for name in (".env", ".devcontainer/.env"):
+        path = Path(name)
+        if path.exists():
+            load_dotenv(path, override=False)
+            break
+
+
+# Load environment variables on import so other modules see them
+load_env()
 
 
 def load_config() -> dict:

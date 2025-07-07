@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from digital_persona.config import enabled_services
+from digital_persona.config import enabled_services, load_env
 
 
 LOG_DIR = Path("/tmp")
@@ -26,6 +26,7 @@ def launch(cmd: list[str], log_path: Path) -> None:
 
 
 def main() -> None:
+    load_env()
     launch(
         [
             sys.executable,

@@ -5,6 +5,9 @@ from datetime import datetime, timedelta
 import time
 import httpx
 
+from digital_persona import config as dp_config
+
+dp_config.load_env()
 from digital_persona.ingest import INPUT_DIR, _persona_dir
 
 STATE_FILE = _persona_dir() / "limitless_state.json"
