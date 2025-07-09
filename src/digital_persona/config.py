@@ -45,5 +45,5 @@ def enabled_services(default: list[str] | None = None) -> list[str]:
         return [s.strip() for s in env.split(",") if s.strip()]
     cfg = load_config()
     if default is None:
-        default = ["ingest", "limitless"]
+        default = ["ingest", "mcp"]
     return cfg.get("enabled_services", default)

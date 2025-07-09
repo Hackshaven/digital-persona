@@ -11,7 +11,7 @@ from digital_persona.config import enabled_services, load_env
 LOG_DIR = Path("/tmp")
 UVICORN_LOG = LOG_DIR / "uvicorn.log"
 INGEST_LOG = LOG_DIR / "ingest.log"
-LIMITLESS_LOG = LOG_DIR / "limitless.log"
+MCP_LOG = LOG_DIR / "mcp.log"
 
 
 def launch(cmd: list[str], log_path: Path) -> None:
@@ -47,8 +47,8 @@ def main() -> None:
     if "ingest" in services:
         launch([sys.executable, "-m", "digital_persona.ingest"], INGEST_LOG)
 
-    if "limitless" in services:
-        launch([sys.executable, "-m", "plugins.limitless"], LIMITLESS_LOG)
+    if "mcp" in services:
+        launch([sys.executable, "-m", "digital_persona.mcp_server"], MCP_LOG)
 
 
 if __name__ == "__main__":

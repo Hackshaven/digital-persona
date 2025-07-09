@@ -4,6 +4,7 @@ import logging
 from datetime import datetime, timedelta
 import time
 import httpx
+from fastapi import APIRouter
 
 from digital_persona import config as dp_config
 
@@ -23,6 +24,8 @@ LOOKBACK_DAYS = int(os.getenv("LIMITLESS_LOOKBACK_DAYS", "2"))
 logger = logging.getLogger(__name__)
 if not logger.handlers:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+
+router = APIRouter()
 
 
 def _load_state() -> dict:
@@ -80,7 +83,7 @@ def run_once() -> None:
     except Exception:
         logger.exception("Failed to fetch entries")
         return
-    latest_ts = since
+    latest_ts = None
     latest_id = last_id
     for e in entries:
         _save_entry(e)
@@ -92,9 +95,18 @@ def run_once() -> None:
             latest_id = eid
     if latest_ts:
         state["since"] = latest_ts
+    elif since:
+        state["since"] = since
     if latest_id:
         state["last_id"] = latest_id
     _save_state(state)
+
+
+@router.get("/memories")
+async def api_memories(since: str | None = None, since_id: str | None = None) -> dict:
+    """Return Limitless entries via the MCP server."""
+    items = _fetch_entries(since=since, since_id=since_id)
+    return {"items": items}
 
 
 def _cli() -> None:
