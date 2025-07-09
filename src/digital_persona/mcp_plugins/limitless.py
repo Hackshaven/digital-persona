@@ -60,7 +60,7 @@ def _fetch_entries(*, since: str | None = None, since_id: str | None = None) -> 
         params["since"] = since
     if since_id:
         params["sinceId"] = since_id
-    url = f"{API_URL.rstrip('/')}/memories"
+    url = f"{API_URL.rstrip('/')}/lifelogs"
     resp = httpx.get(url, headers=headers, params=params, timeout=30)
     resp.raise_for_status()
     data = resp.json()
@@ -114,8 +114,8 @@ def run_once() -> None:
     _save_state(state)
 
 
-@router.get("/memories")
-async def api_memories(since: str | None = None, since_id: str | None = None) -> dict:
+@router.get("/lifelogs")
+async def api_lifelogs(since: str | None = None, since_id: str | None = None) -> dict:
     """Return Limitless entries via the MCP server."""
     items = _fetch_entries(since=since, since_id=since_id)
     return {"items": items}
