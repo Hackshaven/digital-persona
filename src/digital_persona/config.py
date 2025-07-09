@@ -16,9 +16,19 @@ CONFIG_FILE = persona_dir() / "persona_config.json"
 
 
 def load_env() -> None:
-    """Load environment variables from a .env file if present."""
-    for name in (".env", ".devcontainer/.env"):
-        path = Path(name)
+    """Load environment variables from a .env file if present.
+
+    Searches the current directory and the project root so scripts can be
+    executed from any subdirectory during development.
+    """
+    root = persona_dir().parent
+    candidates = [
+        Path(".env"),
+        Path(".devcontainer/.env"),
+        root / ".env",
+        root / ".devcontainer/.env",
+    ]
+    for path in candidates:
         if path.exists():
             load_dotenv(path, override=False)
             break
