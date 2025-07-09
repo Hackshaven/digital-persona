@@ -2,9 +2,9 @@ import json
 import os
 import logging
 from datetime import datetime, timedelta
-import time
+import asyncio
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, FastAPI
 
 from digital_persona import config as dp_config
 
@@ -26,6 +26,18 @@ if not logger.handlers:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 router = APIRouter()
+
+
+def setup(app: FastAPI) -> None:
+    """Attach background ingest task to *app* startup."""
+
+    async def _loop() -> None:
+        logger.info("Starting Limitless ingest loop (interval=%s)", POLL_INTERVAL)
+        while True:
+            run_once()
+            await asyncio.sleep(POLL_INTERVAL)
+
+    app.add_event_handler("startup", lambda: asyncio.create_task(_loop()))
 
 
 def _load_state() -> dict:
@@ -110,10 +122,15 @@ async def api_memories(since: str | None = None, since_id: str | None = None) ->
 
 
 def _cli() -> None:
-    logger.info("Starting Limitless ingest loop (interval=%s)", POLL_INTERVAL)
-    while True:
-        run_once()
-        time.sleep(POLL_INTERVAL)
+    """Run the ingest loop as a standalone service."""
+
+    async def main() -> None:
+        logger.info("Starting Limitless ingest loop (interval=%s)", POLL_INTERVAL)
+        while True:
+            run_once()
+            await asyncio.sleep(POLL_INTERVAL)
+
+    asyncio.run(main())
 
 
 if __name__ == "__main__":

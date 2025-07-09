@@ -1,5 +1,6 @@
 import os
 import importlib
+import logging
 from fastapi import FastAPI
 
 DEFAULT_PLUGINS = ["digital_persona.mcp_plugins.limitless"]
@@ -13,16 +14,28 @@ def create_app(plugin_names: list[str] | None = None) -> FastAPI:
         else:
             plugin_names = DEFAULT_PLUGINS
 
+    logger = logging.getLogger(__name__)
+    if not logger.handlers:
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+
     app = FastAPI(title="MCP Server")
     for name in plugin_names:
         try:
             mod = importlib.import_module(name)
         except Exception:
+            logger.exception("Failed to import plugin %s", name)
             continue
         router = getattr(mod, "router", None)
         if router is not None:
             prefix = "/" + name.split(".")[-1]
             app.include_router(router, prefix=prefix)
+            logger.info("Loaded plugin %s", name)
+        setup = getattr(mod, "setup", None)
+        if setup is not None:
+            try:
+                setup(app)
+            except Exception:
+                logger.exception("Failed to setup plugin %s", name)
     return app
 
 
