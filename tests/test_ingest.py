@@ -2,6 +2,7 @@ import importlib
 from pathlib import Path
 import types
 import sys
+import json
 
 from digital_persona.secure_storage import load_json_encrypted
 
@@ -47,6 +48,22 @@ def test_html_stripped(monkeypatch, tmp_path):
     assert data["content"] == "Test"
     assert data["source"].endswith("processed/page.html")
     assert data["metadata"] == {}
+
+
+def test_json_with_metadata(monkeypatch, tmp_path):
+    ingest = setup_ingest(monkeypatch, tmp_path)
+    obj = {"content": "From Limitless", "timestamp": "2025-07-07T00:00:00Z", "id": "1", "extra": 5}
+    f = ingest.INPUT_DIR / "item.json"
+    f.write_text(json.dumps(obj), encoding="utf-8")
+    ingest.process_pending_files()
+
+    mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
+    assert mem_files
+    data = load_json_encrypted(mem_files[0], ingest.FERNET)
+    assert data["content"] == "From Limitless"
+    assert data["metadata"]["id"] == "1"
+    assert data["metadata"]["extra"] == 5
+    assert data["timestamp"] == "2025-07-07T00:00:00Z"
 
 
 def test_image_ingestion(monkeypatch, tmp_path):

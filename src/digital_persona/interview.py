@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+import difflib
 import json
 import os
-import difflib
-
-from datetime import datetime, timezone
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, List
 
@@ -66,6 +65,7 @@ class PersonalityInterviewer:
         default_qs = (len(self.trait_names) + 1) // 2
         self.num_questions = num_questions or max(3, default_qs)
         self.MAX_QUESTION_LEN = max_question_len
+        self.MAX_NOTES_CHARS = 8000
 
     def _create_llm(self, provider: str, model: str | None) -> object:
         """Return a language model instance for the chosen provider."""
@@ -98,12 +98,29 @@ class PersonalityInterviewer:
             schema = json.load(f)
         return list(schema["properties"].keys())
 
+    def _chunk_and_summarize(self, text: str, limit: int | None = None) -> str:
+        """Summarize *text* in pieces if it exceeds *limit* characters."""
+        if limit is None:
+            limit = self.MAX_NOTES_CHARS
+        if len(text) <= limit:
+            return text
+        parts = [text[i : i + limit] for i in range(0, len(text), limit)]
+        summaries: list[str] = []
+        for part in parts:
+            prompt = "Briefly summarize the following notes in two sentences:\n" + part
+            msg = [
+                SystemMessage(content="You provide a short friendly summary."),
+                HumanMessage(content=prompt),
+            ]
+            summaries.append(self.llm.invoke(msg).content.strip())
+        return "\n".join(summaries)
+
     def summarize_data(self, unstructured_data: str) -> str:
         """Return a short summary of the user's notes."""
-        prompt = (
-            f"Briefly summarize the following notes in two sentences:\n"
-            f"{unstructured_data}"
-        )
+        data = self._chunk_and_summarize(unstructured_data)
+        if data != unstructured_data:
+            return data
+        prompt = "Briefly summarize the following notes in two sentences:\n" + data
         msg = [
             SystemMessage(content="You provide a short friendly summary."),
             HumanMessage(content=prompt),
@@ -146,8 +163,9 @@ class PersonalityInterviewer:
             "Combine related traits so each question may address more than one trait when possible.\n"
             "Return only the questions, one per line, without numbering or explanations."
         )
+        notes = self._chunk_and_summarize(unstructured_data)
         filled = prompt.format(
-            data=unstructured_data,
+            data=notes,
             research=self.research_text[:2000],
             n=self.num_questions,
             traits=", ".join(self.trait_names),
@@ -190,12 +208,16 @@ class PersonalityInterviewer:
         msg = [SystemMessage(content="Short answer."), HumanMessage(content=prompt)]
         return self.llm.invoke(msg).content.strip()
 
-    def _prepare_interview(self, unstructured_data: str, interactive: bool) -> List[str]:
+    def _prepare_interview(
+        self, unstructured_data: str, interactive: bool
+    ) -> List[str]:
         """Print the intro summary and question list."""
         summary = self.summarize_data(unstructured_data)
         print("\n📝 Here's a quick summary of what you shared:\n" + summary)
         if interactive:
-            print(f"Type '{END_COMMAND}' on a line by itself at any time to finish early.")
+            print(
+                f"Type '{END_COMMAND}' on a line by itself at any time to finish early."
+            )
 
         questions = self.generate_questions(unstructured_data)
         print(f"\n📋 I'll ask {len(questions)} questions:")
@@ -237,7 +259,9 @@ class PersonalityInterviewer:
             while follow and follow_ups < MAX_FOLLOWUPS:
                 try:
                     if prev_follow:
-                        similarity = difflib.SequenceMatcher(None, follow, prev_follow).ratio()
+                        similarity = difflib.SequenceMatcher(
+                            None, follow, prev_follow
+                        ).ratio()
                         # Avoid asking virtually identical follow-up questions
                         if similarity > 0.9:
                             break
