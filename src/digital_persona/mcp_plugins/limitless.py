@@ -1,7 +1,7 @@
 import json
 import os
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import asyncio
 import httpx
 from fastapi import APIRouter, FastAPI
@@ -79,7 +79,7 @@ def _fetch_entries(*, start: str | None = None, cursor: str | None = None) -> tu
 def _save_entry(entry: dict) -> None:
     entry_id = entry.get("id") or entry.get("uuid") or entry.get("timestamp")
     if not entry_id:
-        entry_id = datetime.utcnow().timestamp()
+        entry_id = datetime.now(UTC).timestamp()
     out = INPUT_DIR / f"limitless-{entry_id}.json"
     obj = {k: v for k, v in entry.items()}
     out.write_text(json.dumps(obj, ensure_ascii=False), encoding="utf-8")
@@ -96,7 +96,7 @@ def run_once() -> None:
         last_id = None
 
     if not cursor and not start:
-        start = (datetime.utcnow() - timedelta(days=LOOKBACK_DAYS)).isoformat() + "Z"
+        start = (datetime.now(UTC) - timedelta(days=LOOKBACK_DAYS)).isoformat().replace("+00:00", "Z")
 
     try:
         entries, next_cursor = _fetch_entries(start=start, cursor=cursor)

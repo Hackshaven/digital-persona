@@ -1,6 +1,6 @@
 import importlib
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, UTC
 
 import json
 
@@ -58,7 +58,7 @@ def test_default_start_lookback(monkeypatch, tmp_path):
     limitless.run_once()
 
     assert captured["start"] is not None
-    delta = datetime.utcnow() - datetime.fromisoformat(captured["start"].replace("Z", ""))
+    delta = datetime.now(UTC) - datetime.fromisoformat(captured["start"].replace("Z", "+00:00"))
     assert 0 <= delta.days <= 2
 
 
