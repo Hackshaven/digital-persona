@@ -10,7 +10,7 @@ def test_limitless_route(monkeypatch, tmp_path: Path):
     monkeypatch.setenv("MCP_PLUGINS", "digital_persona.mcp_plugins.limitless")
 
     import digital_persona.mcp_plugins.limitless as limitless
-    monkeypatch.setattr(limitless, "_fetch_entries", lambda since=None, since_id=None: [{"id": "1", "content": "hi"}])
+    monkeypatch.setattr(limitless, "_fetch_entries", lambda start=None, cursor=None: ([{"id": "1", "content": "hi"}], None))
 
     from digital_persona import mcp_server
     importlib.reload(mcp_server)

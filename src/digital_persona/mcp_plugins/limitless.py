@@ -53,20 +53,27 @@ def _save_state(state: dict) -> None:
     STATE_FILE.write_text(json.dumps(state))
 
 
-def _fetch_entries(*, since: str | None = None, since_id: str | None = None) -> list[dict]:
+def _fetch_entries(*, start: str | None = None, cursor: str | None = None) -> tuple[list[dict], str | None]:
+    """Return lifelog entries and the next cursor."""
+
     headers = {"X-API-Key": API_KEY}
     params = {}
-    if since:
-        params["since"] = since
-    if since_id:
-        params["sinceId"] = since_id
+    if start:
+        params["start"] = start
+    if cursor:
+        params["cursor"] = cursor
     url = f"{API_URL.rstrip('/')}/lifelogs"
     resp = httpx.get(url, headers=headers, params=params, timeout=30)
     resp.raise_for_status()
     data = resp.json()
+    items: list[dict]
+    next_cursor: str | None = None
     if isinstance(data, dict):
-        data = data.get("items", [])
-    return data
+        items = data.get("data", {}).get("lifelogs") or data.get("items", [])
+        next_cursor = data.get("meta", {}).get("lifelogs", {}).get("nextCursor")
+    else:
+        items = data
+    return items, next_cursor
 
 
 def _save_entry(entry: dict) -> None:
@@ -82,16 +89,17 @@ def _save_entry(entry: dict) -> None:
 def run_once() -> None:
     state = _load_state()
     last_id: str | None = state.get("last_id")
-    since: str | None = state.get("since")
+    cursor: str | None = state.get("cursor")
+    start: str | None = state.get("start")
 
     if last_id and not (INPUT_DIR / f"limitless-{last_id}.json").exists():
         last_id = None
 
-    if not last_id and not since:
-        since = (datetime.utcnow() - timedelta(days=LOOKBACK_DAYS)).isoformat() + "Z"
+    if not cursor and not start:
+        start = (datetime.utcnow() - timedelta(days=LOOKBACK_DAYS)).isoformat() + "Z"
 
     try:
-        entries = _fetch_entries(since=since, since_id=last_id)
+        entries, next_cursor = _fetch_entries(start=start, cursor=cursor)
     except Exception:
         logger.exception("Failed to fetch entries")
         return
@@ -99,26 +107,30 @@ def run_once() -> None:
     latest_id = last_id
     for e in entries:
         _save_entry(e)
-        ts = e.get("timestamp")
+        ts = e.get("updatedAt") or e.get("timestamp") or e.get("endTime")
         if ts and (latest_ts is None or ts > latest_ts):
             latest_ts = ts
         eid = e.get("id") or e.get("uuid") or e.get("timestamp")
         if eid:
             latest_id = eid
     if latest_ts:
-        state["since"] = latest_ts
-    elif since:
-        state["since"] = since
+        state["start"] = latest_ts
+    elif start:
+        state["start"] = start
     if latest_id:
         state["last_id"] = latest_id
+    if next_cursor:
+        state["cursor"] = next_cursor
+    else:
+        state.pop("cursor", None)
     _save_state(state)
 
 
 @router.get("/lifelogs")
-async def api_lifelogs(since: str | None = None, since_id: str | None = None) -> dict:
+async def api_lifelogs(start: str | None = None, cursor: str | None = None) -> dict:
     """Return Limitless entries via the MCP server."""
-    items = _fetch_entries(since=since, since_id=since_id)
-    return {"items": items}
+    items, next_cursor = _fetch_entries(start=start, cursor=cursor)
+    return {"items": items, "next_cursor": next_cursor}
 
 
 def _cli() -> None:
