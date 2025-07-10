@@ -54,7 +54,7 @@ def _save_state(state: dict) -> None:
 
 
 def _fetch_entries(*, since: str | None = None, since_id: str | None = None) -> list[dict]:
-    headers = {"Authorization": f"Bearer {API_KEY}"}
+    headers = {"X-API-Key": API_KEY}
     params = {}
     if since:
         params["since"] = since
