@@ -32,7 +32,7 @@ class PersonalityInterviewer:
         self,
         llm: object | None = None,
         num_questions: int | None = None,
-        provider: str = "openai",
+        provider: str = "ollama",
         model: str | None = None,
         max_question_len: int = 300,
     ) -> None:
@@ -414,7 +414,7 @@ def _cli() -> None:
         "-n", "--questions", type=int, help="Number of questions to ask"
     )
     parser.add_argument(
-        "-p", "--provider", choices=["openai", "ollama"], default="openai"
+        "-p", "--provider", choices=["openai", "ollama"], default="ollama"
     )
     parser.add_argument("-m", "--model", help="Model name for the chosen provider")
     parser.add_argument(

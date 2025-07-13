@@ -94,7 +94,9 @@ class CompleteRequest(BaseModel):
 
 def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
     if interviewer is None:
-        provider = "openai" if _valid_openai_key() else "ollama"
+        provider = os.getenv("LLM_PROVIDER")
+        if not provider:
+            provider = "openai" if _valid_openai_key() else "ollama"
         interviewer = PersonalityInterviewer(provider=provider)
     app = FastAPI()
     # StaticFiles requires an actual filesystem path

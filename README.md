@@ -76,6 +76,7 @@ Environment variables:
 
 - `OPENAI_API_KEY` – API key for OpenAI models when using the `openai` provider.
 - `OPENAI_MODEL` – optional model name (e.g., `gpt-4o`).
+- `LLM_PROVIDER` – set to `ollama` or `openai` to override provider auto-detection.
 - `OLLAMA_BASE_URL` – base URL of your Ollama server (default `http://localhost:11434`).
 - `OLLAMA_MODEL` – model name served by Ollama (e.g., `llama3`).
 - `PERSONA_DIR` – directory where the API stores encrypted profile and memory files.
