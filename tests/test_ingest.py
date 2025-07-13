@@ -341,3 +341,23 @@ def test_generate_caption_openai_heic(monkeypatch, tmp_path):
     result = ingest._generate_caption(img)
     assert result == "desc"
     assert "data:image/jpeg;base64" in called["sent"]
+
+
+def test_plaintext_mode(monkeypatch, tmp_path):
+    monkeypatch.setenv("PLAINTEXT_MEMORIES", "1")
+    import importlib
+    import digital_persona.secure_storage as ss
+    importlib.reload(ss)
+    ingest = setup_ingest(monkeypatch, tmp_path)
+
+    note = ingest.INPUT_DIR / "note.txt"
+    note.write_text("hello", encoding="utf-8")
+    ingest.process_pending_files()
+
+    mem_files = list(ingest.MEMORY_DIR.glob("*.json"))
+    assert mem_files
+    data = json.loads(mem_files[0].read_text())
+    assert data["content"] == "hello"
+
+    processed = list(ingest.PROCESSED_DIR.glob("note*.txt"))[0].read_bytes()
+    assert b"hello" in processed

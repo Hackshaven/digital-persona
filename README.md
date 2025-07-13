@@ -81,6 +81,7 @@ Environment variables:
 - `OLLAMA_MODEL` – model name served by Ollama (e.g., `llama3`).
 - `PERSONA_DIR` – directory where the API stores encrypted profile and memory files.
 - `PERSONA_KEY` – optional symmetric key for encryption. If unset a key is created in `<PERSONA_DIR>/.persona.key`.
+- `PLAINTEXT_MEMORIES` – set to `true` to disable encryption during development.
 
 3. **Install Dependencies**:
    - Run `poetry install --with dev --extras media` to set up the project locally.
