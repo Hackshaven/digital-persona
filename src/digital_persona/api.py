@@ -16,6 +16,10 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from . import config as dp_config
+
+dp_config.load_env()
+
 from .interview import PersonalityInterviewer
 from .secure_storage import (
     get_fernet,
