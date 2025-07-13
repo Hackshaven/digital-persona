@@ -70,7 +70,7 @@ class PersonalityInterviewer:
     def _create_llm(self, provider: str, model: str | None) -> object:
         """Return a language model instance for the chosen provider."""
         if provider.lower() == "ollama":
-            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+            base_url = os.getenv("OLLAMA_HOST", "http://localhost:11434")
             model_name = model or os.getenv("OLLAMA_MODEL", "gemma3:12b")
             return ChatOllama(base_url=base_url, model=model_name)
         else:
