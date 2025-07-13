@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import json
 import shutil
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from importlib import resources
@@ -97,10 +98,12 @@ class CompleteRequest(BaseModel):
 
 
 def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
+    dp_config.load_env()
     if interviewer is None:
-        provider = os.getenv("LLM_PROVIDER")
+        provider = os.getenv("LLM_PROVIDER", "").lower()
         if not provider:
             provider = "openai" if _valid_openai_key() else "ollama"
+        logging.info("Using %s provider for interviews", provider or "auto")
         interviewer = PersonalityInterviewer(provider=provider)
     app = FastAPI()
     # StaticFiles requires an actual filesystem path
