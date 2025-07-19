@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import json
-import os
 import difflib
-
-from datetime import datetime, timezone
+import json
+import logging
+import os
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, List
 
@@ -33,7 +33,7 @@ class PersonalityInterviewer:
         self,
         llm: object | None = None,
         num_questions: int | None = None,
-        provider: str = "openai",
+        provider: str = "ollama",
         model: str | None = None,
         max_question_len: int = 300,
     ) -> None:
@@ -66,11 +66,12 @@ class PersonalityInterviewer:
         default_qs = (len(self.trait_names) + 1) // 2
         self.num_questions = num_questions or max(3, default_qs)
         self.MAX_QUESTION_LEN = max_question_len
+        self.MAX_NOTES_CHARS = 8000
 
     def _create_llm(self, provider: str, model: str | None) -> object:
         """Return a language model instance for the chosen provider."""
         if provider.lower() == "ollama":
-            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+            base_url = os.getenv("OLLAMA_HOST", "http://localhost:11434")
             model_name = model or os.getenv("OLLAMA_MODEL", "gemma3:12b")
             return ChatOllama(base_url=base_url, model=model_name)
         else:
@@ -98,12 +99,29 @@ class PersonalityInterviewer:
             schema = json.load(f)
         return list(schema["properties"].keys())
 
+    def _chunk_and_summarize(self, text: str, limit: int | None = None) -> str:
+        """Summarize *text* in pieces if it exceeds *limit* characters."""
+        if limit is None:
+            limit = self.MAX_NOTES_CHARS
+        if len(text) <= limit:
+            return text
+        parts = [text[i : i + limit] for i in range(0, len(text), limit)]
+        summaries: list[str] = []
+        for part in parts:
+            prompt = "Briefly summarize the following notes in two sentences:\n" + part
+            msg = [
+                SystemMessage(content="You provide a short friendly summary."),
+                HumanMessage(content=prompt),
+            ]
+            summaries.append(self.llm.invoke(msg).content.strip())
+        return "\n".join(summaries)
+
     def summarize_data(self, unstructured_data: str) -> str:
         """Return a short summary of the user's notes."""
-        prompt = (
-            f"Briefly summarize the following notes in two sentences:\n"
-            f"{unstructured_data}"
-        )
+        data = self._chunk_and_summarize(unstructured_data)
+        if data != unstructured_data:
+            return data
+        prompt = "Briefly summarize the following notes in two sentences:\n" + data
         msg = [
             SystemMessage(content="You provide a short friendly summary."),
             HumanMessage(content=prompt),
@@ -146,8 +164,9 @@ class PersonalityInterviewer:
             "Combine related traits so each question may address more than one trait when possible.\n"
             "Return only the questions, one per line, without numbering or explanations."
         )
+        notes = self._chunk_and_summarize(unstructured_data)
         filled = prompt.format(
-            data=unstructured_data,
+            data=notes,
             research=self.research_text[:2000],
             n=self.num_questions,
             traits=", ".join(self.trait_names),
@@ -190,12 +209,16 @@ class PersonalityInterviewer:
         msg = [SystemMessage(content="Short answer."), HumanMessage(content=prompt)]
         return self.llm.invoke(msg).content.strip()
 
-    def _prepare_interview(self, unstructured_data: str, interactive: bool) -> List[str]:
+    def _prepare_interview(
+        self, unstructured_data: str, interactive: bool
+    ) -> List[str]:
         """Print the intro summary and question list."""
         summary = self.summarize_data(unstructured_data)
         print("\n📝 Here's a quick summary of what you shared:\n" + summary)
         if interactive:
-            print(f"Type '{END_COMMAND}' on a line by itself at any time to finish early.")
+            print(
+                f"Type '{END_COMMAND}' on a line by itself at any time to finish early."
+            )
 
         questions = self.generate_questions(unstructured_data)
         print(f"\n📋 I'll ask {len(questions)} questions:")
@@ -237,7 +260,9 @@ class PersonalityInterviewer:
             while follow and follow_ups < MAX_FOLLOWUPS:
                 try:
                     if prev_follow:
-                        similarity = difflib.SequenceMatcher(None, follow, prev_follow).ratio()
+                        similarity = difflib.SequenceMatcher(
+                            None, follow, prev_follow
+                        ).ratio()
                         # Avoid asking virtually identical follow-up questions
                         if similarity > 0.9:
                             break
@@ -302,29 +327,53 @@ class PersonalityInterviewer:
             "with a 'psychologicalSummary' that lists each assigned attribute, its value, "
             "and a short explanation for why it was inferred. Include objects for 'traits', "
             "'darkTriad', 'mbti', 'mmpi', 'goal', 'value', and 'narrative'. Scores should be between 0.0 and 1.0 where applicable. "
-            "Return null for any attribute you cannot infer. Only output valid JSON.\n\n"
-            "Unstructured data:\n{data}\n\nQ&A:\n{qa}"
+            "Return null for any attribute you cannot infer. Only output valid JSON."
+            "\n\n OUTPUT FORMAT: JSON only. No markdown. No prose. No headings. Just the JSON object."
+            "\n\nUnstructured data:\n{data}\n\nQ&A:\n{qa}"
         )
         filled = prompt.format(
             traits=", ".join(self.trait_names),
             data=unstructured_data,
             qa="\n".join(qa_pairs),
         )
-        msg = [SystemMessage(content="Output JSON only."), HumanMessage(content=filled)]
+
+        msg = [
+            SystemMessage(
+                content="You are a JSON-only generator that returns structured personality profiles. "
+                        "You must ONLY output a valid JSON object with no markdown, explanations, or prose. "
+                        "No commentary. No headings. No chatty tone. Just JSON."
+            ),
+            HumanMessage(
+                content=(
+                    filled +
+                    "\n\nSTRICT FORMAT WARNING: Your entire response MUST be a single JSON object. "
+                    "Do not include markdown. Do not wrap it in triple backticks. Do not add explanations or summaries. "
+                    "Just output the JSON directly. Start with { and end with }."
+                )
+            )
+        ]
+
         response = self.llm.invoke(msg).content
+        clean = response.strip()
+
+        # Log the raw LLM response for debugging purposes
+        logging.debug("[DEBUG] Raw LLM response: %s", clean)
+
+        # Strip markdown code blocks
+        for prefix in ["```json", "```"]:
+            if clean.startswith(prefix):
+                clean = clean[len(prefix):].strip()
+        if clean.endswith("```"):
+            clean = clean[:-3].strip()
+
+        # Check for sanity before parsing
+        if not clean.startswith("{") or not clean.endswith("}"):
+            raise ValueError(f"Expected JSON object but got:\n{clean[:300]}...")
+
         try:
-            clean = response.strip()
-            if clean.startswith("```json"):
-                clean = clean.removeprefix("```json").strip()
-            if clean.startswith("```"):
-                clean = clean.removeprefix("```").strip()
-            if clean.endswith("```"):
-                clean = clean.removesuffix("```").strip()
-
             result = json.loads(clean)
-
-        except json.JSONDecodeError:
-            raise ValueError(f"LLM response is not valid JSON: {response!r}")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to parse JSON:\n{clean[:300]}...\nError: {e}")
 
         traits = self._extract_section(result, "traits", self.trait_names)
         dark_triad = self._extract_section(result, "darkTriad", self.dark_triad_fields)
@@ -372,6 +421,7 @@ class PersonalityInterviewer:
             unstructured_data, questions, self._collect_multiline_answer, False
         )
         return self.profile_from_answers(unstructured_data, qa_pairs)
+    
 
 
 __all__ = ["PersonalityInterviewer"]
@@ -390,7 +440,7 @@ def _cli() -> None:
         "-n", "--questions", type=int, help="Number of questions to ask"
     )
     parser.add_argument(
-        "-p", "--provider", choices=["openai", "ollama"], default="openai"
+        "-p", "--provider", choices=["openai", "ollama"], default="ollama"
     )
     parser.add_argument("-m", "--model", help="Model name for the chosen provider")
     parser.add_argument(

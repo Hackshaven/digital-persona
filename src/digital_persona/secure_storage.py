@@ -4,6 +4,9 @@ from pathlib import Path
 
 from cryptography.fernet import Fernet, InvalidToken
 
+# If this environment variable is true, skip all encryption steps
+PLAINTEXT = os.getenv("PLAINTEXT_MEMORIES", "").lower() in {"1", "true", "yes"}
+
 """Helpers for encrypting persona data on disk.
 
 The API creates a :class:`~cryptography.fernet.Fernet` instance via
@@ -32,9 +35,15 @@ def get_fernet(base_dir: Path) -> Fernet:
 
 
 def save_json_encrypted(data: dict, path: Path, fernet: Fernet) -> None:
-    """Encrypt ``data`` as JSON and write to ``path``."""
-    token = fernet.encrypt(json.dumps(data).encode("utf-8"))
-    path.write_bytes(token)
+    """Encrypt ``data`` as JSON and write to ``path``.
+
+    If ``PLAINTEXT_MEMORIES`` is set, write plain JSON instead.
+    """
+    if PLAINTEXT:
+        path.write_text(json.dumps(data), encoding="utf-8")
+    else:
+        token = fernet.encrypt(json.dumps(data).encode("utf-8"))
+        path.write_bytes(token)
 
 
 def load_json_encrypted(path: Path, fernet: Fernet) -> dict:
@@ -43,6 +52,8 @@ def load_json_encrypted(path: Path, fernet: Fernet) -> dict:
     Falls back to plain JSON if decryption fails (for backward compatibility).
     """
     raw = path.read_bytes()
+    if PLAINTEXT:
+        return json.loads(raw.decode("utf-8"))
     try:
         decrypted = fernet.decrypt(raw)
         return json.loads(decrypted.decode("utf-8"))
@@ -51,12 +62,19 @@ def load_json_encrypted(path: Path, fernet: Fernet) -> dict:
 
 
 def encrypt_bytes(data: bytes, fernet: Fernet) -> bytes:
-    """Return encrypted ``data`` using ``fernet``."""
+    """Return encrypted ``data`` using ``fernet``.
+
+    If ``PLAINTEXT_MEMORIES`` is set, return ``data`` unchanged.
+    """
+    if PLAINTEXT:
+        return data
     return fernet.encrypt(data)
 
 
 def decrypt_bytes(data: bytes, fernet: Fernet) -> bytes:
     """Decrypt ``data`` if possible, otherwise return it unchanged."""
+    if PLAINTEXT:
+        return data
     try:
         return fernet.decrypt(data)
     except InvalidToken:

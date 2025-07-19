@@ -39,7 +39,7 @@ if "langchain" not in sys.modules:
 # Project import (source assumed in ../src)
 # -------------------------------------------------------------------------
 sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
-from digital_persona.interview import PersonalityInterviewer, MAX_FOLLOWUPS
+from digital_persona.interview import MAX_FOLLOWUPS, PersonalityInterviewer
 
 
 # -------------------------------------------------------------------------
@@ -55,6 +55,20 @@ class StubLLM:
     invoke = __call__  # Allow .invoke(...) as well
 
 
+class RecordingLLM(StubLLM):
+    def __init__(self, responses):
+        super().__init__(responses)
+        self.call_count = 0
+        self.last = None
+
+    def __call__(self, messages):
+        self.call_count += 1
+        self.last = messages
+        return super().__call__(messages)
+
+    invoke = __call__
+
+
 # -------------------------------------------------------------------------
 # Tests
 # -------------------------------------------------------------------------
@@ -63,6 +77,17 @@ def test_generate_questions_parses_lines():
     interviewer = PersonalityInterviewer(llm=llm, num_questions=3)
     qs = interviewer.generate_questions("notes")
     assert qs == ["Q1?", "Q2?", "Q3?"]
+
+
+def test_generate_questions_chunks_long_notes():
+    tmp = PersonalityInterviewer(llm=StubLLM([]))
+    long_notes = "x" * (tmp.MAX_NOTES_CHARS + 10)
+    responses = ["sum1", "sum2", "Q?"]
+    llm = RecordingLLM(responses)
+    interviewer = PersonalityInterviewer(llm=llm, num_questions=1)
+    qs = interviewer.generate_questions(long_notes)
+    assert qs == ["Q?"]
+    assert llm.call_count > 1
 
 
 def test_default_question_count_half_traits():
@@ -168,7 +193,7 @@ def test_profile_from_answers_invalid_json_error():
     interviewer = PersonalityInterviewer(llm=llm)
     with pytest.raises(ValueError) as exc:
         interviewer.profile_from_answers("ctx", ["Q: ?\nA: ."])
-    assert "not valid JSON" in str(exc.value)
+    assert "Expected JSON object" in str(exc.value)
 
 
 def test_run_allows_early_finish(monkeypatch):
@@ -176,13 +201,20 @@ def test_run_allows_early_finish(monkeypatch):
         "Summary",  # summarize_data
         "Q1?\nQ2?",  # generate_questions
         "Expl",  # explain_question for Q1
-        json.dumps({
-            "traits": {"openness": 0.1, "conscientiousness": 0.2,
-                        "extraversion": 0.3, "agreeableness": 0.4,
-                        "neuroticism": 0.5, "honestyHumility": 0.6},
-            "userID": "anon02",
-            "psychologicalSummary": "Done"
-        })
+        json.dumps(
+            {
+                "traits": {
+                    "openness": 0.1,
+                    "conscientiousness": 0.2,
+                    "extraversion": 0.3,
+                    "agreeableness": 0.4,
+                    "neuroticism": 0.5,
+                    "honestyHumility": 0.6,
+                },
+                "userID": "anon02",
+                "psychologicalSummary": "Done",
+            }
+        ),
     ]
     llm = StubLLM(responses)
     interviewer = PersonalityInterviewer(llm=llm, num_questions=2)
@@ -203,18 +235,20 @@ def test_run_simulated_generates_profile(capsys):
         "Expl",  # explain_question
         "Auto",  # simulate_answer
         "NO FOLLOWUP",  # generate_followup
-        json.dumps({
-            "traits": {
-                "openness": 0.1,
-                "conscientiousness": 0.2,
-                "extraversion": 0.3,
-                "agreeableness": 0.4,
-                "neuroticism": 0.5,
-                "honestyHumility": 0.6,
-            },
-            "userID": "anon03",
-            "psychologicalSummary": "Done",
-        })
+        json.dumps(
+            {
+                "traits": {
+                    "openness": 0.1,
+                    "conscientiousness": 0.2,
+                    "extraversion": 0.3,
+                    "agreeableness": 0.4,
+                    "neuroticism": 0.5,
+                    "honestyHumility": 0.6,
+                },
+                "userID": "anon03",
+                "psychologicalSummary": "Done",
+            }
+        ),
     ]
     llm = StubLLM(responses)
     interviewer = PersonalityInterviewer(llm=llm, num_questions=1)

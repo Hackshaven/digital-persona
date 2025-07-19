@@ -133,3 +133,19 @@ def test_start_interview_bad_memory_file(client, api_module):
     assert "Invalid memory file" in resp.json()["detail"]
 
 
+def test_create_app_respects_env(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "ollama")
+    captured = {}
+
+    class DummyInterviewer:
+        def __init__(self, provider=None, **kwargs):
+            captured["provider"] = provider
+
+    monkeypatch.setattr("digital_persona.interview.PersonalityInterviewer", DummyInterviewer)
+    import importlib
+    import digital_persona.api as api
+    api = importlib.reload(api)
+    api.create_app()
+    assert captured["provider"] == "ollama"
+
+
