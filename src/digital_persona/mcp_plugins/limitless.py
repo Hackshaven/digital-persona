@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, UTC
 import asyncio
 import httpx
 from fastapi import APIRouter, FastAPI
+from digital_persona.utils.filename import sanitize_filename
 
 from digital_persona import config as dp_config
 
@@ -80,7 +81,7 @@ def _save_entry(entry: dict) -> None:
     entry_id = entry.get("id") or entry.get("uuid") or entry.get("timestamp")
     if not entry_id:
         entry_id = datetime.now(UTC).timestamp()
-    entry_id = _sanitize_filename(str(entry_id))  # Sanitize entry_id
+    entry_id = sanitize_filename(str(entry_id))  # Sanitize entry_id
     out = _get_entry_filename(entry_id)
     obj = {k: v for k, v in entry.items()}
     out.write_text(json.dumps(obj, ensure_ascii=False), encoding="utf-8")

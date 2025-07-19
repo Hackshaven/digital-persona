@@ -6,7 +6,6 @@ import difflib
 import json
 import logging
 import os
-import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -423,9 +422,7 @@ class PersonalityInterviewer:
         )
         return self.profile_from_answers(unstructured_data, qa_pairs)
     
-    def _sanitize_filename(name: str) -> str:
-        # Replace any character that is not alphanumeric, dash, underscore, or dot
-        return re.sub(r'[^\w\-.]', '_', name)
+
 
 __all__ = ["PersonalityInterviewer"]
 
