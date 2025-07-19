@@ -81,10 +81,14 @@ def _save_entry(entry: dict) -> None:
     if not entry_id:
         entry_id = datetime.now(UTC).timestamp()
     entry_id = str(entry_id).replace(".", "")  # Remove decimal point if present
-    out = INPUT_DIR / f"limitless-{entry_id}.json"
+    out = _get_entry_filename(entry_id)
     obj = {k: v for k, v in entry.items()}
     out.write_text(json.dumps(obj, ensure_ascii=False), encoding="utf-8")
     logger.info("Saved %s", out.name)
+
+def _get_entry_filename(entry_id) -> os.PathLike:
+    """Construct the file path for a given entry ID."""
+    return INPUT_DIR / f"limitless-{entry_id}.json"
 
 
 def run_once() -> None:
@@ -93,7 +97,7 @@ def run_once() -> None:
     cursor: str | None = state.get("cursor")
     start: str | None = state.get("start")
 
-    if last_id and not (INPUT_DIR / f"limitless-{last_id}.json").exists():
+    if last_id and not _get_entry_filename(last_id).exists():
         last_id = None
 
     if not cursor and not start:
