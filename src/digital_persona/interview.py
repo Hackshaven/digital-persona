@@ -356,8 +356,8 @@ class PersonalityInterviewer:
         clean = response.strip()
 
         # Optional debug log
-        print("[DEBUG] Raw LLM response:")
-        print(clean)
+        # print("[DEBUG] Raw LLM response:")
+        # print(clean)
 
         # Strip markdown code blocks
         for prefix in ["```json", "```"]:
