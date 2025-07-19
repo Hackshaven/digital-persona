@@ -20,8 +20,8 @@ from .secure_storage import (
 )
 
 def _ollama_client():
-    """Return an Ollama client respecting OLLAMA_BASE_URL/OLLAMA_HOST."""
-    host = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_HOST")
+    """Return an Ollama client respecting OLLAMA_HOST."""
+    host = os.getenv("OLLAMA_HOST")
     if host:
         import ollama
         return ollama.Client(host=host)

@@ -69,7 +69,7 @@ The project is designed for interactive local development using either OpenAI or
    - Run a model (e.g., `ollama run llama3`).
    - Set environment variables:
      ```bash
-         export OLLAMA_HOST=http://localhost:11434  # or set OLLAMA_BASE_URL
+         export OLLAMA_HOST=http://localhost:11434
          export OLLAMA_MODEL=llama3
 
 Environment variables:
@@ -77,7 +77,7 @@ Environment variables:
 - `OPENAI_API_KEY` – API key for OpenAI models when using the `openai` provider.
 - `OPENAI_MODEL` – optional model name (e.g., `gpt-4o`).
 - `LLM_PROVIDER` – set to `ollama` or `openai` to override provider auto-detection.
-- `OLLAMA_BASE_URL` – base URL of your Ollama server (default `http://localhost:11434`).
+- `OLLAMA_HOST` – base URL of your Ollama server (default `http://localhost:11434`).
 - `OLLAMA_MODEL` – model name served by Ollama (e.g., `llama3`).
 - `PERSONA_DIR` – directory where the API stores encrypted profile and memory files.
 - `PERSONA_KEY` – optional symmetric key for encryption. If unset a key is created in `<PERSONA_DIR>/.persona.key`.

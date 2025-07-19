@@ -326,29 +326,54 @@ class PersonalityInterviewer:
             "with a 'psychologicalSummary' that lists each assigned attribute, its value, "
             "and a short explanation for why it was inferred. Include objects for 'traits', "
             "'darkTriad', 'mbti', 'mmpi', 'goal', 'value', and 'narrative'. Scores should be between 0.0 and 1.0 where applicable. "
-            "Return null for any attribute you cannot infer. Only output valid JSON.\n\n"
-            "Unstructured data:\n{data}\n\nQ&A:\n{qa}"
+            "Return null for any attribute you cannot infer. Only output valid JSON."
+            "\n\n OUTPUT FORMAT: JSON only. No markdown. No prose. No headings. Just the JSON object."
+            "\n\nUnstructured data:\n{data}\n\nQ&A:\n{qa}"
         )
         filled = prompt.format(
             traits=", ".join(self.trait_names),
             data=unstructured_data,
             qa="\n".join(qa_pairs),
         )
-        msg = [SystemMessage(content="Output JSON only."), HumanMessage(content=filled)]
+
+        msg = [
+            SystemMessage(
+                content="You are a JSON-only generator that returns structured personality profiles. "
+                        "You must ONLY output a valid JSON object with no markdown, explanations, or prose. "
+                        "No commentary. No headings. No chatty tone. Just JSON."
+            ),
+            HumanMessage(
+                content=(
+                    filled +
+                    "\n\nSTRICT FORMAT WARNING: Your entire response MUST be a single JSON object. "
+                    "Do not include markdown. Do not wrap it in triple backticks. Do not add explanations or summaries. "
+                    "Just output the JSON directly. Start with { and end with }."
+                )
+            )
+        ]
+
         response = self.llm.invoke(msg).content
+        clean = response.strip()
+
+        # Optional debug log
+        print("[DEBUG] Raw LLM response:")
+        print(clean)
+
+        # Strip markdown code blocks
+        for prefix in ["```json", "```"]:
+            if clean.startswith(prefix):
+                clean = clean[len(prefix):].strip()
+        if clean.endswith("```"):
+            clean = clean[:-3].strip()
+
+        # Check for sanity before parsing
+        if not clean.startswith("{") or not clean.endswith("}"):
+            raise ValueError(f"Expected JSON object but got:\n{clean[:300]}...")
+
         try:
-            clean = response.strip()
-            if clean.startswith("```json"):
-                clean = clean.removeprefix("```json").strip()
-            if clean.startswith("```"):
-                clean = clean.removeprefix("```").strip()
-            if clean.endswith("```"):
-                clean = clean.removesuffix("```").strip()
-
             result = json.loads(clean)
-
-        except json.JSONDecodeError:
-            raise ValueError(f"LLM response is not valid JSON: {response!r}")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to parse JSON:\n{clean[:300]}...\nError: {e}")
 
         traits = self._extract_section(result, "traits", self.trait_names)
         dark_triad = self._extract_section(result, "darkTriad", self.dark_triad_fields)
