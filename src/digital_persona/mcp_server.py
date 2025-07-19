@@ -19,6 +19,11 @@ def create_app(plugin_names: list[str] | None = None) -> FastAPI:
         logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
     app = FastAPI(title="MCP Server")
+
+    @app.get("/", include_in_schema=False)
+    def root() -> dict:
+        """Basic health check message."""
+        return {"message": "MCP server running", "docs": "/docs"}
     for name in plugin_names:
         try:
             mod = importlib.import_module(name)

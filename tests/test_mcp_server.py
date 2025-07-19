@@ -19,3 +19,17 @@ def test_limitless_route(monkeypatch, tmp_path: Path):
     resp = client.get("/limitless/lifelogs")
     assert resp.status_code == 200
     assert resp.json()["items"][0]["content"] == "hi"
+
+
+def test_root_route(monkeypatch, tmp_path: Path):
+    monkeypatch.setenv("PERSONA_DIR", str(tmp_path))
+    monkeypatch.setenv("MCP_PLUGINS", "")
+
+    from digital_persona import mcp_server
+    importlib.reload(mcp_server)
+    app = mcp_server.create_app([])
+    client = TestClient(app)
+
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert resp.json()["message"].startswith("MCP server")
