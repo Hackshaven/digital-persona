@@ -4,7 +4,8 @@ import logging
 from datetime import datetime, timedelta, UTC
 import asyncio
 import httpx
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Depends, Security
+from fastapi.security import APIKeyQuery
 from digital_persona.utils.filename import sanitize_filename
 
 from digital_persona import config as dp_config
@@ -27,6 +28,13 @@ if not logger.handlers:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 router = APIRouter()
+
+api_key_query = APIKeyQuery(name="api_key", auto_error=False)
+
+
+def get_api_key(api_key: str | None = Security(api_key_query)) -> str:
+    """Return *api_key* or the environment variable value."""
+    return api_key or API_KEY
 
 
 def setup(app: FastAPI) -> None:
@@ -54,10 +62,10 @@ def _save_state(state: dict) -> None:
     STATE_FILE.write_text(json.dumps(state))
 
 
-def _fetch_entries(*, start: str | None = None, cursor: str | None = None) -> tuple[list[dict], str | None]:
+def _fetch_entries(*, start: str | None = None, cursor: str | None = None, api_key: str = API_KEY) -> tuple[list[dict], str | None]:
     """Return lifelog entries and the next cursor."""
 
-    headers = {"X-API-Key": API_KEY}
+    headers = {"X-API-Key": api_key}
     params = {}
     if start:
         params["start"] = start
@@ -132,10 +140,19 @@ def run_once() -> None:
     _save_state(state)
 
 
-@router.get("/lifelogs")
-async def api_lifelogs(start: str | None = None, cursor: str | None = None) -> dict:
+@router.post(
+    "/lifelogs",
+    name="limitless_lifelogs",
+    description="Fetch Limitless lifelog entries",
+    operation_id="limitless_lifelogs",
+)
+async def api_lifelogs(
+    start: str | None = None,
+    cursor: str | None = None,
+    api_key: str = Depends(get_api_key),
+) -> dict:
     """Return Limitless entries via the MCP server."""
-    items, next_cursor = _fetch_entries(start=start, cursor=cursor)
+    items, next_cursor = _fetch_entries(start=start, cursor=cursor, api_key=api_key)
     return {"items": items, "next_cursor": next_cursor}
 
 
