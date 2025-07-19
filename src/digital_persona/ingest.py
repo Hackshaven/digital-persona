@@ -20,8 +20,8 @@ from .secure_storage import (
 )
 
 def _ollama_client():
-    """Return an Ollama client respecting OLLAMA_BASE_URL/OLLAMA_HOST."""
-    host = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_HOST")
+    """Return an Ollama client respecting OLLAMA_HOST."""
+    host = os.getenv("OLLAMA_HOST")
     if host:
         import ollama
         return ollama.Client(host=host)
@@ -483,18 +483,26 @@ def _analyze_sentiment(text: str) -> str:
     return ""
 
 
-def preprocess_text(path: Path) -> str:
+def preprocess_text(path: Path) -> tuple[str, Dict[str, Any], str | None]:
+    """Return sanitized text, parsed metadata, and optional timestamp."""
     text = path.read_text(encoding="utf-8", errors="ignore")
     suffix = path.suffix.lower()
+    meta: Dict[str, Any] = {}
+    ts: str | None = None
     if suffix in {".html", ".htm"}:
         text = _strip_html(text)
     elif suffix == ".json":
         try:
             obj = json.loads(text)
-            text = json.dumps(obj, ensure_ascii=False)
+            if isinstance(obj, dict) and "content" in obj:
+                text = obj.get("content", "")
+                ts = obj.get("timestamp")
+                meta = {k: v for k, v in obj.items() if k not in {"content"}}
+            else:
+                text = json.dumps(obj, ensure_ascii=False)
         except json.JSONDecodeError:
             pass
-    return _sanitize(text).strip()
+    return _sanitize(text).strip(), meta, ts
 
 
 def process_file(path: Path) -> bool:
@@ -577,14 +585,14 @@ def process_file(path: Path) -> bool:
             "source": str(dest.relative_to(PERSONA_DIR)),
         }
         else:
-            content = preprocess_text(path)
+            content, meta_extra, ts_override = preprocess_text(path)
             mem_obj = {
             "@context": "https://www.w3.org/ns/activitystreams",
             "type": "Note",
             "name": path.name,
             "content": content,
-            "metadata": {},
-            "timestamp": ts,
+            "metadata": meta_extra,
+            "timestamp": ts_override or ts,
             "source": str(dest.relative_to(PERSONA_DIR)),
         }
 

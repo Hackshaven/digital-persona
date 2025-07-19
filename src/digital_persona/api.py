@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import json
 import shutil
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from importlib import resources
@@ -15,6 +16,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
+from . import config as dp_config
+
+dp_config.load_env()
 
 from .interview import PersonalityInterviewer
 from .secure_storage import (
@@ -93,8 +98,12 @@ class CompleteRequest(BaseModel):
 
 
 def create_app(interviewer: PersonalityInterviewer | None = None) -> FastAPI:
+    dp_config.load_env()
     if interviewer is None:
-        provider = "openai" if _valid_openai_key() else "ollama"
+        provider = os.getenv("LLM_PROVIDER", "").lower()
+        if not provider:
+            provider = "openai" if _valid_openai_key() else "ollama"
+        logging.info("Using %s provider for interviews", provider or "auto")
         interviewer = PersonalityInterviewer(provider=provider)
     app = FastAPI()
     # StaticFiles requires an actual filesystem path
