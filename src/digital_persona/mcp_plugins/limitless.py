@@ -6,6 +6,7 @@ import asyncio
 import httpx
 from fastapi import APIRouter, FastAPI, Depends, Security
 from fastapi.security import APIKeyQuery
+from pydantic import BaseModel
 from digital_persona.utils.filename import sanitize_filename
 
 from digital_persona import config as dp_config
@@ -30,6 +31,13 @@ if not logger.handlers:
 router = APIRouter()
 
 api_key_query = APIKeyQuery(name="api_key", auto_error=False)
+
+
+class LifelogParams(BaseModel):
+    """Parameters accepted by the lifelogs endpoint."""
+
+    start: str | None = None
+    cursor: str | None = None
 
 
 def get_api_key(api_key: str | None = Security(api_key_query)) -> str:
@@ -147,11 +155,12 @@ def run_once() -> None:
     operation_id="limitless_lifelogs",
 )
 async def api_lifelogs(
-    start: str | None = None,
-    cursor: str | None = None,
+    params: LifelogParams | None = None,
     api_key: str = Depends(get_api_key),
 ) -> dict:
     """Return Limitless entries via the MCP server."""
+    start = params.start if params else None
+    cursor = params.cursor if params else None
     items, next_cursor = _fetch_entries(start=start, cursor=cursor, api_key=api_key)
     return {"items": items, "next_cursor": next_cursor}
 

@@ -16,7 +16,7 @@ def test_limitless_route(monkeypatch, tmp_path: Path):
     importlib.reload(mcp_server)
     app = mcp_server.create_app()
     client = TestClient(app)
-    resp = client.post("/limitless/lifelogs?api_key=x")
+    resp = client.post("/limitless/lifelogs?api_key=x", json={})
     assert resp.status_code == 200
     assert resp.json()["items"][0]["content"] == "hi"
 
