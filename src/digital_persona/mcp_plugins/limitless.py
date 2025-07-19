@@ -86,7 +86,7 @@ def _save_entry(entry: dict) -> None:
     out.write_text(json.dumps(obj, ensure_ascii=False), encoding="utf-8")
     logger.info("Saved %s", out.name)
 
-def _get_entry_filename(entry_id) -> os.PathLike:
+def _get_entry_filename(entry_id: str) -> os.PathLike:
     """Construct the file path for a given entry ID."""
     return INPUT_DIR / f"limitless-{entry_id}.json"
 
