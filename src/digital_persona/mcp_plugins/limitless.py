@@ -144,6 +144,7 @@ def run_once() -> None:
     "/lifelogs",
     name="limitless_lifelogs",
     description="Fetch Limitless lifelog entries",
+    operation_id="limitless_lifelogs",
 )
 async def api_lifelogs(
     start: str | None = None,
