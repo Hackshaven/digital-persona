@@ -4,15 +4,22 @@ import logging
 from datetime import datetime, timedelta, UTC
 import asyncio
 import httpx
-from fastapi import APIRouter, FastAPI, Depends, Security
+from fastapi import APIRouter, FastAPI, Security
 from fastapi.security import APIKeyQuery
 from pydantic import BaseModel, Field
 from digital_persona.utils.filename import sanitize_filename
+from digital_persona.secure_storage import (
+    get_fernet,
+    save_json_encrypted,
+    load_json_encrypted,
+)
 
 from digital_persona import config as dp_config
 
 dp_config.load_env()
 from digital_persona.ingest import INPUT_DIR, _persona_dir
+
+FERNET = get_fernet(_persona_dir())
 
 STATE_FILE = _persona_dir() / "limitless_state.json"
 API_URL = os.getenv("LIMITLESS_API_URL", "https://api.limitless.ai/v1")
@@ -38,20 +45,19 @@ class LifelogParams(BaseModel):
 
     start: str | None = Field(
         default=None,
-        description="ISO 8601 timestamp to fetch entries after",
-        examples=["2025-07-19T22:00:00Z"],
+        description="ISO 8601 start timestamp",
+        examples=["2025-07-19T00:00:00Z"],
     )
-    cursor: str | None = Field(
+    end: str | None = Field(
         default=None,
-        description="Pagination cursor returned from previous call",
-        examples=["eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"],
+        description="ISO 8601 end timestamp",
+        examples=["2025-07-20T00:00:00Z"],
     )
-
-
-def get_api_key(api_key: str | None = Security(api_key_query)) -> str:
-    """Return *api_key* or the environment variable value."""
-    return api_key or API_KEY
-
+    keyword: str | None = Field(
+        default=None,
+        description="Filter entries containing this text",
+        examples=["meeting"],
+    )
 
 def setup(app: FastAPI) -> None:
     """Attach background ingest task to *app* startup."""
@@ -108,7 +114,7 @@ def _save_entry(entry: dict) -> None:
     entry_id = sanitize_filename(str(entry_id))
     out = _get_entry_filename(entry_id)
     obj = {k: v for k, v in entry.items()}
-    out.write_text(json.dumps(obj, ensure_ascii=False), encoding="utf-8")
+    save_json_encrypted(obj, out, FERNET)
     logger.info("Saved %s", out.name)
 
 def _get_entry_filename(entry_id: str) -> os.PathLike:
@@ -116,44 +122,52 @@ def _get_entry_filename(entry_id: str) -> os.PathLike:
     return INPUT_DIR / f"limitless-{entry_id}.json"
 
 
-def _load_local_entries(
-    *, start: str | None = None, cursor: str | None = None, limit: int = 100
-) -> tuple[list[dict], str | None]:
+def _search_local_entries(
+    *, start: str | None = None,
+    end: str | None = None,
+    keyword: str | None = None,
+    limit: int = 100,
+) -> list[dict]:
     """Return stored Limitless entries from ``INPUT_DIR``."""
 
     files = sorted(INPUT_DIR.glob("limitless-*.json"))
     start_dt = None
+    end_dt = None
     if start:
         try:
             start_dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
         except Exception:
             start_dt = None
-    index = 0
-    if cursor:
+    if end:
         try:
-            index = int(cursor)
+            end_dt = datetime.fromisoformat(end.replace("Z", "+00:00"))
         except Exception:
-            index = 0
+            end_dt = None
+
     items: list[dict] = []
-    next_cursor: str | None = None
-    for idx, path in enumerate(files[index:], start=index):
+    for path in files:
         try:
-            obj = json.loads(path.read_text())
+            obj = load_json_encrypted(path, FERNET)
         except Exception:
             continue
         ts = obj.get("updatedAt") or obj.get("timestamp") or obj.get("endTime")
-        if start_dt and ts:
+        if ts:
             try:
                 ts_dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
-                if ts_dt <= start_dt:
+                if start_dt and ts_dt < start_dt:
+                    continue
+                if end_dt and ts_dt > end_dt:
                     continue
             except Exception:
                 pass
+        if keyword:
+            text = json.dumps(obj, ensure_ascii=False).lower()
+            if keyword.lower() not in text:
+                continue
         items.append(obj)
         if len(items) >= limit:
-            next_cursor = str(idx + 1)
             break
-    return items, next_cursor
+    return items
 
 
 def run_once() -> None:
@@ -204,18 +218,21 @@ def run_once() -> None:
 )
 async def api_lifelogs(
     params: LifelogParams | None = None,
-    api_key: str = Depends(get_api_key),
+    api_key: str | None = Security(api_key_query),
 ) -> dict:
     """Return Limitless entries via the MCP server."""
     start = params.start if params else None
-    cursor = params.cursor if params else None
+    end = params.end if params else None
+    keyword = params.keyword if params else None
     # OpenAPI tooling may send literal "string" when no value is provided
     if start == "string":
         start = None
-    if cursor == "string":
-        cursor = None
-    items, next_cursor = _load_local_entries(start=start, cursor=cursor)
-    return {"items": items, "next_cursor": next_cursor}
+    if end == "string":
+        end = None
+    if keyword == "string":
+        keyword = None
+    items = _search_local_entries(start=start, end=end, keyword=keyword)
+    return {"items": items}
 
 
 def _cli() -> None:

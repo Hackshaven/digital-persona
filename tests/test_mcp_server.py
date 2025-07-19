@@ -12,15 +12,15 @@ def test_limitless_route(monkeypatch, tmp_path: Path):
     import digital_persona.mcp_plugins.limitless as limitless
     monkeypatch.setattr(
         limitless,
-        "_load_local_entries",
-        lambda start=None, cursor=None: ([{"id": "1", "content": "hi"}], None),
+        "_search_local_entries",
+        lambda start=None, end=None, keyword=None: [{"id": "1", "content": "hi"}],
     )
 
     from digital_persona import mcp_server
     importlib.reload(mcp_server)
     app = mcp_server.create_app()
     client = TestClient(app)
-    resp = client.post("/limitless/lifelogs?api_key=x", json={})
+    resp = client.post("/limitless/lifelogs", json={})
     assert resp.status_code == 200
     assert resp.json()["items"][0]["content"] == "hi"
 
@@ -32,12 +32,13 @@ def test_limitless_ignores_string_params(monkeypatch, tmp_path: Path):
 
     import digital_persona.mcp_plugins.limitless as limitless
 
-    def fake_load(start=None, cursor=None):
+    def fake_load(start=None, end=None, keyword=None):
         assert start is None
-        assert cursor is None
-        return [{"id": "1"}], None
+        assert end is None
+        assert keyword is None
+        return [{"id": "1"}]
 
-    monkeypatch.setattr(limitless, "_load_local_entries", fake_load)
+    monkeypatch.setattr(limitless, "_search_local_entries", fake_load)
 
     from digital_persona import mcp_server
     importlib.reload(mcp_server)
@@ -45,7 +46,7 @@ def test_limitless_ignores_string_params(monkeypatch, tmp_path: Path):
     client = TestClient(app)
 
     resp = client.post(
-        "/limitless/lifelogs?api_key=x", json={"start": "string", "cursor": "string"}
+        "/limitless/lifelogs", json={"start": "string", "end": "string", "keyword": "string"}
     )
     assert resp.status_code == 200
     assert resp.json()["items"][0]["id"] == "1"
@@ -62,14 +63,14 @@ def test_limitless_http_error(monkeypatch, tmp_path: Path):
     def fake_load(**_):
         raise HTTPException(status_code=400, detail="bad")
 
-    monkeypatch.setattr(limitless, "_load_local_entries", fake_load)
+    monkeypatch.setattr(limitless, "_search_local_entries", fake_load)
 
     from digital_persona import mcp_server
     importlib.reload(mcp_server)
     app = mcp_server.create_app()
     client = TestClient(app)
 
-    resp = client.post("/limitless/lifelogs?api_key=x", json={})
+    resp = client.post("/limitless/lifelogs", json={})
     assert resp.status_code == 400
 
 
