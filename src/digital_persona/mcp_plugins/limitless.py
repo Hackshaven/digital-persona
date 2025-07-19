@@ -4,9 +4,9 @@ import logging
 from datetime import datetime, timedelta, UTC
 import asyncio
 import httpx
-from fastapi import APIRouter, FastAPI, Depends, Security
+from fastapi import APIRouter, FastAPI, Depends, Security, HTTPException
 from fastapi.security import APIKeyQuery
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from digital_persona.utils.filename import sanitize_filename
 
 from digital_persona import config as dp_config
@@ -36,8 +36,16 @@ api_key_query = APIKeyQuery(name="api_key", auto_error=False)
 class LifelogParams(BaseModel):
     """Parameters accepted by the lifelogs endpoint."""
 
-    start: str | None = None
-    cursor: str | None = None
+    start: str | None = Field(
+        default=None,
+        description="ISO 8601 timestamp to fetch entries after",
+        examples=["2025-07-19T22:00:00Z"],
+    )
+    cursor: str | None = Field(
+        default=None,
+        description="Pagination cursor returned from previous call",
+        examples=["eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"],
+    )
 
 
 def get_api_key(api_key: str | None = Security(api_key_query)) -> str:
@@ -161,7 +169,15 @@ async def api_lifelogs(
     """Return Limitless entries via the MCP server."""
     start = params.start if params else None
     cursor = params.cursor if params else None
-    items, next_cursor = _fetch_entries(start=start, cursor=cursor, api_key=api_key)
+    # OpenAPI tooling may send literal "string" when no value is provided
+    if start == "string":
+        start = None
+    if cursor == "string":
+        cursor = None
+    try:
+        items, next_cursor = _fetch_entries(start=start, cursor=cursor, api_key=api_key)
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
     return {"items": items, "next_cursor": next_cursor}
 
 
