@@ -22,8 +22,8 @@ def create_app(plugin_names: list[str] | None = None) -> FastAPI:
     for name in plugin_names:
         try:
             mod = importlib.import_module(name)
-        except Exception:
-            logger.exception("Failed to import plugin %s", name)
+        except Exception as e:
+            logger.exception("Failed to import plugin %s: %s", name, str(e))
             continue
         router = getattr(mod, "router", None)
         if router is not None:
