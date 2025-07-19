@@ -80,7 +80,7 @@ def _save_entry(entry: dict) -> None:
     entry_id = entry.get("id") or entry.get("uuid") or entry.get("timestamp")
     if not entry_id:
         entry_id = datetime.now(UTC).timestamp()
-    entry_id = str(entry_id).replace(".", "")  # Remove decimal point if present
+    entry_id = _sanitize_filename(str(entry_id))  # Sanitize entry_id
     out = _get_entry_filename(entry_id)
     obj = {k: v for k, v in entry.items()}
     out.write_text(json.dumps(obj, ensure_ascii=False), encoding="utf-8")
