@@ -17,7 +17,7 @@ from digital_persona.secure_storage import (
 from digital_persona import config as dp_config
 
 dp_config.load_env()
-from digital_persona.ingest import INPUT_DIR, _persona_dir
+from digital_persona.ingest import INPUT_DIR, PROCESSED_DIR, _persona_dir
 
 FERNET = get_fernet(_persona_dir())
 
@@ -128,9 +128,12 @@ def _search_local_entries(
     keyword: str | None = None,
     limit: int = 100,
 ) -> list[dict]:
-    """Return stored Limitless entries from ``INPUT_DIR``."""
+    """Return stored Limitless entries from the persona directory."""
 
-    files = sorted(INPUT_DIR.glob("limitless-*.json"))
+    files = sorted(
+        list(PROCESSED_DIR.glob("limitless-*.json"))
+        + list(INPUT_DIR.glob("limitless-*.json"))
+    )
     start_dt = None
     end_dt = None
     if start:
