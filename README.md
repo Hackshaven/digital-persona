@@ -121,7 +121,7 @@ Environment variables:
    - The object also stores a relative `source` path to the processed original file so you can reference images or audio later.
    - Non-text media should be ingested first so a text summary is available.
    - Completed memories are moved to `PERSONA_DIR/archive` after `/complete_interview` so they won't be processed twice.
-   - The MCP server runs on `http://localhost:8900`. Visit `/` for a quick status check, `/docs` for the UI, or `/openapi.json` for the spec. Call `POST /limitless/lifelogs?api_key=YOUR_KEY` with a JSON body containing optional `start` and `cursor` fields to fetch your Limitless lifelogs. Leave these fields empty if you don't have real values—some tools may send the string `"string"`, which the server now ignores.
+   - The MCP server runs on `http://localhost:8900`. Visit `/` for a quick status check, `/docs` for the UI, or `/openapi.json` for the spec. Call `POST /limitless/lifelogs?api_key=YOUR_KEY` with a JSON body containing optional `start` and `cursor` fields to read previously fetched Limitless lifelogs from `PERSONA_DIR/input`. Placeholder values like `"string"` are ignored.
 
 ### Sample Data
 

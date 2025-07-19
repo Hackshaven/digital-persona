@@ -10,7 +10,11 @@ def test_limitless_route(monkeypatch, tmp_path: Path):
     monkeypatch.setenv("MCP_PLUGINS", "digital_persona.mcp_plugins.limitless")
 
     import digital_persona.mcp_plugins.limitless as limitless
-    monkeypatch.setattr(limitless, "_fetch_entries", lambda start=None, cursor=None, api_key="x": ([{"id": "1", "content": "hi"}], None))
+    monkeypatch.setattr(
+        limitless,
+        "_load_local_entries",
+        lambda start=None, cursor=None: ([{"id": "1", "content": "hi"}], None),
+    )
 
     from digital_persona import mcp_server
     importlib.reload(mcp_server)
@@ -28,12 +32,12 @@ def test_limitless_ignores_string_params(monkeypatch, tmp_path: Path):
 
     import digital_persona.mcp_plugins.limitless as limitless
 
-    def fake_fetch(start=None, cursor=None, api_key="x"):
+    def fake_load(start=None, cursor=None):
         assert start is None
         assert cursor is None
         return [{"id": "1"}], None
 
-    monkeypatch.setattr(limitless, "_fetch_entries", fake_fetch)
+    monkeypatch.setattr(limitless, "_load_local_entries", fake_load)
 
     from digital_persona import mcp_server
     importlib.reload(mcp_server)
@@ -53,14 +57,12 @@ def test_limitless_http_error(monkeypatch, tmp_path: Path):
     monkeypatch.setenv("MCP_PLUGINS", "digital_persona.mcp_plugins.limitless")
 
     import digital_persona.mcp_plugins.limitless as limitless
-    import httpx
+    from fastapi import HTTPException
 
-    def fake_fetch(**_):
-        request = httpx.Request("GET", "http://x")
-        response = httpx.Response(400, request=request, text="bad")
-        raise httpx.HTTPStatusError("bad", request=request, response=response)
+    def fake_load(**_):
+        raise HTTPException(status_code=400, detail="bad")
 
-    monkeypatch.setattr(limitless, "_fetch_entries", fake_fetch)
+    monkeypatch.setattr(limitless, "_load_local_entries", fake_load)
 
     from digital_persona import mcp_server
     importlib.reload(mcp_server)

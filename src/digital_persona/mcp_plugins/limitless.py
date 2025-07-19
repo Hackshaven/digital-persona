@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timedelta, UTC
 import asyncio
 import httpx
-from fastapi import APIRouter, FastAPI, Depends, Security, HTTPException
+from fastapi import APIRouter, FastAPI, Depends, Security
 from fastapi.security import APIKeyQuery
 from pydantic import BaseModel, Field
 from digital_persona.utils.filename import sanitize_filename
@@ -116,6 +116,46 @@ def _get_entry_filename(entry_id: str) -> os.PathLike:
     return INPUT_DIR / f"limitless-{entry_id}.json"
 
 
+def _load_local_entries(
+    *, start: str | None = None, cursor: str | None = None, limit: int = 100
+) -> tuple[list[dict], str | None]:
+    """Return stored Limitless entries from ``INPUT_DIR``."""
+
+    files = sorted(INPUT_DIR.glob("limitless-*.json"))
+    start_dt = None
+    if start:
+        try:
+            start_dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
+        except Exception:
+            start_dt = None
+    index = 0
+    if cursor:
+        try:
+            index = int(cursor)
+        except Exception:
+            index = 0
+    items: list[dict] = []
+    next_cursor: str | None = None
+    for idx, path in enumerate(files[index:], start=index):
+        try:
+            obj = json.loads(path.read_text())
+        except Exception:
+            continue
+        ts = obj.get("updatedAt") or obj.get("timestamp") or obj.get("endTime")
+        if start_dt and ts:
+            try:
+                ts_dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+                if ts_dt <= start_dt:
+                    continue
+            except Exception:
+                pass
+        items.append(obj)
+        if len(items) >= limit:
+            next_cursor = str(idx + 1)
+            break
+    return items, next_cursor
+
+
 def run_once() -> None:
     state = _load_state()
     last_id: str | None = state.get("last_id")
@@ -174,10 +214,7 @@ async def api_lifelogs(
         start = None
     if cursor == "string":
         cursor = None
-    try:
-        items, next_cursor = _fetch_entries(start=start, cursor=cursor, api_key=api_key)
-    except httpx.HTTPStatusError as exc:
-        raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
+    items, next_cursor = _load_local_entries(start=start, cursor=cursor)
     return {"items": items, "next_cursor": next_cursor}
 
 
