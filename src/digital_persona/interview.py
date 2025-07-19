@@ -355,9 +355,8 @@ class PersonalityInterviewer:
         response = self.llm.invoke(msg).content
         clean = response.strip()
 
-        # Optional debug log
-        # print("[DEBUG] Raw LLM response:")
-        # print(clean)
+        # Log the raw LLM response for debugging purposes
+        logging.debug("[DEBUG] Raw LLM response: %s", clean)
 
         # Strip markdown code blocks
         for prefix in ["```json", "```"]:
