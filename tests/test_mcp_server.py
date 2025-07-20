@@ -105,3 +105,18 @@ def test_ai_plugin(monkeypatch, tmp_path: Path):
     assert resp.status_code == 200
     data = resp.json()
     assert data["name_for_model"] == "limitless_mcp"
+
+
+def test_ai_plugin_via_create_app(monkeypatch, tmp_path: Path):
+    monkeypatch.setenv("PERSONA_DIR", str(tmp_path))
+    monkeypatch.setenv("LIMITLESS_API_KEY", "x")
+    monkeypatch.setenv("MCP_PLUGINS", "digital_persona.mcp_plugins.limitless")
+
+    from digital_persona import mcp_server
+    importlib.reload(mcp_server)
+    app = mcp_server.create_app()
+    client = TestClient(app)
+
+    resp = client.get("/.well-known/ai-plugin.json")
+    assert resp.status_code == 200
+    assert resp.json()["name_for_model"] == "limitless_mcp"

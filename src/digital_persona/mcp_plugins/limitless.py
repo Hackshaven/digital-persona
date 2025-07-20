@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timedelta, UTC
 import asyncio
 import httpx
-from fastapi import APIRouter, FastAPI, Security
+from fastapi import APIRouter, FastAPI, Security, Request
 from fastapi.security import APIKeyQuery
 from pydantic import BaseModel, Field
 from digital_persona.utils.filename import sanitize_filename
@@ -81,6 +81,24 @@ def setup(app: FastAPI) -> None:
             await asyncio.sleep(POLL_INTERVAL)
 
     app.add_event_handler("startup", lambda: asyncio.create_task(_loop()))
+
+    @app.get("/.well-known/ai-plugin.json", include_in_schema=False)
+    def ai_plugin(request: Request) -> dict:
+        """Return Open WebUI plugin manifest."""
+        base = str(request.base_url).rstrip("/")
+        return {
+            "schema_version": "v1",
+            "name_for_human": "Limitless MCP",
+            "name_for_model": "limitless_mcp",
+            "description_for_human": "Search your stored Limitless lifelogs",
+            "description_for_model": "Search previously ingested lifelogs via the MCP server",
+            "auth": {"type": "none"},
+            "api": {
+                "type": "openapi",
+                "url": f"{base}{app.openapi_url}",
+                "is_user_authenticated": False,
+            },
+        }
 
 
 def _load_state() -> dict:
