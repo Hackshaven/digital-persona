@@ -2,6 +2,7 @@ import os
 import importlib
 import logging
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .mcp_service import get_plugin_names
 
@@ -15,6 +16,12 @@ def create_app(plugin_names: list[str] | None = None) -> FastAPI:
         logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
     app = FastAPI(title="MCP Server")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     @app.get("/", include_in_schema=False)
     def root() -> dict:

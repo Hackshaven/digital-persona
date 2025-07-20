@@ -120,3 +120,23 @@ def test_ai_plugin_via_create_app(monkeypatch, tmp_path: Path):
     resp = client.get("/.well-known/ai-plugin.json")
     assert resp.status_code == 200
     assert resp.json()["name_for_model"] == "limitless_mcp"
+
+
+def test_cors_options(monkeypatch, tmp_path: Path):
+    monkeypatch.setenv("PERSONA_DIR", str(tmp_path))
+    monkeypatch.setenv("MCP_PLUGINS", "")
+
+    from digital_persona import mcp_server
+    importlib.reload(mcp_server)
+    app = mcp_server.create_app([])
+    client = TestClient(app)
+
+    resp = client.options(
+        "/openapi.json",
+        headers={
+            "Origin": "http://example.com",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert resp.status_code in {200, 204}
+    assert resp.headers.get("access-control-allow-origin") == "*"
