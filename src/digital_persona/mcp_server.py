@@ -2,23 +2,32 @@ import os
 import importlib
 import logging
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-DEFAULT_PLUGINS = ["digital_persona.mcp_plugins.limitless"]
+from .mcp_service import get_plugin_names
 
 
 def create_app(plugin_names: list[str] | None = None) -> FastAPI:
     if plugin_names is None:
-        env = os.getenv("MCP_PLUGINS")
-        if env:
-            plugin_names = [p.strip() for p in env.split(",") if p.strip()]
-        else:
-            plugin_names = DEFAULT_PLUGINS
+        plugin_names = get_plugin_names()
 
     logger = logging.getLogger(__name__)
     if not logger.handlers:
         logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
     app = FastAPI(title="MCP Server")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    @app.get("/", include_in_schema=False)
+    def root() -> dict:
+        """Basic health check message."""
+        return {"message": "MCP server running", "docs": "/docs"}
+
     for name in plugin_names:
         try:
             mod = importlib.import_module(name)
