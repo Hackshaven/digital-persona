@@ -96,9 +96,9 @@ def test_ai_plugin(monkeypatch, tmp_path: Path):
     monkeypatch.setenv("PERSONA_DIR", str(tmp_path))
     monkeypatch.setenv("MCP_PLUGINS", "")
 
-    from digital_persona import mcp_server
-    importlib.reload(mcp_server)
-    app = mcp_server.create_app([])
+    from digital_persona import limitless_mcp_server
+    importlib.reload(limitless_mcp_server)
+    app = limitless_mcp_server.create_limitless_app()
     client = TestClient(app)
 
     resp = client.get("/.well-known/ai-plugin.json")

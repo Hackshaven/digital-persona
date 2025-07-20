@@ -1,48 +1,26 @@
 import os
 import importlib
 import logging
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 
-DEFAULT_PLUGINS = ["digital_persona.mcp_plugins.limitless"]
+from .mcp_service import get_plugin_names
 
 
 def create_app(plugin_names: list[str] | None = None) -> FastAPI:
     if plugin_names is None:
-        env = os.getenv("MCP_PLUGINS")
-        if env:
-            plugin_names = [p.strip() for p in env.split(",") if p.strip()]
-        else:
-            plugin_names = DEFAULT_PLUGINS
+        plugin_names = get_plugin_names()
 
     logger = logging.getLogger(__name__)
     if not logger.handlers:
         logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
-    # info.title becomes the plugin ID in some UIs, so avoid spaces
-    app = FastAPI(title="limitless_mcp")
+    app = FastAPI(title="MCP Server")
 
     @app.get("/", include_in_schema=False)
     def root() -> dict:
         """Basic health check message."""
         return {"message": "MCP server running", "docs": "/docs"}
 
-    @app.get("/.well-known/ai-plugin.json", include_in_schema=False)
-    def ai_plugin(request: Request) -> dict:
-        """Plugin manifest used by Open WebUI and similar tools."""
-        base = str(request.base_url).rstrip("/")
-        return {
-            "schema_version": "v1",
-            "name_for_human": "Limitless MCP",
-            "name_for_model": "limitless_mcp",
-            "description_for_human": "Search your stored Limitless lifelogs",
-            "description_for_model": "Search previously ingested lifelogs via the MCP server",
-            "auth": {"type": "none"},
-            "api": {
-                "type": "openapi",
-                "url": f"{base}{app.openapi_url}",
-                "is_user_authenticated": False,
-            },
-        }
     for name in plugin_names:
         try:
             mod = importlib.import_module(name)
