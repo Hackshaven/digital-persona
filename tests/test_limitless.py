@@ -11,6 +11,7 @@ def setup_limitless(monkeypatch, tmp_path: Path):
     monkeypatch.setenv("PERSONA_DIR", str(tmp_path))
     monkeypatch.setenv("LIMITLESS_API_KEY", "test-key")
     import digital_persona.mcp_plugins.limitless as limitless
+
     limitless = importlib.reload(limitless)
     return limitless
 
@@ -41,6 +42,7 @@ def test_requires_api_key(monkeypatch, tmp_path):
     monkeypatch.delenv("LIMITLESS_API_KEY", raising=False)
     with pytest.raises(RuntimeError):
         import importlib as _imp
+
         _imp.reload(_imp.import_module("digital_persona.mcp_plugins.limitless"))
 
 
@@ -58,7 +60,9 @@ def test_default_start_lookback(monkeypatch, tmp_path):
     limitless.run_once()
 
     assert captured["start"] is not None
-    delta = datetime.now(UTC) - datetime.fromisoformat(captured["start"].replace("Z", "+00:00"))
+    delta = datetime.now(UTC) - datetime.fromisoformat(
+        captured["start"].replace("Z", "+00:00")
+    )
     assert 0 <= delta.days <= 2
 
 
@@ -66,7 +70,9 @@ def test_missing_file_triggers_redownload(monkeypatch, tmp_path):
     limitless = setup_limitless(monkeypatch, tmp_path)
 
     state_file = tmp_path / "limitless_state.json"
-    state_file.write_text(json.dumps({"last_id": "99", "start": "2025-07-01T00:00:00Z"}))
+    state_file.write_text(
+        json.dumps({"last_id": "99", "start": "2025-07-01T00:00:00Z"})
+    )
     captured = {}
 
     def fake_fetch(*, start=None, cursor=None):
@@ -80,3 +86,27 @@ def test_missing_file_triggers_redownload(monkeypatch, tmp_path):
     assert captured["start"] is not None
     assert captured["cursor"] is None
 
+
+def test_search_local_entries_by_speaker(monkeypatch, tmp_path):
+    monkeypatch.setenv("PERSONA_DIR", str(tmp_path))
+    monkeypatch.setenv("LIMITLESS_API_KEY", "x")
+    monkeypatch.setenv("PLAINTEXT_MEMORIES", "1")
+    import importlib
+    import digital_persona.mcp_plugins.limitless as limitless
+
+    limitless = importlib.reload(limitless)
+
+    entry1 = {"id": "1", "contents": [{"speakerName": "You", "content": "hi"}]}
+    entry2 = {"id": "2", "contents": [{"speakerName": "Alice", "content": "yo"}]}
+
+    limitless.INPUT_DIR.mkdir(parents=True, exist_ok=True)
+    save_json_encrypted = limitless.save_json_encrypted
+    fernet = limitless.FERNET
+    save_json_encrypted(entry1, limitless.INPUT_DIR / "limitless-1.json", fernet)
+    save_json_encrypted(entry2, limitless.INPUT_DIR / "limitless-2.json", fernet)
+
+    items = limitless._search_local_entries(speaker_name="You")
+    assert len(items) == 1 and items[0]["id"] == "1"
+
+    items = limitless._search_local_entries(speaker_name="Alice")
+    assert len(items) == 1 and items[0]["id"] == "2"

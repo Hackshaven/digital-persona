@@ -70,6 +70,7 @@ class LifelogParams(BaseModel):
         "extra": "ignore",
     }
 
+
 def setup(app: FastAPI) -> None:
     """Attach background ingest task to *app* startup."""
 
@@ -95,7 +96,9 @@ def _save_state(state: dict) -> None:
     STATE_FILE.write_text(json.dumps(state))
 
 
-def _fetch_entries(*, start: str | None = None, cursor: str | None = None, api_key: str = API_KEY) -> tuple[list[dict], str | None]:
+def _fetch_entries(
+    *, start: str | None = None, cursor: str | None = None, api_key: str = API_KEY
+) -> tuple[list[dict], str | None]:
     """Return lifelog entries and the next cursor."""
 
     headers = {"X-API-Key": api_key}
@@ -128,13 +131,33 @@ def _save_entry(entry: dict) -> None:
     save_json_encrypted(obj, out, FERNET)
     logger.info("Saved %s", out.name)
 
+
 def _get_entry_filename(entry_id: str) -> os.PathLike:
     """Construct the file path for a given entry ID."""
     return INPUT_DIR / f"limitless-{entry_id}.json"
 
 
+def _contains_speaker(obj: object, speaker_name: str) -> bool:
+    """Return True if *obj* or nested values contain the speaker name."""
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if key in {"speakerName", "speaker"}:
+                if value and speaker_name.lower() in str(value).lower():
+                    return True
+            if key == "metadata" and isinstance(value, dict):
+                val = value.get("speakerName") or value.get("speaker")
+                if val and speaker_name.lower() in str(val).lower():
+                    return True
+            if _contains_speaker(value, speaker_name):
+                return True
+    elif isinstance(obj, list):
+        return any(_contains_speaker(v, speaker_name) for v in obj)
+    return False
+
+
 def _search_local_entries(
-    *, start: str | None = None,
+    *,
+    start: str | None = None,
     end: str | None = None,
     keyword: str | None = None,
     speaker_name: str | None = None,
@@ -180,12 +203,10 @@ def _search_local_entries(
             if keyword.lower() not in text:
                 continue
         if speaker_name:
-            name = (
-                obj.get("speakerName")
-                or obj.get("speaker")
-                or obj.get("metadata", {}).get("speakerName")
-            )
-            if not name or speaker_name.lower() not in str(name).lower():
+            try:
+                if not _contains_speaker(obj, speaker_name):
+                    continue
+            except Exception:
                 continue
         items.append(obj)
         if len(items) >= limit:
@@ -203,7 +224,11 @@ def run_once() -> None:
         last_id = None
 
     if not cursor and not start:
-        start = (datetime.now(UTC) - timedelta(days=LOOKBACK_DAYS)).isoformat().replace("+00:00", "Z")
+        start = (
+            (datetime.now(UTC) - timedelta(days=LOOKBACK_DAYS))
+            .isoformat()
+            .replace("+00:00", "Z")
+        )
 
     try:
         entries, next_cursor = _fetch_entries(start=start, cursor=cursor)
