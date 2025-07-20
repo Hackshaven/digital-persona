@@ -13,7 +13,9 @@ def test_limitless_route(monkeypatch, tmp_path: Path):
     monkeypatch.setattr(
         limitless,
         "_search_local_entries",
-        lambda start=None, end=None, keyword=None: [{"id": "1", "content": "hi"}],
+        lambda start=None, end=None, keyword=None, speaker_name=None: [
+            {"id": "1", "content": "hi"}
+        ],
     )
 
     from digital_persona import mcp_server
@@ -32,10 +34,11 @@ def test_limitless_ignores_string_params(monkeypatch, tmp_path: Path):
 
     import digital_persona.mcp_plugins.limitless as limitless
 
-    def fake_load(start=None, end=None, keyword=None):
+    def fake_load(start=None, end=None, keyword=None, speaker_name=None):
         assert start is None
         assert end is None
         assert keyword is None
+        assert speaker_name is None
         return [{"id": "1"}]
 
     monkeypatch.setattr(limitless, "_search_local_entries", fake_load)
@@ -46,7 +49,8 @@ def test_limitless_ignores_string_params(monkeypatch, tmp_path: Path):
     client = TestClient(app)
 
     resp = client.post(
-        "/limitless/lifelogs", json={"start": "string", "end": "string", "keyword": "string"}
+        "/limitless/lifelogs",
+        json={"start": "string", "end": "string", "keyword": "string", "speakerName": "string"},
     )
     assert resp.status_code == 200
     assert resp.json()["items"][0]["id"] == "1"

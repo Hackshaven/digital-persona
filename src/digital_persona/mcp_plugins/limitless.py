@@ -58,6 +58,17 @@ class LifelogParams(BaseModel):
         description="Filter entries containing this text",
         examples=["meeting"],
     )
+    speaker_name: str | None = Field(
+        default=None,
+        alias="speakerName",
+        description="Filter entries attributed to this speaker",
+        examples=["Alice"],
+    )
+
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+    }
 
 def setup(app: FastAPI) -> None:
     """Attach background ingest task to *app* startup."""
@@ -126,6 +137,7 @@ def _search_local_entries(
     *, start: str | None = None,
     end: str | None = None,
     keyword: str | None = None,
+    speaker_name: str | None = None,
     limit: int = 100,
 ) -> list[dict]:
     """Return stored Limitless entries from the persona directory."""
@@ -166,6 +178,14 @@ def _search_local_entries(
         if keyword:
             text = json.dumps(obj, ensure_ascii=False).lower()
             if keyword.lower() not in text:
+                continue
+        if speaker_name:
+            name = (
+                obj.get("speakerName")
+                or obj.get("speaker")
+                or obj.get("metadata", {}).get("speakerName")
+            )
+            if not name or speaker_name.lower() not in str(name).lower():
                 continue
         items.append(obj)
         if len(items) >= limit:
@@ -227,6 +247,7 @@ async def api_lifelogs(
     start = params.start if params else None
     end = params.end if params else None
     keyword = params.keyword if params else None
+    speaker_name = params.speaker_name if params else None
     # OpenAPI tooling may send literal "string" when no value is provided
     if start == "string":
         start = None
@@ -234,7 +255,11 @@ async def api_lifelogs(
         end = None
     if keyword == "string":
         keyword = None
-    items = _search_local_entries(start=start, end=end, keyword=keyword)
+    if speaker_name == "string":
+        speaker_name = None
+    items = _search_local_entries(
+        start=start, end=end, keyword=keyword, speaker_name=speaker_name
+    )
     return {"items": items}
 
 
