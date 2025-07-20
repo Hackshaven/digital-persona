@@ -6,6 +6,7 @@ import asyncio
 import httpx
 from fastapi import APIRouter, FastAPI, Security, Request
 from fastapi.security import APIKeyQuery
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from digital_persona.utils.filename import sanitize_filename
 from digital_persona.secure_storage import (
@@ -83,10 +84,10 @@ def setup(app: FastAPI) -> None:
     app.add_event_handler("startup", lambda: asyncio.create_task(_loop()))
 
     @app.get("/.well-known/ai-plugin.json", include_in_schema=False)
-    def ai_plugin(request: Request) -> dict:
+    def ai_plugin(request: Request) -> JSONResponse:
         """Return Open WebUI plugin manifest."""
         base = str(request.base_url).rstrip("/")
-        return {
+        manifest = {
             "schema_version": "v1",
             "name_for_human": "Limitless MCP",
             "name_for_model": "limitless_mcp",
@@ -98,7 +99,11 @@ def setup(app: FastAPI) -> None:
                 "url": f"{base}{app.openapi_url}",
                 "is_user_authenticated": False,
             },
+            "logo_url": f"{base}/logo.png",
+            "contact_email": "support@example.com",
+            "legal_info_url": "https://example.com/legal",
         }
+        return JSONResponse(content=manifest)
 
 
 def _load_state() -> dict:
